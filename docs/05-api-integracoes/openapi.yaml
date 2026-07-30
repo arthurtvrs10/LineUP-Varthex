@@ -1,0 +1,6802 @@
+openapi: 3.1.1
+info:
+  title: Varthex Barber API
+  version: 1.0.0
+  description: Contrato canônico da API privada e evolução planejada do Varthex Barber.
+servers:
+  - url: /api/v1
+    description: API relativa sob mesma origem
+tags:
+  - name: Auth
+    description: Autenticação, sessão, senha, contato e MFA.
+  - name: Tenant
+    description: Configuração da barbearia, unidade e políticas.
+  - name: Users
+    description: Usuários, vínculos, papéis e auditoria.
+  - name: Customers
+    description: Cadastro, histórico, importação e exportação de clientes.
+  - name: Barbers
+    description: Perfis profissionais e seus vínculos.
+  - name: Services
+    description: Categorias, serviços, combos e habilitação profissional.
+  - name: Scheduling
+    description: Disponibilidade, agendamento, recorrência e estados.
+  - name: Waitlist
+    description: Fila de espera, ofertas e conversão em reserva.
+  - name: Commissions
+    description: Regras, lançamentos, ajustes e consultas de comissão.
+  - name: Dashboard
+    description: Indicadores, relatórios, metas e análises.
+  - name: Notifications
+    description: Notificações, templates, preferências, CRM e campanhas.
+  - name: Cash
+    description: Sessões e movimentos do caixa.
+  - name: Payments
+    description: Recebimentos, reembolsos, comprovantes e conciliação.
+  - name: Inventory
+    description: Produtos, fornecedores, estoque, compras e transferências.
+  - name: Loyalty
+    description: Pontos, pacotes e planos vendidos ao cliente final.
+  - name: Integrations
+    description: Fornecedores, OAuth, webhooks e API pública.
+  - name: Subscriptions
+    description: Trial, cobrança e direitos da assinatura SaaS.
+  - name: Administration
+    description: Operação da plataforma e suporte controlado.
+security:
+  - cookieSession: []
+paths:
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: "Sessão criada"
+      operationId: login
+      x-release: MVP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Sessão criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /auth/refresh:
+    post:
+      tags: [Auth]
+      summary: "Sessão renovada e refresh rotacionado"
+      operationId: refreshSession
+      x-release: MVP
+      security: []
+      responses:
+        '200':
+          description: Sessão renovada e refresh rotacionado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionView'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /auth/logout:
+    post:
+      tags: [Auth]
+      summary: "Sessão encerrada"
+      operationId: logout
+      x-release: MVP
+      responses:
+        '204':
+          description: Sessão encerrada
+  /auth/password-recovery:
+    post:
+      tags: [Auth]
+      summary: "Solicitação aceita sem revelar existência da conta"
+      operationId: requestPasswordRecovery
+      x-release: MVP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email]
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '202':
+          description: Solicitação aceita sem revelar existência da conta
+  /me:
+    get:
+      tags: [Users]
+      summary: "Usuário e contexto ativos"
+      operationId: getCurrentUser
+      x-release: MVP
+      responses:
+        '200':
+          description: Usuário e contexto ativos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+  /tenant:
+    get:
+      tags: [Tenant]
+      summary: "Tenant atual"
+      operationId: getCurrentTenant
+      x-release: MVP
+      responses:
+        '200':
+          description: Tenant atual
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+    patch:
+      tags: [Tenant]
+      summary: "Tenant atualizado"
+      operationId: updateCurrentTenant
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantUpdate'
+      responses:
+        '200':
+          description: Tenant atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /tenant/logo:
+    post:
+      tags: [Tenant]
+      summary: "Logo validada, armazenada e associada ao tenant"
+      operationId: uploadTenantLogo
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              additionalProperties: false
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '200':
+          description: Tenant com a nova URL controlada da logo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '413':
+          description: Arquivo acima do limite permitido
+          content:
+            application/problem+json:
+              schema:
+                $ref: '#/components/schemas/Problem'
+  /users:
+    get:
+      tags: [Users]
+      summary: "Usuários paginados"
+      operationId: listUsers
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Usuários paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPage'
+    post:
+      tags: [Users]
+      summary: "Convite criado"
+      operationId: inviteUser
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserInvite'
+      responses:
+        '201':
+          description: Convite criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /customers:
+    get:
+      tags: [Customers]
+      summary: "Clientes paginados"
+      operationId: listCustomers
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: query
+          in: query
+          schema:
+            type: string
+            maxLength: 160
+      responses:
+        '200':
+          description: Clientes paginados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPage'
+    post:
+      tags: [Customers]
+      summary: "Cliente criado"
+      operationId: createCustomer
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Cliente criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /customers/{customerId}:
+    parameters:
+      - $ref: '#/components/parameters/CustomerId'
+    get:
+      tags: [Customers]
+      summary: "Cliente"
+      operationId: getCustomer
+      x-release: MVP
+      responses:
+        '200':
+          description: Cliente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Customers]
+      summary: "Cliente atualizado"
+      operationId: updateCustomer
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '200':
+          description: Cliente atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '409':
+          $ref: '#/components/responses/Conflict'
+    delete:
+      tags: [Customers]
+      summary: "Cliente arquivado"
+      operationId: archiveCustomer
+      x-release: MVP
+      responses:
+        '204':
+          description: Cliente arquivado
+  /barbers:
+    get:
+      tags: [Barbers]
+      summary: "Profissionais"
+      operationId: listBarbers
+      x-release: MVP
+      responses:
+        '200':
+          description: Profissionais
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Barber'
+    post:
+      tags: [Barbers]
+      summary: "Profissional criado"
+      operationId: createBarber
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarberInput'
+      responses:
+        '201':
+          description: Profissional criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barber'
+  /services:
+    get:
+      tags: [Services]
+      summary: "Serviços"
+      operationId: listServices
+      x-release: MVP
+      parameters:
+        - name: active
+          in: query
+          schema:
+            type: boolean
+      responses:
+        '200':
+          description: Serviços
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Service'
+    post:
+      tags: [Services]
+      summary: "Serviço criado"
+      operationId: createService
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceInput'
+      responses:
+        '201':
+          description: Serviço criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+  /services/{serviceId}:
+    parameters:
+      - $ref: '#/components/parameters/ServiceId'
+    patch:
+      tags: [Services]
+      summary: "Serviço atualizado"
+      operationId: updateService
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceInput'
+      responses:
+        '200':
+          description: Serviço atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Service'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /barbers/{barberId}/availability:
+    get:
+      tags: [Scheduling]
+      summary: "Slots disponíveis"
+      operationId: getBarberAvailability
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+        - name: serviceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Slots disponíveis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilitySlot'
+  /appointments:
+    get:
+      tags: [Scheduling]
+      summary: "Agenda filtrada"
+      operationId: listAppointments
+      x-release: MVP
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: barberId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            $ref: '#/components/schemas/AppointmentStatus'
+      responses:
+        '200':
+          description: Agenda filtrada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+    post:
+      tags: [Scheduling]
+      summary: "Agendamento criado"
+      operationId: createAppointment
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreate'
+      responses:
+        '201':
+          description: Agendamento criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /appointments/{appointmentId}:
+    parameters:
+      - $ref: '#/components/parameters/AppointmentId'
+    get:
+      tags: [Scheduling]
+      summary: "Agendamento"
+      operationId: getAppointment
+      x-release: MVP
+      responses:
+        '200':
+          description: Agendamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      tags: [Scheduling]
+      summary: "Agendamento atualizado"
+      operationId: updateAppointment
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentUpdate'
+      responses:
+        '200':
+          description: Agendamento atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /appointments/{appointmentId}/actions/{action}:
+    parameters:
+      - $ref: '#/components/parameters/AppointmentId'
+      - name: action
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [confirm, check-in, start, complete, cancel, no-show]
+    post:
+      tags: [Scheduling]
+      summary: "Estado atualizado"
+      operationId: transitionAppointment
+      x-release: MVP
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentAction'
+      responses:
+        '200':
+          description: Estado atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /appointments/{appointmentId}/reschedule:
+    post:
+      tags: [Scheduling]
+      summary: "Agendamento reagendado"
+      operationId: rescheduleAppointment
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RescheduleRequest'
+      responses:
+        '200':
+          description: Agendamento reagendado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /waitlist-entries:
+    get:
+      tags: [Waitlist]
+      summary: "Fila ativa"
+      operationId: listWaitlistEntries
+      x-release: MVP
+      responses:
+        '200':
+          description: Fila ativa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WaitlistEntry'
+    post:
+      tags: [Waitlist]
+      summary: "Entrada criada"
+      operationId: createWaitlistEntry
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WaitlistInput'
+      responses:
+        '201':
+          description: Entrada criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitlistEntry'
+  /waitlist-entries/{waitlistEntryId}/offers:
+    post:
+      tags: [Waitlist]
+      summary: "Oferta criada"
+      operationId: createWaitlistOffer
+      x-release: MVP
+      parameters:
+        - name: waitlistEntryId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [slotStartAt, slotEndAt]
+              properties:
+                slotStartAt:
+                  type: string
+                  format: date-time
+                slotEndAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Oferta criada
+  /commissions/summary:
+    get:
+      tags: [Commissions]
+      summary: "Resumo de comissão"
+      operationId: getCommissionSummary
+      x-release: MVP
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: barberId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Resumo de comissão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionSummary'
+  /dashboard/overview:
+    get:
+      tags: [Dashboard]
+      summary: "Indicadores operacionais"
+      operationId: getDashboardOverview
+      x-release: MVP
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Indicadores operacionais
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DashboardOverview'
+  /notifications:
+    get:
+      tags: [Notifications]
+      summary: "Notificações do usuário"
+      operationId: listNotifications
+      x-release: MVP
+      responses:
+        '200':
+          description: Notificações do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+  /cash-sessions:
+    post:
+      tags: [Cash]
+      summary: "Caixa aberto"
+      operationId: openCashSession
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashSessionOpen'
+      responses:
+        '201':
+          description: Caixa aberto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashSession'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /cash-sessions/{cashSessionId}/close:
+    post:
+      tags: [Cash]
+      summary: "Caixa fechado"
+      operationId: closeCashSession
+      x-release: INTERMEDIARIO
+      parameters:
+        - name: cashSessionId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [countedAmount]
+              properties:
+                countedAmount:
+                  $ref: '#/components/schemas/Money'
+                reason:
+                  type: string
+                  maxLength: 500
+      responses:
+        '200':
+          description: Caixa fechado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashSession'
+  /payments:
+    post:
+      tags: [Payments]
+      summary: "Grupo e lançamentos por meio registrados atomicamente"
+      operationId: createPayment
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PaymentInput'
+      responses:
+        '201':
+          description: Grupo e lançamentos por meio registrados atomicamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaymentBatch'
+  /products:
+    get:
+      tags: [Inventory]
+      summary: "Produtos"
+      operationId: listProducts
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Produtos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      tags: [Inventory]
+      summary: "Produto criado"
+      operationId: createProduct
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Produto criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /stock-movements:
+    post:
+      tags: [Inventory]
+      summary: "Movimento confirmado"
+      operationId: createStockMovement
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockMovementInput'
+      responses:
+        '201':
+          description: Movimento confirmado
+  /loyalty/accounts/{customerId}:
+    get:
+      tags: [Loyalty]
+      summary: "Conta e saldo"
+      operationId: getCustomerLoyaltyAccount
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Conta e saldo
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyAccount'
+  /integrations:
+    get:
+      tags: [Integrations]
+      summary: "Conexões"
+      operationId: listIntegrations
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Conexões
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/IntegrationConnection'
+  /subscription:
+    get:
+      tags: [Subscriptions]
+      summary: "Assinatura e direitos"
+      operationId: getCurrentSubscription
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Assinatura e direitos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /admin/tenants:
+    get:
+      tags: [Administration]
+      summary: "Tenants da plataforma"
+      operationId: adminListTenants
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Tenants da plataforma
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantAdminPage'
+  /auth/logout-all:
+    post:
+      tags: [Auth]
+      summary: "Todas as sessões do usuário foram revogadas"
+      operationId: logoutAllSessions
+      x-release: MVP
+      responses:
+        '204':
+          description: Todas as sessões do usuário foram revogadas
+  /auth/password-recovery/complete:
+    post:
+      tags: [Auth]
+      summary: "Senha redefinida e token consumido"
+      operationId: completePasswordRecovery
+      x-release: MVP
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordRecoveryComplete'
+      responses:
+        '204':
+          description: Senha redefinida e token consumido
+        '400':
+          $ref: '#/components/responses/ValidationError'
+  /auth/password:
+    put:
+      tags: [Auth]
+      summary: "Senha alterada conforme política de revogação"
+      operationId: changePassword
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordChange'
+      responses:
+        '204':
+          description: Senha alterada conforme política de revogação
+  /auth/sessions:
+    get:
+      tags: [Auth]
+      summary: "Sessões do usuário"
+      operationId: listSessions
+      x-release: MVP
+      responses:
+        '200':
+          description: Sessões do usuário
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserSession'
+  /auth/sessions/{sessionId}:
+    delete:
+      tags: [Auth]
+      summary: "Sessão própria revogada"
+      operationId: revokeSession
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/SessionId'
+      responses:
+        '204':
+          description: Sessão própria revogada
+  /auth/contact-verifications:
+    post:
+      tags: [Auth]
+      summary: "Verificação solicitada sem revelar conta indevida"
+      operationId: requestContactVerification
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactVerificationRequest'
+      responses:
+        '202':
+          description: Verificação solicitada sem revelar conta indevida
+  /auth/contact-verifications/confirm:
+    post:
+      tags: [Auth]
+      summary: "Contato verificado"
+      operationId: confirmContactVerification
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactVerificationConfirm'
+      responses:
+        '204':
+          description: Contato verificado
+  /auth/mfa:
+    put:
+      tags: [Auth]
+      summary: "Configuração MFA e códigos de recuperação"
+      operationId: configureMfa
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaConfiguration'
+      responses:
+        '200':
+          description: Configuração MFA e códigos de recuperação
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MfaConfigurationResult'
+  /auth/mfa/verify:
+    post:
+      tags: [Auth]
+      summary: "Desafio MFA validado"
+      operationId: verifyMfa
+      x-release: FINAL
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MfaVerification'
+      responses:
+        '204':
+          description: Desafio MFA validado
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+  /tenants:
+    post:
+      tags: [Tenant]
+      summary: "Tenant, unidade inicial e administrador criados atomicamente"
+      operationId: createTenant
+      x-release: MVP
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TenantCreate'
+      responses:
+        '201':
+          description: Tenant, unidade inicial e administrador criados atomicamente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Tenant'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /tenant/booking-policy:
+    get:
+      tags: [Tenant]
+      summary: "Política de reserva vigente"
+      operationId: getBookingPolicy
+      x-release: MVP
+      responses:
+        '200':
+          description: Política de reserva vigente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingPolicy'
+  /tenant/deposit-policy:
+    get:
+      tags: [Tenant]
+      summary: "Política de sinal vigente"
+      operationId: getDepositPolicy
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Política de sinal vigente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositPolicy'
+    put:
+      tags: [Tenant]
+      summary: "Política de sinal atualizada com versão"
+      operationId: updateDepositPolicy
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DepositPolicy'
+      responses:
+        '200':
+          description: Política de sinal atualizada com versão
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DepositPolicy'
+  /unit:
+    get:
+      tags: [Tenant]
+      summary: "Unidade inicial ou ativa no contexto"
+      operationId: getCurrentUnit
+      x-release: MVP
+      responses:
+        '200':
+          description: Unidade inicial ou ativa no contexto
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    patch:
+      tags: [Tenant]
+      summary: "Unidade, endereço, fuso e horário atualizados"
+      operationId: updateCurrentUnit
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '200':
+          description: Unidade, endereço, fuso e horário atualizados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+    put:
+      tags: [Tenant]
+      summary: "Política atualizada"
+      operationId: updateBookingPolicy
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BookingPolicy'
+      responses:
+        '200':
+          description: Política atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BookingPolicy'
+  /units:
+    get:
+      tags: [Tenant]
+      summary: "Unidades autorizadas"
+      operationId: listUnits
+      x-release: FINAL
+      responses:
+        '200':
+          description: Unidades autorizadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Unit'
+    post:
+      tags: [Tenant]
+      summary: "Unidade criada"
+      operationId: createUnit
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '201':
+          description: Unidade criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+  /units/{unitId}:
+    patch:
+      tags: [Tenant]
+      summary: "Unidade atualizada"
+      operationId: updateUnit
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/UnitId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UnitInput'
+      responses:
+        '200':
+          description: Unidade atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Unit'
+  /barbers/{barberId}/unit:
+    put:
+      tags: [Barbers]
+      summary: "Vínculo de unidade alterado com vigência"
+      operationId: transferBarberUnit
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [unitId, effectiveAt, version]
+              properties:
+                unitId:
+                  type: string
+                  format: uuid
+                effectiveAt:
+                  type: string
+                  format: date-time
+                version:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Vínculo de unidade alterado com vigência
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barber'
+  /me/profile:
+    patch:
+      tags: [Users]
+      summary: "Perfil próprio atualizado"
+      operationId: updateCurrentUser
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserProfileUpdate'
+      responses:
+        '200':
+          description: Perfil próprio atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CurrentUser'
+  /users/{userId}/membership:
+    patch:
+      tags: [Users]
+      summary: "Estado, papel ou escopo do vínculo atualizado"
+      operationId: updateUserMembership
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MembershipUpdate'
+      responses:
+        '200':
+          description: Estado, papel ou escopo do vínculo atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+    delete:
+      tags: [Users]
+      summary: "Vínculo revogado e sessões do contexto invalidadas"
+      operationId: revokeUserMembership
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/UserId'
+      responses:
+        '204':
+          description: Vínculo revogado e sessões do contexto invalidadas
+  /roles:
+    get:
+      tags: [Users]
+      summary: "Papéis padrão e personalizados"
+      operationId: listRoles
+      x-release: FINAL
+      responses:
+        '200':
+          description: Papéis padrão e personalizados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Role'
+    post:
+      tags: [Users]
+      summary: "Papel personalizado criado"
+      operationId: createRole
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '201':
+          description: Papel personalizado criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+  /roles/{roleId}:
+    patch:
+      tags: [Users]
+      summary: "Papel versionado e atualizado"
+      operationId: updateRole
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/RoleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RoleInput'
+      responses:
+        '200':
+          description: Papel versionado e atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Role'
+  /audit-logs:
+    get:
+      tags: [Users]
+      summary: "Trilha autorizada, paginada e sem segredo"
+      operationId: listAuditLogs
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: type
+          in: query
+          schema:
+            type: string
+        - name: actorUserId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        '200':
+          description: Trilha autorizada, paginada e sem segredo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AuditLog'
+  /customers/{customerId}/appointments:
+    get:
+      tags: [Customers]
+      summary: "Histórico autorizado do cliente"
+      operationId: listCustomerAppointments
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Histórico autorizado do cliente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+  /customers/imports:
+    post:
+      tags: [Customers]
+      summary: "Validação ou importação iniciada"
+      operationId: importCustomers
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file, mode]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                mode:
+                  type: string
+                  enum: [VALIDATE, COMMIT]
+                validationToken:
+                  type: [string, 'null']
+      responses:
+        '202':
+          description: Validação ou importação iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJob'
+  /customers/exports:
+    post:
+      tags: [Customers]
+      summary: "Exportação auditada iniciada"
+      operationId: exportCustomers
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '202':
+          description: Exportação auditada iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJob'
+  /customers/merge:
+    post:
+      tags: [Customers]
+      summary: "Duplicidade unificada e operação reversível registrada"
+      operationId: mergeCustomers
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [sourceCustomerId, targetCustomerId, reason]
+              properties:
+                sourceCustomerId:
+                  type: string
+                  format: uuid
+                targetCustomerId:
+                  type: string
+                  format: uuid
+                reason:
+                  type: string
+                  minLength: 3
+                  maxLength: 500
+      responses:
+        '200':
+          description: Duplicidade unificada e operação reversível registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+  /barbers/{barberId}:
+    patch:
+      tags: [Barbers]
+      summary: "Perfil, status e serviços atualizados"
+      operationId: updateBarber
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BarberInput'
+      responses:
+        '200':
+          description: Perfil, status e serviços atualizados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Barber'
+  /service-categories:
+    get:
+      tags: [Services]
+      summary: "Categorias ordenadas"
+      operationId: listServiceCategories
+      x-release: MVP
+      responses:
+        '200':
+          description: Categorias ordenadas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ServiceCategory'
+    post:
+      tags: [Services]
+      summary: "Categoria criada"
+      operationId: createServiceCategory
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServiceCategoryInput'
+      responses:
+        '201':
+          description: Categoria criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServiceCategory'
+  /barbers/{barberId}/services:
+    put:
+      tags: [Services]
+      summary: "Serviços executáveis e sobrescritas substituídos"
+      operationId: replaceBarberServices
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/BarberServiceInput'
+      responses:
+        '204':
+          description: Serviços executáveis e sobrescritas substituídos
+  /barbers/{barberId}/work-schedules:
+    get:
+      tags: [Scheduling]
+      summary: "Jornada semanal vigente"
+      operationId: listWorkSchedules
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      responses:
+        '200':
+          description: Jornada semanal vigente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkSchedule'
+    put:
+      tags: [Scheduling]
+      summary: "Jornada validada e substituída"
+      operationId: replaceWorkSchedules
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                $ref: '#/components/schemas/WorkScheduleInput'
+      responses:
+        '200':
+          description: Jornada validada e substituída
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WorkSchedule'
+  /barbers/{barberId}/availability-exceptions:
+    get:
+      tags: [Scheduling]
+      summary: "Pausas, bloqueios, ausências, férias e feriados"
+      operationId: listAvailabilityExceptions
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      responses:
+        '200':
+          description: Pausas, bloqueios, ausências, férias e feriados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilityException'
+    post:
+      tags: [Scheduling]
+      summary: "Exceção criada sem apagar conflito existente"
+      operationId: createAvailabilityException
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/BarberId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AvailabilityExceptionInput'
+      responses:
+        '201':
+          description: Exceção criada sem apagar conflito existente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AvailabilityException'
+  /availability-exceptions/{exceptionId}:
+    delete:
+      tags: [Scheduling]
+      summary: "Exceção removida"
+      operationId: deleteAvailabilityException
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/ExceptionId'
+      responses:
+        '204':
+          description: Exceção removida
+  /public/tenants/{tenantSlug}/catalog:
+    get:
+      tags: [Scheduling]
+      summary: "Catálogo público da barbearia para reserva"
+      operationId: getPublicBookingCatalog
+      x-release: INTERMEDIARIO
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantSlug'
+      responses:
+        '200':
+          description: Unidades, serviços e profissionais públicos e ativos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PublicBookingCatalog'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /public/tenants/{tenantSlug}/availability:
+    get:
+      tags: [Scheduling]
+      summary: "Slots públicos disponíveis"
+      operationId: getPublicAvailability
+      x-release: INTERMEDIARIO
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantSlug'
+        - name: unitId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: serviceId
+          in: query
+          required: true
+          schema:
+            type: string
+            format: uuid
+        - name: barberId
+          in: query
+          required: false
+          schema:
+            type: string
+            format: uuid
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Slots públicos disponíveis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/AvailabilitySlot'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /public/tenants/{tenantSlug}/appointments:
+    post:
+      tags: [Scheduling]
+      summary: "Cliente mínimo e agendamento criados"
+      operationId: createPublicAppointment
+      x-release: INTERMEDIARIO
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/TenantSlug'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PublicAppointmentCreate'
+      responses:
+        '201':
+          description: Cliente mínimo e agendamento criados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /waitlist-entries/{waitlistEntryId}:
+    delete:
+      tags: [Waitlist]
+      summary: "Entrada expirada ou removida com histórico"
+      operationId: removeWaitlistEntry
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/WaitlistEntryId'
+      responses:
+        '204':
+          description: Entrada expirada ou removida com histórico
+  /waitlist-offers/{waitlistOfferId}/accept:
+    post:
+      tags: [Waitlist]
+      summary: "Primeira aceitação válida convertida em agendamento"
+      operationId: acceptWaitlistOffer
+      x-release: MVP
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/WaitlistOfferId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [token]
+              properties:
+                token:
+                  type: string
+                  minLength: 32
+                  maxLength: 512
+      responses:
+        '201':
+          description: Primeira aceitação válida convertida em agendamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '409':
+          $ref: '#/components/responses/Conflict'
+  /commission-rules:
+    get:
+      tags: [Commissions]
+      summary: "Regras de comissão por vigência e precedência"
+      operationId: listCommissionRules
+      x-release: MVP
+      responses:
+        '200':
+          description: Regras de comissão por vigência e precedência
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CommissionRule'
+    post:
+      tags: [Commissions]
+      summary: "Regra criada sem reescrever histórico"
+      operationId: createCommissionRule
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionRuleInput'
+      responses:
+        '201':
+          description: Regra criada sem reescrever histórico
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionRule'
+  /commission-rules/{commissionRuleId}:
+    patch:
+      tags: [Commissions]
+      summary: "Regra atualizada por nova vigência"
+      operationId: updateCommissionRule
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/CommissionRuleId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionRuleInput'
+      responses:
+        '200':
+          description: Regra atualizada por nova vigência
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionRule'
+  /commission-adjustments:
+    post:
+      tags: [Commissions]
+      summary: "Lançamento de ajuste separado e auditado"
+      operationId: createCommissionAdjustment
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CommissionAdjustmentInput'
+      responses:
+        '201':
+          description: Lançamento de ajuste separado e auditado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CommissionEntry'
+  /notifications/{notificationId}/read:
+    put:
+      tags: [Notifications]
+      summary: "Notificação própria marcada como lida"
+      operationId: markNotificationRead
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/NotificationId'
+      responses:
+        '204':
+          description: Notificação própria marcada como lida
+  /notification-preferences:
+    get:
+      tags: [Notifications]
+      summary: "Preferências e obrigatoriedade por tipo/canal"
+      operationId: getNotificationPreferences
+      x-release: MVP
+      responses:
+        '200':
+          description: Preferências e obrigatoriedade por tipo/canal
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+    put:
+      tags: [Notifications]
+      summary: "Preferências permitidas atualizadas"
+      operationId: updateNotificationPreferences
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NotificationPreferences'
+      responses:
+        '200':
+          description: Preferências permitidas atualizadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationPreferences'
+  /message-templates:
+    get:
+      tags: [Notifications]
+      summary: "Templates transacionais e seus estados"
+      operationId: listMessageTemplates
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Templates transacionais e seus estados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/MessageTemplate'
+    post:
+      tags: [Notifications]
+      summary: "Template criado e submetido quando necessário"
+      operationId: createMessageTemplate
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageTemplateInput'
+      responses:
+        '201':
+          description: Template criado e submetido quando necessário
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageTemplate'
+  /message-templates/{messageTemplateId}:
+    patch:
+      tags: [Notifications]
+      summary: "Template atualizado e revalidado"
+      operationId: updateMessageTemplate
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/MessageTemplateId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageTemplateInput'
+      responses:
+        '200':
+          description: Template atualizado e revalidado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageTemplate'
+  /notifications/usage:
+    get:
+      tags: [Notifications]
+      summary: "Consumo por canal, franquia e excedente"
+      operationId: getMessageUsage
+      x-release: INTERMEDIARIO
+      parameters:
+        - name: period
+          in: query
+          required: true
+          schema:
+            type: string
+            pattern: '^[0-9]{4}-[0-9]{2}$'
+      responses:
+        '200':
+          description: Consumo por canal, franquia e excedente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageSummary'
+  /reports/operational-export:
+    post:
+      tags: [Dashboard]
+      summary: "Exportação operacional iniciada"
+      operationId: exportOperationalSummary
+      x-release: MVP
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequest'
+      responses:
+        '202':
+          description: Exportação operacional iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJob'
+  /reports:
+    get:
+      tags: [Dashboard]
+      summary: "Relatório com critérios, totais e linhas decomponíveis"
+      operationId: getReport
+      x-release: INTERMEDIARIO
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [CASH, PAYMENTS, COMMISSIONS, INVENTORY, MARGIN, CUSTOMERS, OCCUPANCY]
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+        - $ref: '#/components/parameters/UnitIdQuery'
+        - $ref: '#/components/parameters/BarberIdQuery'
+      responses:
+        '200':
+          description: Relatório com critérios, totais e linhas decomponíveis
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResult'
+  /reports/exports:
+    post:
+      tags: [Dashboard]
+      summary: "CSV ou PDF operacional em processamento"
+      operationId: exportReport
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReportExportRequest'
+      responses:
+        '202':
+          description: CSV ou PDF operacional em processamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJob'
+  /reports/consolidated:
+    get:
+      tags: [Dashboard]
+      summary: "Indicadores consolidados e decomposição por unidade"
+      operationId: getConsolidatedReport
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+        - name: unitIds
+          in: query
+          schema:
+            type: array
+            items:
+              type: string
+              format: uuid
+      responses:
+        '200':
+          description: Indicadores consolidados e decomposição por unidade
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReportResult'
+  /goals:
+    get:
+      tags: [Dashboard]
+      summary: "Metas e realizado"
+      operationId: listGoals
+      x-release: FINAL
+      responses:
+        '200':
+          description: Metas e realizado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Goal'
+    post:
+      tags: [Dashboard]
+      summary: "Meta criada"
+      operationId: createGoal
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoalInput'
+      responses:
+        '201':
+          description: Meta criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Goal'
+  /analytics/insights:
+    get:
+      tags: [Dashboard]
+      summary: "Indicadores e sugestões com fonte, atualização e confiança"
+      operationId: getPredictiveInsights
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+      responses:
+        '200':
+          description: Indicadores e sugestões com fonte, atualização e confiança
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Insight'
+  /dashboard/preferences:
+    put:
+      tags: [Dashboard]
+      summary: "Preferência salva para o usuário"
+      operationId: updateDashboardPreferences
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DashboardPreferenceInput'
+      responses:
+        '204':
+          description: Preferência salva para o usuário
+  /admin/tenants/{tenantId}/status:
+    put:
+      tags: [Administration]
+      summary: "Tenant suspenso ou reativado com auditoria"
+      operationId: adminChangeTenantStatus
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatusChange'
+      responses:
+        '200':
+          description: Tenant suspenso ou reativado com auditoria
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TenantAdminSummary'
+  /admin/platform-health:
+    get:
+      tags: [Administration]
+      summary: "Saúde agregada sem dados excessivos de tenant"
+      operationId: getPlatformHealth
+      x-release: MVP
+      responses:
+        '200':
+          description: Saúde agregada sem dados excessivos de tenant
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PlatformHealth'
+  /admin/plans:
+    get:
+      tags: [Administration]
+      summary: "Planos comerciais versionados"
+      operationId: adminListPlans
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Planos comerciais versionados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/SaasPlan'
+    post:
+      tags: [Administration]
+      summary: "Plano criado"
+      operationId: adminCreatePlan
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaasPlanInput'
+      responses:
+        '201':
+          description: Plano criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaasPlan'
+  /admin/plans/{planId}:
+    patch:
+      tags: [Administration]
+      summary: "Nova vigência do plano registrada"
+      operationId: adminUpdatePlan
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/PlanId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SaasPlanInput'
+      responses:
+        '200':
+          description: Nova vigência do plano registrada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SaasPlan'
+  /admin/tenants/{tenantId}/usage:
+    get:
+      tags: [Administration]
+      summary: "Usuários, dispositivos, mensagens e armazenamento"
+      operationId: adminGetTenantUsage
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      responses:
+        '200':
+          description: Usuários, dispositivos, mensagens e armazenamento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UsageSummary'
+  /admin/tenants/{tenantId}/support-sessions:
+    post:
+      tags: [Administration]
+      summary: "Sessão de suporte temporária e auditada"
+      operationId: startSupportSession
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/TenantId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, expiresAt]
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                expiresAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Sessão de suporte temporária e auditada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SupportSession'
+  /admin/coupons:
+    get:
+      tags: [Administration]
+      summary: "Cupons e uso"
+      operationId: adminListCoupons
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Cupons e uso
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Coupon'
+    post:
+      tags: [Administration]
+      summary: "Cupom criado"
+      operationId: adminCreateCoupon
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CouponInput'
+      responses:
+        '201':
+          description: Cupom criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Coupon'
+  /admin/subscriptions:
+    get:
+      tags: [Administration]
+      summary: "Assinaturas e inadimplência"
+      operationId: adminListSubscriptions
+      x-release: INTERMEDIARIO
+      parameters:
+        - name: status
+          in: query
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Assinaturas e inadimplência
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Subscription'
+  /cash-sessions/current:
+    get:
+      tags: [Cash]
+      summary: "Caixa atual e totais"
+      operationId: getCurrentCashSession
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/UnitIdQuery'
+      responses:
+        '200':
+          description: Caixa atual e totais
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashSession'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /cash-sessions/{cashSessionId}/movements:
+    get:
+      tags: [Cash]
+      summary: "Movimentos imutáveis do caixa"
+      operationId: listCashMovements
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CashSessionId'
+      responses:
+        '200':
+          description: Movimentos imutáveis do caixa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CashMovement'
+    post:
+      tags: [Cash]
+      summary: "Suprimento ou sangria registrado"
+      operationId: createCashMovement
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CashSessionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CashMovementInput'
+      responses:
+        '201':
+          description: Suprimento ou sangria registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashMovement'
+  /cash-sessions/{cashSessionId}/reopen:
+    post:
+      tags: [Cash]
+      summary: "Caixa reaberto excepcionalmente"
+      operationId: reopenCashSession
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CashSessionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [reason, version]
+              properties:
+                reason:
+                  type: string
+                  minLength: 10
+                  maxLength: 500
+                version:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Caixa reaberto excepcionalmente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CashSession'
+  /payments/{paymentId}/refunds:
+    post:
+      tags: [Payments]
+      summary: "Reembolso e reversões correlatas registrados"
+      operationId: createRefund
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/PaymentId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RefundInput'
+      responses:
+        '201':
+          description: Reembolso e reversões correlatas registrados
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Refund'
+  /appointments/{appointmentId}/receipt:
+    get:
+      tags: [Payments]
+      summary: "Comprovante não fiscal"
+      operationId: getReceipt
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/AppointmentId'
+      responses:
+        '200':
+          description: Comprovante não fiscal
+          content:
+            application/pdf:
+              schema:
+                type: string
+                format: binary
+  /online-checkouts:
+    post:
+      tags: [Payments]
+      summary: "Cobrança de sinal ou pagamento criada"
+      operationId: createOnlineCheckout
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnlineCheckoutInput'
+      responses:
+        '201':
+          description: Cobrança de sinal ou pagamento criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OnlineCheckout'
+  /payment-reconciliation:
+    get:
+      tags: [Payments]
+      summary: "Correspondências e divergências sem correção silenciosa"
+      operationId: listPaymentReconciliation
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+      responses:
+        '200':
+          description: Correspondências e divergências sem correção silenciosa
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReconciliationItem'
+  /product-categories:
+    get:
+      tags: [Inventory]
+      summary: "Categorias de produto"
+      operationId: listProductCategories
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Categorias de produto
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NamedResource'
+    post:
+      tags: [Inventory]
+      summary: "Categoria criada"
+      operationId: createProductCategory
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NamedResourceInput'
+      responses:
+        '201':
+          description: Categoria criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NamedResource'
+  /products/{productId}:
+    patch:
+      tags: [Inventory]
+      summary: "Produto atualizado"
+      operationId: updateProduct
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/ProductId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Produto atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+  /suppliers:
+    get:
+      tags: [Inventory]
+      summary: "Fornecedores"
+      operationId: listSuppliers
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Fornecedores
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Supplier'
+    post:
+      tags: [Inventory]
+      summary: "Fornecedor criado"
+      operationId: createSupplier
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SupplierInput'
+      responses:
+        '201':
+          description: Fornecedor criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Supplier'
+  /stock-movements/query:
+    get:
+      tags: [Inventory]
+      summary: "Razão e posição reproduzíveis"
+      operationId: listStockMovements
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/UnitIdQuery'
+        - name: productId
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+      responses:
+        '200':
+          description: Razão e posição reproduzíveis
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockMovement'
+  /stock-counts:
+    post:
+      tags: [Inventory]
+      summary: "Inventário gerou ajustes para diferenças"
+      operationId: createStockCount
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockCountInput'
+      responses:
+        '201':
+          description: Inventário gerou ajustes para diferenças
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockCountResult'
+  /stock/low:
+    get:
+      tags: [Inventory]
+      summary: "Itens abaixo do mínimo sem alerta duplicado"
+      operationId: listLowStock
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/UnitIdQuery'
+      responses:
+        '200':
+          description: Itens abaixo do mínimo sem alerta duplicado
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockPosition'
+  /purchase-orders:
+    get:
+      tags: [Inventory]
+      summary: "Pedidos de compra"
+      operationId: listPurchaseOrders
+      x-release: FINAL
+      responses:
+        '200':
+          description: Pedidos de compra
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/PurchaseOrder'
+    post:
+      tags: [Inventory]
+      summary: "Pedido criado"
+      operationId: createPurchaseOrder
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseOrderInput'
+      responses:
+        '201':
+          description: Pedido criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+  /purchase-orders/{purchaseOrderId}/receive:
+    post:
+      tags: [Inventory]
+      summary: "Recebimento e entradas correlacionadas"
+      operationId: receivePurchaseOrder
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/PurchaseOrderId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PurchaseReceiptInput'
+      responses:
+        '200':
+          description: Recebimento e entradas correlacionadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PurchaseOrder'
+  /stock-transfers:
+    get:
+      tags: [Inventory]
+      summary: "Transferências entre unidades"
+      operationId: listStockTransfers
+      x-release: FINAL
+      responses:
+        '200':
+          description: Transferências entre unidades
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/StockTransfer'
+    post:
+      tags: [Inventory]
+      summary: "Saída e entrada correlacionadas"
+      operationId: createStockTransfer
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockTransferInput'
+      responses:
+        '201':
+          description: Saída e entrada correlacionadas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/StockTransfer'
+  /stock/restock-suggestions:
+    get:
+      tags: [Inventory]
+      summary: "Sugestões explicáveis sem compra automática"
+      operationId: listRestockSuggestions
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/UnitIdQuery'
+      responses:
+        '200':
+          description: Sugestões explicáveis sem compra automática
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RestockSuggestion'
+  /loyalty/program:
+    get:
+      tags: [Loyalty]
+      summary: "Programa vigente"
+      operationId: getLoyaltyProgram
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Programa vigente
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyProgram'
+    put:
+      tags: [Loyalty]
+      summary: "Programa criado ou atualizado"
+      operationId: updateLoyaltyProgram
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyProgramInput'
+      responses:
+        '200':
+          description: Programa criado ou atualizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyProgram'
+  /loyalty/accounts/{customerId}/transactions:
+    get:
+      tags: [Loyalty]
+      summary: "Extrato imutável e saldo reproduzível"
+      operationId: listLoyaltyTransactions
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      responses:
+        '200':
+          description: Extrato imutável e saldo reproduzível
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LoyaltyTransaction'
+    post:
+      tags: [Loyalty]
+      summary: "Crédito, resgate ou estorno registrado"
+      operationId: createLoyaltyTransaction
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoyaltyTransactionInput'
+      responses:
+        '201':
+          description: Crédito, resgate ou estorno registrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoyaltyTransaction'
+  /customer-plans:
+    get:
+      tags: [Loyalty]
+      summary: "Pacotes e planos recorrentes oferecidos"
+      operationId: listCustomerPlans
+      x-release: INTERMEDIARIO
+      responses:
+        '200':
+          description: Pacotes e planos recorrentes oferecidos
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CustomerPlan'
+    post:
+      tags: [Loyalty]
+      summary: "Pacote ou plano criado"
+      operationId: createCustomerPlan
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerPlanInput'
+      responses:
+        '201':
+          description: Pacote ou plano criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPlan'
+  /customer-plans/{customerPlanId}/subscriptions:
+    post:
+      tags: [Loyalty]
+      summary: "Adesão criada separada da assinatura SaaS"
+      operationId: subscribeCustomerPlan
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerPlanId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [customerId, startAt]
+              properties:
+                customerId:
+                  type: string
+                  format: uuid
+                startAt:
+                  type: string
+                  format: date-time
+      responses:
+        '201':
+          description: Adesão criada separada da assinatura SaaS
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPlanSubscription'
+  /customer-plan-subscriptions/{subscriptionId}/consume:
+    post:
+      tags: [Loyalty]
+      summary: "Crédito consumido e origem registrada"
+      operationId: consumeCustomerPlanCredit
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerPlanSubscriptionId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [appointmentId, serviceId, quantity]
+              properties:
+                appointmentId:
+                  type: string
+                  format: uuid
+                serviceId:
+                  type: string
+                  format: uuid
+                quantity:
+                  type: integer
+                  minimum: 1
+      responses:
+        '204':
+          description: Crédito consumido e origem registrada
+  /crm/segments:
+    get:
+      tags: [Notifications]
+      summary: "Segmento calculado com critérios exibidos"
+      operationId: listCustomerSegments
+      x-release: INTERMEDIARIO
+      parameters:
+        - name: type
+          in: query
+          required: true
+          schema:
+            type: string
+            enum: [BIRTHDAY, INACTIVE, RETURN_DUE, CUSTOM]
+        - name: referenceDate
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Segmento calculado com critérios exibidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerSegment'
+  /crm/reminders:
+    post:
+      tags: [Notifications]
+      summary: "Lembrete agendado conforme preferência e consentimento"
+      operationId: scheduleReturnReminder
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ReturnReminderInput'
+      responses:
+        '201':
+          description: Lembrete agendado conforme preferência e consentimento
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Notification'
+  /customers/{customerId}/consents:
+    put:
+      tags: [Notifications]
+      summary: "Consentimento ou descadastro registrado com prova"
+      operationId: recordCustomerConsent
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConsentInput'
+      responses:
+        '204':
+          description: Consentimento ou descadastro registrado com prova
+  /customers/{customerId}/communications:
+    get:
+      tags: [Notifications]
+      summary: "Histórico de comunicações por canal e referência"
+      operationId: listCustomerCommunications
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/CustomerId'
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+      responses:
+        '200':
+          description: Histórico de comunicações por canal e referência
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Notification'
+  /crm/analytics:
+    get:
+      tags: [Notifications]
+      summary: "Cliques e conversões permitidos com método explícito"
+      operationId: getCrmAnalytics
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/FromDate'
+        - $ref: '#/components/parameters/ToDate'
+      responses:
+        '200':
+          description: Cliques e conversões permitidos com método explícito
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrmAnalytics'
+  /campaigns:
+    get:
+      tags: [Notifications]
+      summary: "Campanhas e estados"
+      operationId: listCampaigns
+      x-release: FINAL
+      responses:
+        '200':
+          description: Campanhas e estados
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Campaign'
+    post:
+      tags: [Notifications]
+      summary: "Campanha criada sem iniciar envio"
+      operationId: createCampaign
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CampaignInput'
+      responses:
+        '201':
+          description: Campanha criada sem iniciar envio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /campaigns/{campaignId}/activate:
+    post:
+      tags: [Notifications]
+      summary: "Campanha validada e agendada"
+      operationId: activateCampaign
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/CampaignId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [audienceMode, scheduledAt, version]
+              properties:
+                audienceMode:
+                  type: string
+                  enum: [SNAPSHOT, RECALCULATE_AT_SEND]
+                scheduledAt:
+                  type: string
+                  format: date-time
+                version:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Campanha validada e agendada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Campaign'
+  /crm/automations:
+    get:
+      tags: [Notifications]
+      summary: "Automações e limites"
+      operationId: listCrmAutomations
+      x-release: FINAL
+      responses:
+        '200':
+          description: Automações e limites
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/CrmAutomation'
+    post:
+      tags: [Notifications]
+      summary: "Automação criada"
+      operationId: createCrmAutomation
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CrmAutomationInput'
+      responses:
+        '201':
+          description: Automação criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CrmAutomation'
+  /crm/contact-policy:
+    put:
+      tags: [Notifications]
+      summary: "Frequência máxima por canal atualizada"
+      operationId: updateContactPolicy
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ContactPolicy'
+      responses:
+        '200':
+          description: Frequência máxima por canal atualizada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ContactPolicy'
+  /integrations/{integrationType}/connect:
+    post:
+      tags: [Integrations]
+      summary: "URL de autorização ou conexão configurada"
+      operationId: startIntegrationConnection
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IntegrationType'
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/IntegrationConfiguration'
+      responses:
+        '200':
+          description: URL de autorização ou conexão configurada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationStartResult'
+  /integrations/{integrationType}/callback:
+    get:
+      tags: [Integrations]
+      summary: "Conexão concluída para cliente que solicita JSON"
+      operationId: completeIntegrationConnection
+      x-release: INTERMEDIARIO
+      security: []
+      parameters:
+        - $ref: '#/components/parameters/IntegrationType'
+        - name: code
+          in: query
+          required: true
+          schema:
+            type: string
+        - name: state
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Conexão concluída para cliente que solicita JSON
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/IntegrationConnection'
+        '302':
+          description: Redireciona para resultado seguro no aplicativo
+  /integrations/{integrationType}:
+    delete:
+      tags: [Integrations]
+      summary: "Tokens revogados e conexão desconectada"
+      operationId: disconnectIntegration
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IntegrationType'
+      responses:
+        '204':
+          description: Tokens revogados e conexão desconectada
+  /integrations/google-calendar/sync:
+    post:
+      tags: [Integrations]
+      summary: "Sincronização idempotente iniciada"
+      operationId: syncGoogleCalendar
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [from, to]
+              properties:
+                from:
+                  type: string
+                  format: date-time
+                to:
+                  type: string
+                  format: date-time
+      responses:
+        '202':
+          description: Sincronização idempotente iniciada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AsyncJob'
+  /integrations/google-review:
+    put:
+      tags: [Integrations]
+      summary: "Link validado e salvo"
+      operationId: updateGoogleReviewLink
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [url]
+              properties:
+                url:
+                  type: string
+                  format: uri
+                  maxLength: 2048
+      responses:
+        '204':
+          description: Link validado e salvo
+  /webhooks/inbound/{provider}:
+    post:
+      tags: [Integrations]
+      summary: "Evento autenticado, deduplicado e aceito"
+      operationId: receiveProviderWebhook
+      x-release: INTERMEDIARIO
+      security: []
+      parameters:
+        - name: provider
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [WHATSAPP, GOOGLE_CALENDAR, BILLING, PAYMENT]
+        - name: X-Provider-Signature
+          in: header
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties: true
+      responses:
+        '202':
+          description: Evento autenticado, deduplicado e aceito
+  /subscription/trial:
+    post:
+      tags: [Subscriptions]
+      summary: "Trial iniciado"
+      operationId: startTrial
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionStart'
+      responses:
+        '201':
+          description: Trial iniciado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /subscription/checkout:
+    post:
+      tags: [Subscriptions]
+      summary: "Checkout de assinatura criado"
+      operationId: createSubscriptionCheckout
+      x-release: INTERMEDIARIO
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SubscriptionStart'
+      responses:
+        '201':
+          description: Checkout de assinatura criado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutLink'
+  /subscription/plan:
+    put:
+      tags: [Subscriptions]
+      summary: "Alteração registrada com vigência e prorrateio"
+      operationId: changeSubscriptionPlan
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [planId, billingCycle, version]
+              properties:
+                planId:
+                  type: string
+                  format: uuid
+                billingCycle:
+                  type: string
+                  enum: [MONTHLY, ANNUAL]
+                couponCode:
+                  type: [string, 'null']
+                version:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Alteração registrada com vigência e prorrateio
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /subscription/cancel:
+    post:
+      tags: [Subscriptions]
+      summary: "Cancelamento agendado e exportação informada"
+      operationId: cancelSubscription
+      x-release: INTERMEDIARIO
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [effectiveMode, reason, version]
+              properties:
+                effectiveMode:
+                  type: string
+                  enum: [IMMEDIATE, END_OF_PERIOD]
+                reason:
+                  type: string
+                  minLength: 3
+                  maxLength: 500
+                version:
+                  type: integer
+                  format: int64
+      responses:
+        '200':
+          description: Cancelamento agendado e exportação informada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Subscription'
+  /api-credentials:
+    get:
+      tags: [Integrations]
+      summary: "Chaves sem material secreto"
+      operationId: listApiCredentials
+      x-release: FINAL
+      responses:
+        '200':
+          description: Chaves sem material secreto
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ApiCredential'
+    post:
+      tags: [Integrations]
+      summary: "Chave retornada uma única vez"
+      operationId: createApiCredential
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ApiCredentialInput'
+      responses:
+        '201':
+          description: Chave retornada uma única vez
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiCredentialCreated'
+  /api-credentials/{apiCredentialId}:
+    delete:
+      tags: [Integrations]
+      summary: "Chave revogada"
+      operationId: revokeApiCredential
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/ApiCredentialId'
+      responses:
+        '204':
+          description: Chave revogada
+  /webhook-subscriptions:
+    get:
+      tags: [Integrations]
+      summary: "Webhooks de saída e saúde"
+      operationId: listWebhookSubscriptions
+      x-release: FINAL
+      responses:
+        '200':
+          description: Webhooks de saída e saúde
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WebhookSubscription'
+    post:
+      tags: [Integrations]
+      summary: "Webhook criado com segredo exibido uma vez"
+      operationId: createWebhookSubscription
+      x-release: FINAL
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSubscriptionInput'
+      responses:
+        '201':
+          description: Webhook criado com segredo exibido uma vez
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscriptionCreated'
+  /webhook-subscriptions/{webhookSubscriptionId}:
+    patch:
+      tags: [Integrations]
+      summary: "Webhook atualizado ou reativado"
+      operationId: updateWebhookSubscription
+      x-release: FINAL
+      parameters:
+        - $ref: '#/components/parameters/WebhookSubscriptionId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WebhookSubscriptionInput'
+      responses:
+        '200':
+          description: Webhook atualizado ou reativado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WebhookSubscription'
+  /public-api/appointments:
+    get:
+      tags: [Integrations]
+      summary: "Agendamentos permitidos pelo escopo da chave"
+      operationId: publicListAppointments
+      x-release: FINAL
+      security:
+        - publicApiKey: []
+      parameters:
+        - name: from
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          required: true
+          schema:
+            type: string
+            format: date-time
+        - $ref: '#/components/parameters/UnitIdQuery'
+        - $ref: '#/components/parameters/BarberIdQuery'
+      responses:
+        '200':
+          description: Agendamentos permitidos pelo escopo da chave
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      tags: [Integrations]
+      summary: "Agendamento criado no tenant e escopo da chave"
+      operationId: publicCreateAppointment
+      x-release: FINAL
+      security:
+        - publicApiKey: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AppointmentCreate'
+      responses:
+        '201':
+          description: Agendamento criado no tenant e escopo da chave
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Appointment'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+  /public-api/customers:
+    get:
+      tags: [Integrations]
+      summary: "Clientes permitidos pelo escopo da chave"
+      operationId: publicListCustomers
+      x-release: FINAL
+      security:
+        - publicApiKey: []
+      parameters:
+        - $ref: '#/components/parameters/Page'
+        - $ref: '#/components/parameters/Size'
+        - name: query
+          in: query
+          schema:
+            type: string
+            maxLength: 160
+      responses:
+        '200':
+          description: Clientes permitidos pelo escopo da chave
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CustomerPage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+    post:
+      tags: [Integrations]
+      summary: "Cliente criado no tenant da chave"
+      operationId: publicCreateCustomer
+      x-release: FINAL
+      security:
+        - publicApiKey: []
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CustomerInput'
+      responses:
+        '201':
+          description: Cliente criado no tenant da chave
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Customer'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '429':
+          $ref: '#/components/responses/RateLimited'
+components:
+  securitySchemes:
+    cookieSession:
+      type: apiKey
+      in: cookie
+      name: VARTHEX_SESSION
+    publicApiKey:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+  parameters:
+    Page:
+      name: page
+      in: query
+      schema:
+        type: integer
+        minimum: 0
+        default: 0
+    Size:
+      name: size
+      in: query
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 100
+        default: 20
+    IdempotencyKey:
+      name: Idempotency-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        minLength: 16
+        maxLength: 120
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BarberId:
+      name: barberId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ServiceId:
+      name: serviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    AppointmentId:
+      name: appointmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SessionId:
+      name: sessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TenantId:
+      name: tenantId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    TenantSlug:
+      name: tenantSlug
+      in: path
+      required: true
+      schema:
+        type: string
+        pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        maxLength: 120
+    UnitId:
+      name: unitId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UnitIdQuery:
+      name: unitId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    RoleId:
+      name: roleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ExceptionId:
+      name: exceptionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WaitlistEntryId:
+      name: waitlistEntryId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WaitlistOfferId:
+      name: waitlistOfferId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CommissionRuleId:
+      name: commissionRuleId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    NotificationId:
+      name: notificationId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    MessageTemplateId:
+      name: messageTemplateId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CashSessionId:
+      name: cashSessionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PaymentId:
+      name: paymentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    PurchaseOrderId:
+      name: purchaseOrderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CustomerPlanId:
+      name: customerPlanId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CustomerPlanSubscriptionId:
+      name: subscriptionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CampaignId:
+      name: campaignId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    IntegrationType:
+      name: integrationType
+      in: path
+      required: true
+      schema:
+        type: string
+        enum: [WHATSAPP, GOOGLE_CALENDAR, PAYMENT, EMAIL]
+    PlanId:
+      name: planId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ApiCredentialId:
+      name: apiCredentialId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    WebhookSubscriptionId:
+      name: webhookSubscriptionId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    FromDate:
+      name: from
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+    ToDate:
+      name: to
+      in: query
+      required: true
+      schema:
+        type: string
+        format: date
+    BarberIdQuery:
+      name: barberId
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+  responses:
+    ValidationError:
+      description: Payload inválido
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Unauthorized:
+      description: Não autenticado
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Forbidden:
+      description: Sem permissão
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    NotFound:
+      description: Recurso não encontrado no contexto
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    Conflict:
+      description: Conflito de estado, versão ou agenda
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+    RateLimited:
+      description: Limite de requisições
+      content:
+        application/problem+json:
+          schema:
+            $ref: '#/components/schemas/Problem'
+  schemas:
+    Money:
+      type: string
+      description: Valor monetário não negativo, em decimal com no máximo duas casas.
+      pattern: '^[0-9]+(\.[0-9]{1,2})?$'
+      examples: ['49.90']
+    SignedMoney:
+      type: string
+      description: Valor monetário que pode ser negativo em diferença, ajuste ou reversão.
+      pattern: '^-?[0-9]+(\.[0-9]{1,2})?$'
+      examples: ['-10.00']
+    PageMeta:
+      type: object
+      required: [number, size, totalElements, totalPages]
+      properties:
+        number:
+          type: integer
+        size:
+          type: integer
+        totalElements:
+          type: integer
+          format: int64
+        totalPages:
+          type: integer
+    Problem:
+      type: object
+      required: [title, status, code, correlationId]
+      properties:
+        type:
+          type: string
+          format: uri
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+        detail:
+          type: string
+        correlationId:
+          type: string
+        fieldErrors:
+          type: array
+          items:
+            type: object
+            required: [field, code, message]
+            properties:
+              field:
+                type: string
+              code:
+                type: string
+              message:
+                type: string
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        password:
+          type: string
+          minLength: 8
+          maxLength: 200
+    SessionView:
+      type: object
+      required: [user, expiresAt]
+      properties:
+        user:
+          $ref: '#/components/schemas/CurrentUser'
+        expiresAt:
+          type: string
+          format: date-time
+    CurrentUser:
+      type: object
+      required: [id, fullName, email, tenantId, roles, permissions]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        tenantId:
+          type: string
+          format: uuid
+        roles:
+          type: array
+          items:
+            type: string
+        permissions:
+          type: array
+          items:
+            type: string
+    Tenant:
+      type: object
+      required: [id, tradeName, status, defaultTimeZone, locale, currency, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tradeName:
+          type: string
+        legalName:
+          type: [string, 'null']
+        document:
+          type: [string, 'null']
+        status:
+          type: string
+          enum: [TRIAL, ACTIVE, PAST_DUE, SUSPENDED, CANCELED]
+        defaultTimeZone:
+          type: string
+        locale:
+          type: string
+        currency:
+          type: string
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+        logoUrl:
+          type: [string, 'null']
+          format: uri
+        slug:
+          type: [string, 'null']
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        version:
+          type: integer
+          format: int64
+    TenantUpdate:
+      type: object
+      required: [tradeName, defaultTimeZone, locale, currency, version]
+      properties:
+        tradeName:
+          type: string
+          minLength: 2
+          maxLength: 120
+        legalName:
+          type: [string, 'null']
+          maxLength: 180
+        document:
+          type: [string, 'null']
+          maxLength: 14
+        defaultTimeZone:
+          type: string
+        locale:
+          type: string
+        currency:
+          type: string
+          minLength: 3
+          maxLength: 3
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+        version:
+          type: integer
+          format: int64
+    User:
+      type: object
+      required: [id, fullName, email, status, roles, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        fullName:
+          type: string
+        email:
+          type: string
+          format: email
+        status:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        version:
+          type: integer
+          format: int64
+    UserInvite:
+      type: object
+      required: [email, fullName, role]
+      properties:
+        email:
+          type: string
+          format: email
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 160
+        role:
+          type: string
+          enum: [ADMIN, MANAGER, RECEPTIONIST, CASHIER, BARBER]
+        unitId:
+          type: [string, 'null']
+          format: uuid
+    UserPage:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/User'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    CustomerInput:
+      type: object
+      required: [fullName, version]
+      anyOf:
+        - required: [email]
+        - required: [phone]
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 160
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+          maxLength: 20
+        birthDate:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        version:
+          type: integer
+          format: int64
+          default: 0
+    Customer:
+      allOf:
+        - $ref: '#/components/schemas/CustomerInput'
+        - type: object
+          required: [id, status, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [ACTIVE, ARCHIVED]
+            createdAt:
+              type: string
+              format: date-time
+    CustomerPage:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/Customer'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    BarberInput:
+      type: object
+      required: [userId, unitId, publicName]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        publicName:
+          type: string
+          minLength: 2
+          maxLength: 120
+        bio:
+          type: [string, 'null']
+          maxLength: 1000
+        serviceIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+    Barber:
+      allOf:
+        - $ref: '#/components/schemas/BarberInput'
+        - type: object
+          required: [id, active, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+            version:
+              type: integer
+              format: int64
+    ServiceInput:
+      type: object
+      additionalProperties: false
+      required: [serviceType, name, durationMinutes, bufferBeforeMinutes, bufferAfterMinutes, price, sortOrder, active, version]
+      properties:
+        unitId:
+          type: [string, 'null']
+          format: uuid
+        categoryId:
+          type: [string, 'null']
+          format: uuid
+        serviceType:
+          type: string
+          enum: [SERVICE, COMBO, ADDON]
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        description:
+          type: [string, 'null']
+          maxLength: 1000
+        durationMinutes:
+          type: integer
+          minimum: 5
+          maximum: 720
+        bufferBeforeMinutes:
+          type: integer
+          minimum: 0
+          maximum: 240
+        bufferAfterMinutes:
+          type: integer
+          minimum: 0
+          maximum: 240
+        price:
+          $ref: '#/components/schemas/Money'
+        sortOrder:
+          type: integer
+          minimum: 0
+        active:
+          type: boolean
+          default: true
+        items:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [componentServiceId, quantity]
+            properties:
+              componentServiceId:
+                type: string
+                format: uuid
+              quantity:
+                type: integer
+                minimum: 1
+        version:
+          type: integer
+          format: int64
+          default: 0
+    Service:
+      allOf:
+        - $ref: '#/components/schemas/ServiceInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    AvailabilitySlot:
+      type: object
+      required: [startAt, endAt, barberId, serviceId]
+      properties:
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        barberId:
+          type: string
+          format: uuid
+        serviceId:
+          type: string
+          format: uuid
+    AppointmentStatus:
+      type: string
+      enum: [PENDING, CONFIRMED, CHECKED_IN, IN_PROGRESS, COMPLETED, CANCELED, NO_SHOW]
+    AppointmentItemInput:
+      type: object
+      required: [serviceId]
+      properties:
+        serviceId:
+          type: string
+          format: uuid
+    AppointmentCreate:
+      type: object
+      required: [unitId, customerId, barberId, startAt, items, channel]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        barberId:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AppointmentItemInput'
+        channel:
+          type: string
+          enum: [ADMIN, RECEPTION, BARBER, CLIENT_WEB, WHATSAPP, API]
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        recurrence:
+          type: [object, 'null']
+          properties:
+            rule:
+              type: string
+              maxLength: 500
+            endDate:
+              type: [string, 'null']
+              format: date
+            count:
+              type: [integer, 'null']
+              minimum: 1
+              maximum: 365
+    AppointmentUpdate:
+      type: object
+      required: [version]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        barberId:
+          type: string
+          format: uuid
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AppointmentItemInput'
+        version:
+          type: integer
+          format: int64
+    AppointmentAction:
+      type: object
+      properties:
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+        version:
+          type: integer
+          format: int64
+    RescheduleRequest:
+      type: object
+      required: [startAt, barberId, scope, version]
+      properties:
+        startAt:
+          type: string
+          format: date-time
+        barberId:
+          type: string
+          format: uuid
+        scope:
+          type: string
+          enum: [THIS, THIS_AND_FUTURE, SERIES]
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+        version:
+          type: integer
+          format: int64
+    Appointment:
+      type: object
+      required: [id, unitId, customerId, barberId, status, channel, startAt, endAt, items, totalAmount, discountAmount, surchargeAmount, tipAmount, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        barberId:
+          type: string
+          format: uuid
+        recurrenceSeriesId:
+          type: [string, 'null']
+          format: uuid
+        status:
+          $ref: '#/components/schemas/AppointmentStatus'
+        channel:
+          type: string
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        totalAmount:
+          $ref: '#/components/schemas/Money'
+        discountAmount:
+          $ref: '#/components/schemas/Money'
+        surchargeAmount:
+          $ref: '#/components/schemas/Money'
+        tipAmount:
+          $ref: '#/components/schemas/Money'
+        depositStatus:
+          type: [string, 'null']
+          enum: [NOT_REQUIRED, PENDING, PAID, EXPIRED, WAIVED, null]
+        depositAmount:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        depositDueAt:
+          type: [string, 'null']
+          format: date-time
+        notes:
+          type: [string, 'null']
+        items:
+          type: array
+          items:
+            type: object
+            required: [id, serviceId, name, durationMinutes, unitPrice, discountAmount]
+            properties:
+              id:
+                type: string
+                format: uuid
+              serviceId:
+                type: string
+                format: uuid
+              name:
+                type: string
+              durationMinutes:
+                type: integer
+              unitPrice:
+                $ref: '#/components/schemas/Money'
+              discountAmount:
+                $ref: '#/components/schemas/Money'
+        cancellationReason:
+          type: [string, 'null']
+          maxLength: 500
+        canceledAt:
+          type: [string, 'null']
+          format: date-time
+        completedAt:
+          type: [string, 'null']
+          format: date-time
+        version:
+          type: integer
+          format: int64
+    WaitlistInput:
+      type: object
+      required: [unitId, customerId, serviceId, windowStartAt, windowEndAt]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        serviceId:
+          type: string
+          format: uuid
+        preferredBarberId:
+          type: [string, 'null']
+          format: uuid
+        windowStartAt:
+          type: string
+          format: date-time
+        windowEndAt:
+          type: string
+          format: date-time
+    WaitlistEntry:
+      allOf:
+        - $ref: '#/components/schemas/WaitlistInput'
+        - type: object
+          required: [id, status, priority]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [ACTIVE, OFFERED, BOOKED, EXPIRED, CANCELED]
+            priority:
+              type: integer
+    CommissionSummary:
+      type: object
+      required: [from, to, provisionedAmount, approvedAmount, paidAmount]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        provisionedAmount:
+          $ref: '#/components/schemas/SignedMoney'
+        approvedAmount:
+          $ref: '#/components/schemas/SignedMoney'
+        paidAmount:
+          $ref: '#/components/schemas/SignedMoney'
+    DashboardOverview:
+      type: object
+      required: [scheduled, completed, canceled, noShow, grossAmount, commissionAmount]
+      properties:
+        scheduled:
+          type: integer
+        completed:
+          type: integer
+        canceled:
+          type: integer
+        noShow:
+          type: integer
+        grossAmount:
+          $ref: '#/components/schemas/Money'
+        commissionAmount:
+          $ref: '#/components/schemas/SignedMoney'
+    DashboardPreferenceInput:
+      type: object
+      additionalProperties: false
+      required: [widgetKeys]
+      properties:
+        widgetKeys:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            pattern: '^[a-z0-9]+(?:[._-][a-z0-9]+)*$'
+    Notification:
+      type: object
+      required: [id, channel, type, status, scheduledAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        channel:
+          type: string
+        type:
+          type: string
+        status:
+          type: string
+        scheduledAt:
+          type: string
+          format: date-time
+        deliveredAt:
+          type: [string, 'null']
+          format: date-time
+    CashSessionOpen:
+      type: object
+      required: [unitId, openingAmount]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        openingAmount:
+          $ref: '#/components/schemas/Money'
+    CashSession:
+      type: object
+      required: [id, unitId, status, openedAt, openingAmount, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [OPEN, CLOSED, REOPENED]
+        openedAt:
+          type: string
+          format: date-time
+        closedAt:
+          type: [string, 'null']
+          format: date-time
+        openingAmount:
+          $ref: '#/components/schemas/Money'
+        expectedAmount:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        countedAmount:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        differenceAmount:
+          oneOf:
+            - $ref: '#/components/schemas/SignedMoney'
+            - type: 'null'
+        version:
+          type: integer
+          format: int64
+    PaymentInput:
+      type: object
+      additionalProperties: false
+      required: [appointmentId, purpose, payments, discountAmount, surchargeAmount, tipAmount]
+      properties:
+        appointmentId:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum: [APPOINTMENT_SETTLEMENT, DEPOSIT, PRODUCT_SALE]
+        cashSessionId:
+          type: [string, 'null']
+          format: uuid
+        payments:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [method, amount]
+            properties:
+              method:
+                type: string
+                enum: [CASH, PIX, CREDIT_CARD, DEBIT_CARD, OTHER]
+              amount:
+                $ref: '#/components/schemas/Money'
+        discountAmount:
+          $ref: '#/components/schemas/Money'
+        surchargeAmount:
+          $ref: '#/components/schemas/Money'
+        tipAmount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    Payment:
+      type: object
+      additionalProperties: false
+      required: [id, groupId, purpose, method, amount, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        groupId:
+          type: string
+          format: uuid
+        appointmentId:
+          type: [string, 'null']
+          format: uuid
+        cashSessionId:
+          type: [string, 'null']
+          format: uuid
+        purpose:
+          type: string
+          enum: [APPOINTMENT_SETTLEMENT, DEPOSIT, PRODUCT_SALE]
+        method:
+          type: string
+          enum: [CASH, PIX, CREDIT_CARD, DEBIT_CARD, OTHER]
+        amount:
+          $ref: '#/components/schemas/SignedMoney'
+        status:
+          type: string
+          enum: [PENDING, CONFIRMED, FAILED, CANCELED, PARTIALLY_REFUNDED, REFUNDED]
+        externalId:
+          type: [string, 'null']
+        paidAt:
+          type: [string, 'null']
+          format: date-time
+    PaymentBatch:
+      type: object
+      additionalProperties: false
+      required: [groupId, appointmentId, purpose, paymentAmount, discountAmount, surchargeAmount, tipAmount, payments]
+      properties:
+        groupId:
+          type: string
+          format: uuid
+        appointmentId:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum: [APPOINTMENT_SETTLEMENT, DEPOSIT, PRODUCT_SALE]
+        paymentAmount:
+          $ref: '#/components/schemas/Money'
+        discountAmount:
+          $ref: '#/components/schemas/Money'
+        surchargeAmount:
+          $ref: '#/components/schemas/Money'
+        tipAmount:
+          $ref: '#/components/schemas/Money'
+        payments:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/Payment'
+    ProductInput:
+      type: object
+      required: [name, costPrice, salePrice, unitOfMeasure, minimumStock]
+      properties:
+        categoryId:
+          type: [string, 'null']
+          format: uuid
+        sku:
+          type: [string, 'null']
+          maxLength: 80
+        name:
+          type: string
+          minLength: 2
+          maxLength: 160
+        costPrice:
+          $ref: '#/components/schemas/Money'
+        salePrice:
+          $ref: '#/components/schemas/Money'
+        unitOfMeasure:
+          type: string
+        minimumStock:
+          type: string
+          pattern: '^[0-9]+(\.[0-9]{1,3})?$'
+    Product:
+      allOf:
+        - $ref: '#/components/schemas/ProductInput'
+        - type: object
+          required: [id, active, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            active:
+              type: boolean
+            version:
+              type: integer
+              format: int64
+    StockMovementInput:
+      type: object
+      required: [unitId, productId, type, quantity]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        type:
+          type: string
+        quantity:
+          type: string
+          pattern: '^-?[0-9]+(\.[0-9]{1,3})?$'
+        unitCost:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    LoyaltyAccount:
+      type: object
+      required: [id, customerId, programId, status, balance]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        programId:
+          type: string
+          format: uuid
+        status:
+          type: string
+        balance:
+          type: integer
+          format: int64
+    IntegrationConnection:
+      type: object
+      required: [id, type, status]
+      properties:
+        id:
+          type: string
+          format: uuid
+        unitId:
+          type: [string, 'null']
+          format: uuid
+        type:
+          type: string
+          enum: [WHATSAPP, GOOGLE_CALENDAR, PAYMENT, EMAIL]
+        status:
+          type: string
+          enum: [CONNECTED, DEGRADED, EXPIRED, DISCONNECTED]
+        lastSyncAt:
+          type: [string, 'null']
+          format: date-time
+    Subscription:
+      type: object
+      required: [id, planId, status, billingCycle, currentPeriodStart, currentPeriodEnd, entitlements]
+      properties:
+        id:
+          type: string
+          format: uuid
+        planId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [TRIAL, ACTIVE, PAST_DUE, SUSPENDED, CANCELED]
+        billingCycle:
+          type: string
+          enum: [MONTHLY, ANNUAL]
+        currentPeriodStart:
+          type: string
+          format: date-time
+        currentPeriodEnd:
+          type: string
+          format: date-time
+        entitlements:
+          type: array
+          items:
+            type: object
+            required: [featureKey, enabled]
+            properties:
+              featureKey:
+                type: string
+              enabled:
+                type: boolean
+              limitValue:
+                type: [integer, 'null']
+                format: int64
+    TenantAdminSummary:
+      type: object
+      required: [id, tradeName, status, users, appointmentsThisMonth]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tradeName:
+          type: string
+        status:
+          type: string
+        users:
+          type: integer
+        appointmentsThisMonth:
+          type: integer
+    TenantAdminPage:
+      type: object
+      required: [items, page]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/TenantAdminSummary'
+        page:
+          $ref: '#/components/schemas/PageMeta'
+    PasswordRecoveryComplete:
+      type: object
+      additionalProperties: false
+      required: [token, newPassword]
+      properties:
+        token:
+          type: string
+          minLength: 32
+          maxLength: 512
+        newPassword:
+          type: string
+          minLength: 12
+          maxLength: 200
+    PasswordChange:
+      type: object
+      additionalProperties: false
+      required: [currentPassword, newPassword, revokeOtherSessions]
+      properties:
+        currentPassword:
+          type: string
+          maxLength: 200
+        newPassword:
+          type: string
+          minLength: 12
+          maxLength: 200
+        revokeOtherSessions:
+          type: boolean
+    UserSession:
+      type: object
+      additionalProperties: false
+      required: [id, createdAt, expiresAt, current]
+      properties:
+        id:
+          type: string
+          format: uuid
+        deviceName:
+          type: [string, 'null']
+          maxLength: 160
+        ipMasked:
+          type: [string, 'null']
+        createdAt:
+          type: string
+          format: date-time
+        lastUsedAt:
+          type: [string, 'null']
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        current:
+          type: boolean
+    ContactVerificationRequest:
+      type: object
+      additionalProperties: false
+      required: [channel, destination]
+      properties:
+        channel:
+          type: string
+          enum: [EMAIL, SMS, WHATSAPP]
+        destination:
+          type: string
+          maxLength: 254
+    ContactVerificationConfirm:
+      type: object
+      additionalProperties: false
+      required: [verificationId, code]
+      properties:
+        verificationId:
+          type: string
+          format: uuid
+        code:
+          type: string
+          pattern: '^[0-9]{6}$'
+    MfaConfiguration:
+      type: object
+      additionalProperties: false
+      required: [enabled, method, currentPassword]
+      properties:
+        enabled:
+          type: boolean
+        method:
+          type: string
+          enum: [TOTP]
+        currentPassword:
+          type: string
+          maxLength: 200
+    MfaConfigurationResult:
+      type: object
+      additionalProperties: false
+      required: [enabled, method, recoveryCodes]
+      properties:
+        enabled:
+          type: boolean
+        method:
+          type: string
+          enum: [TOTP]
+        provisioningUri:
+          type: [string, 'null']
+          format: uri
+        recoveryCodes:
+          type: array
+          items:
+            type: string
+    MfaVerification:
+      type: object
+      additionalProperties: false
+      required: [challengeToken, code]
+      properties:
+        challengeToken:
+          type: string
+          minLength: 32
+          maxLength: 512
+        code:
+          type: string
+          minLength: 6
+          maxLength: 20
+    TenantCreate:
+      type: object
+      additionalProperties: false
+      required: [tradeName, defaultTimeZone, locale, currency, admin, initialUnit]
+      properties:
+        tradeName:
+          type: string
+          minLength: 2
+          maxLength: 120
+        legalName:
+          type: [string, 'null']
+          maxLength: 180
+        document:
+          type: [string, 'null']
+          maxLength: 14
+        defaultTimeZone:
+          type: string
+        locale:
+          type: string
+          const: pt-BR
+        currency:
+          type: string
+          const: BRL
+        admin:
+          $ref: '#/components/schemas/UserInvite'
+        initialUnit:
+          $ref: '#/components/schemas/UnitInput'
+    UnitInput:
+      type: object
+      additionalProperties: false
+      required: [name, timeZone, active, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        document:
+          type: [string, 'null']
+          maxLength: 14
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+          maxLength: 20
+        street:
+          type: [string, 'null']
+          maxLength: 180
+        number:
+          type: [string, 'null']
+          maxLength: 30
+        complement:
+          type: [string, 'null']
+          maxLength: 120
+        district:
+          type: [string, 'null']
+          maxLength: 120
+        city:
+          type: [string, 'null']
+          maxLength: 120
+        state:
+          type: [string, 'null']
+          minLength: 2
+          maxLength: 2
+        country:
+          type: string
+          minLength: 2
+          maxLength: 2
+          default: BR
+        postalCode:
+          type: [string, 'null']
+          maxLength: 8
+        timeZone:
+          type: string
+        openingHours:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [dayOfWeek, intervals]
+            properties:
+              dayOfWeek:
+                type: integer
+                minimum: 1
+                maximum: 7
+              intervals:
+                type: array
+                items:
+                  type: object
+                  additionalProperties: false
+                  required: [startTime, endTime]
+                  properties:
+                    startTime:
+                      type: string
+                      format: time
+                    endTime:
+                      type: string
+                      format: time
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+          default: 0
+    Unit:
+      allOf:
+        - $ref: '#/components/schemas/UnitInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    BookingPolicy:
+      type: object
+      additionalProperties: false
+      required: [minimumNoticeMinutes, bookingHorizonDays, cancellationWindowMinutes, noShowToleranceMinutes, version]
+      properties:
+        minimumNoticeMinutes:
+          type: integer
+          minimum: 0
+          maximum: 10080
+        bookingHorizonDays:
+          type: integer
+          minimum: 1
+          maximum: 365
+        cancellationWindowMinutes:
+          type: integer
+          minimum: 0
+          maximum: 43200
+        noShowToleranceMinutes:
+          type: integer
+          minimum: 0
+          maximum: 240
+        waitlistOfferMinutes:
+          type: integer
+          minimum: 1
+          maximum: 1440
+        version:
+          type: integer
+          format: int64
+    DepositPolicy:
+      type: object
+      additionalProperties: false
+      required: [depositMode, depositDeadlineMinutes, version]
+      properties:
+        depositMode:
+          type: string
+          enum: [NONE, PERCENTAGE, FIXED]
+        depositValue:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        depositDeadlineMinutes:
+          type: integer
+          minimum: 1
+          maximum: 10080
+        version:
+          type: integer
+          format: int64
+    UserProfileUpdate:
+      type: object
+      additionalProperties: false
+      required: [fullName]
+      properties:
+        fullName:
+          type: string
+          minLength: 2
+          maxLength: 160
+        phone:
+          type: [string, 'null']
+          maxLength: 20
+        locale:
+          type: string
+          const: pt-BR
+    AuditLog:
+      type: object
+      additionalProperties: false
+      required: [id, type, action, occurredAt, correlationId]
+      properties:
+        id:
+          type: string
+          format: uuid
+        actorUserId:
+          type: [string, 'null']
+          format: uuid
+        type:
+          type: string
+        action:
+          type: string
+        resourceType:
+          type: [string, 'null']
+        resourceId:
+          type: [string, 'null']
+          format: uuid
+        reason:
+          type: [string, 'null']
+        occurredAt:
+          type: string
+          format: date-time
+        correlationId:
+          type: string
+    MembershipUpdate:
+      type: object
+      additionalProperties: false
+      required: [status, roleIds, unitIds, version]
+      properties:
+        status:
+          type: string
+          enum: [INVITED, ACTIVE, BLOCKED, REVOKED]
+        roleIds:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          items:
+            type: string
+        unitIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+        version:
+          type: integer
+          format: int64
+    RoleInput:
+      type: object
+      additionalProperties: false
+      required: [key, name, permissions, version]
+      properties:
+        key:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+          maxLength: 80
+        name:
+          type: string
+          minLength: 2
+          maxLength: 80
+        permissions:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          items:
+            type: string
+            pattern: '^[a-z]+:[a-z-]+:[a-z-]+$'
+        version:
+          type: integer
+          format: int64
+    Role:
+      allOf:
+        - $ref: '#/components/schemas/RoleInput'
+        - type: object
+          required: [id, system, status]
+          properties:
+            id:
+              type: string
+              format: uuid
+            system:
+              type: boolean
+            status:
+              type: string
+              enum: [ACTIVE, ARCHIVED]
+    AsyncJob:
+      type: object
+      additionalProperties: false
+      required: [id, type, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        type:
+          type: string
+        status:
+          type: string
+          enum: [QUEUED, RUNNING, COMPLETED, FAILED]
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: [string, 'null']
+          format: date-time
+        resultUrl:
+          type: [string, 'null']
+          format: uri
+        errorReportUrl:
+          type: [string, 'null']
+          format: uri
+    ExportRequest:
+      type: object
+      additionalProperties: false
+      required: [format]
+      properties:
+        format:
+          type: string
+          enum: [CSV, PDF]
+        from:
+          type: [string, 'null']
+          format: date
+        to:
+          type: [string, 'null']
+          format: date
+        filters:
+          type: object
+          additionalProperties:
+            type: string
+    ServiceCategoryInput:
+      type: object
+      additionalProperties: false
+      required: [name, sortOrder, active, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        sortOrder:
+          type: integer
+          minimum: 0
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    ServiceCategory:
+      allOf:
+        - $ref: '#/components/schemas/ServiceCategoryInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    BarberServiceInput:
+      type: object
+      additionalProperties: false
+      required: [serviceId, active]
+      properties:
+        serviceId:
+          type: string
+          format: uuid
+        active:
+          type: boolean
+        priceOverride:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        durationOverrideMinutes:
+          type: [integer, 'null']
+          minimum: 5
+          maximum: 720
+    WorkScheduleInput:
+      type: object
+      additionalProperties: false
+      required: [unitId, weekDay, startLocalTime, endLocalTime, validFrom]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        weekDay:
+          type: integer
+          minimum: 1
+          maximum: 7
+        startLocalTime:
+          type: string
+          format: time
+        endLocalTime:
+          type: string
+          format: time
+        validFrom:
+          type: string
+          format: date
+        validTo:
+          type: [string, 'null']
+          format: date
+    WorkSchedule:
+      allOf:
+        - $ref: '#/components/schemas/WorkScheduleInput'
+        - type: object
+          required: [id, barberId, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            barberId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              format: int64
+    AvailabilityExceptionInput:
+      type: object
+      additionalProperties: false
+      required: [unitId, type, startAt, endAt]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        type:
+          type: string
+          enum: [BREAK, BLOCK, ABSENCE, VACATION, HOLIDAY]
+        startAt:
+          type: string
+          format: date-time
+        endAt:
+          type: string
+          format: date-time
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+        recurrenceRule:
+          type: [string, 'null']
+          maxLength: 500
+    AvailabilityException:
+      allOf:
+        - $ref: '#/components/schemas/AvailabilityExceptionInput'
+        - type: object
+          required: [id, barberId, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            barberId:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              format: int64
+    PublicAppointmentCreate:
+      type: object
+      additionalProperties: false
+      required: [unitId, customer, barberId, startAt, items, acceptedPolicyVersion]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        customer:
+          type: object
+          additionalProperties: false
+          required: [fullName, phone]
+          properties:
+            fullName:
+              type: string
+              minLength: 2
+              maxLength: 160
+            phone:
+              type: string
+              maxLength: 20
+            email:
+              type: [string, 'null']
+              format: email
+        barberId:
+          type: string
+          format: uuid
+        startAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/AppointmentItemInput'
+        acceptedPolicyVersion:
+          type: string
+          maxLength: 80
+    PublicBookingCatalog:
+      type: object
+      additionalProperties: false
+      required: [tenantSlug, tradeName, currency, units, services, barbers]
+      properties:
+        tenantSlug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+        tradeName:
+          type: string
+        logoUrl:
+          type: [string, 'null']
+          format: uri
+        currency:
+          type: string
+          pattern: '^[A-Z]{3}$'
+        units:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, name, timeZone]
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              timeZone:
+                type: string
+        services:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, name, durationMinutes, price]
+            properties:
+              id:
+                type: string
+                format: uuid
+              name:
+                type: string
+              description:
+                type: [string, 'null']
+              durationMinutes:
+                type: integer
+              price:
+                $ref: '#/components/schemas/Money'
+        barbers:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [id, publicName, serviceIds]
+            properties:
+              id:
+                type: string
+                format: uuid
+              publicName:
+                type: string
+              serviceIds:
+                type: array
+                uniqueItems: true
+                items:
+                  type: string
+                  format: uuid
+    CommissionRuleInput:
+      type: object
+      additionalProperties: false
+      required: [type, validFrom]
+      properties:
+        type:
+          type: string
+          enum: [PERCENTAGE, FIXED, MIXED]
+        barberId:
+          type: [string, 'null']
+          format: uuid
+        serviceId:
+          type: [string, 'null']
+          format: uuid
+        percentage:
+          type: [string, 'null']
+          pattern: '^(?:100(?:\.0{1,4})?|[0-9]{1,2}(?:\.[0-9]{1,4})?)$'
+        fixedAmount:
+          oneOf:
+            - $ref: '#/components/schemas/Money'
+            - type: 'null'
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: [string, 'null']
+          format: date-time
+    CommissionRule:
+      allOf:
+        - $ref: '#/components/schemas/CommissionRuleInput'
+        - type: object
+          required: [id, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              format: int64
+    CommissionAdjustmentInput:
+      type: object
+      additionalProperties: false
+      required: [barberId, amount, reason]
+      properties:
+        barberId:
+          type: string
+          format: uuid
+        appointmentId:
+          type: [string, 'null']
+          format: uuid
+        amount:
+          $ref: '#/components/schemas/SignedMoney'
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+    CommissionEntry:
+      type: object
+      additionalProperties: false
+      required: [id, barberId, baseAmount, percentage, fixedAmount, commissionAmount, status, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        barberId:
+          type: string
+          format: uuid
+        appointmentId:
+          type: [string, 'null']
+          format: uuid
+        appointmentItemId:
+          type: [string, 'null']
+          format: uuid
+        commissionRuleId:
+          type: [string, 'null']
+          format: uuid
+        baseAmount:
+          $ref: '#/components/schemas/Money'
+        percentage:
+          type: string
+          pattern: '^(?:100(?:\.0{1,4})?|[0-9]{1,2}(?:\.[0-9]{1,4})?)$'
+        fixedAmount:
+          $ref: '#/components/schemas/Money'
+        commissionAmount:
+          $ref: '#/components/schemas/SignedMoney'
+        status:
+          type: string
+          enum: [PROVISIONED, APPROVED, PAID, REVERSED]
+        reversalOfId:
+          type: [string, 'null']
+          format: uuid
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+        createdAt:
+          type: string
+          format: date-time
+    NotificationPreferences:
+      type: object
+      additionalProperties: false
+      required: [version, preferences]
+      properties:
+        version:
+          type: integer
+          format: int64
+        preferences:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [type, channel, enabled, mandatory]
+            properties:
+              type:
+                type: string
+              channel:
+                type: string
+                enum: [IN_APP, EMAIL, WHATSAPP, SMS]
+              enabled:
+                type: boolean
+              mandatory:
+                type: boolean
+                readOnly: true
+    MessageTemplateInput:
+      type: object
+      additionalProperties: false
+      required: [key, name, channel, purpose, language, body, status, version]
+      properties:
+        key:
+          type: string
+          pattern: '^[a-z0-9]+(?:[._-][a-z0-9]+)*$'
+          maxLength: 120
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        channel:
+          type: string
+          enum: [EMAIL, WHATSAPP, SMS]
+        purpose:
+          type: string
+          enum: [TRANSACTIONAL, MARKETING]
+        language:
+          type: string
+          const: pt-BR
+        subject:
+          type: [string, 'null']
+          maxLength: 160
+        body:
+          type: string
+          minLength: 1
+          maxLength: 4096
+        status:
+          type: string
+          enum: [DRAFT, PENDING, APPROVED, REJECTED, INACTIVE]
+        version:
+          type: integer
+          format: int64
+    MessageTemplate:
+      allOf:
+        - $ref: '#/components/schemas/MessageTemplateInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+            providerTemplateId:
+              type: [string, 'null']
+              maxLength: 160
+    UsageSummary:
+      type: object
+      additionalProperties: false
+      required: [period, dimensions]
+      properties:
+        period:
+          type: string
+        dimensions:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+        limits:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+    ReportExportRequest:
+      allOf:
+        - $ref: '#/components/schemas/ExportRequest'
+        - type: object
+          required: [reportType]
+          properties:
+            reportType:
+              type: string
+              enum: [CASH, PAYMENTS, COMMISSIONS, INVENTORY, MARGIN, CUSTOMERS, OCCUPANCY]
+    ReportResult:
+      type: object
+      additionalProperties: false
+      required: [type, criteria, columns, rows, totals, generatedAt]
+      properties:
+        type:
+          type: string
+        criteria:
+          type: object
+          additionalProperties: true
+        columns:
+          type: array
+          items:
+            type: string
+        rows:
+          type: array
+          items:
+            type: object
+            additionalProperties: true
+        totals:
+          type: object
+          additionalProperties: true
+        generatedAt:
+          type: string
+          format: date-time
+    GoalInput:
+      type: object
+      additionalProperties: false
+      required: [metricCode, periodStart, periodEnd, targetValue]
+      properties:
+        unitId:
+          type: [string, 'null']
+          format: uuid
+        barberId:
+          type: [string, 'null']
+          format: uuid
+        metricCode:
+          type: string
+          enum: [REVENUE, SERVICES, OCCUPANCY, RETENTION]
+        periodStart:
+          type: string
+          format: date
+        periodEnd:
+          type: string
+          format: date
+        targetValue:
+          type: string
+        version:
+          type: integer
+          format: int64
+          default: 0
+    Goal:
+      allOf:
+        - $ref: '#/components/schemas/GoalInput'
+        - type: object
+          required: [id, actualValue, updatedAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            actualValue:
+              type: string
+            updatedAt:
+              type: string
+              format: date-time
+    Insight:
+      type: object
+      additionalProperties: false
+      required: [type, title, value, source, calculatedAt, confidence]
+      properties:
+        type:
+          type: string
+        title:
+          type: string
+        value:
+          type: string
+        source:
+          type: string
+        calculatedAt:
+          type: string
+          format: date-time
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 1
+    StatusChange:
+      type: object
+      additionalProperties: false
+      required: [status, reason]
+      properties:
+        status:
+          type: string
+          enum: [ACTIVE, SUSPENDED]
+        reason:
+          type: string
+          minLength: 10
+          maxLength: 500
+        effectiveUntil:
+          type: [string, 'null']
+          format: date-time
+    PlatformHealth:
+      type: object
+      additionalProperties: false
+      required: [status, version, checkedAt, indicators]
+      properties:
+        status:
+          type: string
+          enum: [HEALTHY, DEGRADED, UNAVAILABLE]
+        version:
+          type: string
+        checkedAt:
+          type: string
+          format: date-time
+        indicators:
+          type: object
+          additionalProperties:
+            type: string
+    SaasPlanInput:
+      type: object
+      additionalProperties: false
+      required: [code, name, monthlyPrice, annualPrice, limits, features, active, effectiveFrom]
+      properties:
+        code:
+          type: string
+          pattern: '^[A-Z][A-Z0-9_]{2,39}$'
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        monthlyPrice:
+          $ref: '#/components/schemas/Money'
+        annualPrice:
+          $ref: '#/components/schemas/Money'
+        limits:
+          type: object
+          additionalProperties:
+            type: integer
+            format: int64
+            minimum: 0
+        features:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+        active:
+          type: boolean
+        effectiveFrom:
+          type: string
+          format: date
+        effectiveTo:
+          type: [string, 'null']
+          format: date
+    SaasPlan:
+      allOf:
+        - $ref: '#/components/schemas/SaasPlanInput'
+        - type: object
+          required: [id, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            version:
+              type: integer
+              format: int64
+    SupportSession:
+      type: object
+      additionalProperties: false
+      required: [id, tenantId, actorUserId, reason, startedAt, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        tenantId:
+          type: string
+          format: uuid
+        actorUserId:
+          type: string
+          format: uuid
+        reason:
+          type: string
+        startedAt:
+          type: string
+          format: date-time
+        expiresAt:
+          type: string
+          format: date-time
+        endedAt:
+          type: [string, 'null']
+          format: date-time
+    CouponInput:
+      type: object
+      additionalProperties: false
+      required: [code, discountType, discountValue, validFrom, validTo, maximumUses, active]
+      properties:
+        code:
+          type: string
+          pattern: '^[A-Z0-9_-]{3,40}$'
+        discountType:
+          type: string
+          enum: [PERCENTAGE, FIXED]
+        discountValue:
+          type: string
+        eligiblePlanIds:
+          type: array
+          uniqueItems: true
+          items:
+            type: string
+            format: uuid
+        validFrom:
+          type: string
+          format: date-time
+        validTo:
+          type: string
+          format: date-time
+        maximumUses:
+          type: integer
+          minimum: 1
+        active:
+          type: boolean
+    Coupon:
+      allOf:
+        - $ref: '#/components/schemas/CouponInput'
+        - type: object
+          required: [id, uses]
+          properties:
+            id:
+              type: string
+              format: uuid
+            uses:
+              type: integer
+              minimum: 0
+    CashMovementInput:
+      type: object
+      additionalProperties: false
+      required: [type, amount, reason]
+      properties:
+        type:
+          type: string
+          enum: [SUPPLY, WITHDRAWAL]
+        amount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 500
+    CashMovement:
+      allOf:
+        - $ref: '#/components/schemas/CashMovementInput'
+        - type: object
+          required: [id, cashSessionId, createdAt, createdBy]
+          properties:
+            id:
+              type: string
+              format: uuid
+            cashSessionId:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+            createdBy:
+              type: string
+              format: uuid
+    RefundInput:
+      type: object
+      additionalProperties: false
+      required: [amount, reason]
+      properties:
+        amount:
+          $ref: '#/components/schemas/Money'
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 500
+    Refund:
+      allOf:
+        - $ref: '#/components/schemas/RefundInput'
+        - type: object
+          required: [id, paymentId, status, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            paymentId:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [PENDING, CONFIRMED, FAILED]
+            externalId:
+              type: [string, 'null']
+            refundedAt:
+              type: [string, 'null']
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+    OnlineCheckoutInput:
+      type: object
+      additionalProperties: false
+      required: [appointmentId, purpose, amount, expiresAt, returnUrl]
+      properties:
+        appointmentId:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum: [DEPOSIT, FULL_PAYMENT]
+        amount:
+          $ref: '#/components/schemas/Money'
+        expiresAt:
+          type: string
+          format: date-time
+        returnUrl:
+          type: string
+          format: uri
+    OnlineCheckout:
+      type: object
+      additionalProperties: false
+      required: [id, appointmentId, purpose, amount, status, checkoutUrl, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        appointmentId:
+          type: string
+          format: uuid
+        purpose:
+          type: string
+          enum: [DEPOSIT, FULL_PAYMENT]
+        amount:
+          $ref: '#/components/schemas/Money'
+        status:
+          type: string
+          enum: [PENDING, PAID, EXPIRED, CANCELED]
+        checkoutUrl:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    ReconciliationItem:
+      type: object
+      additionalProperties: false
+      required: [externalId, status, internalAmount, externalAmount, differenceAmount]
+      properties:
+        externalId:
+          type: string
+        paymentId:
+          type: [string, 'null']
+          format: uuid
+        status:
+          type: string
+          enum: [MATCHED, MISSING_INTERNAL, MISSING_EXTERNAL, AMOUNT_MISMATCH, STATUS_MISMATCH]
+        internalAmount:
+          $ref: '#/components/schemas/Money'
+        externalAmount:
+          $ref: '#/components/schemas/Money'
+        differenceAmount:
+          $ref: '#/components/schemas/SignedMoney'
+    NamedResourceInput:
+      type: object
+      additionalProperties: false
+      required: [name, active, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    NamedResource:
+      allOf:
+        - $ref: '#/components/schemas/NamedResourceInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    SupplierInput:
+      type: object
+      additionalProperties: false
+      required: [legalName, version]
+      properties:
+        legalName:
+          type: string
+          minLength: 2
+          maxLength: 180
+        document:
+          type: [string, 'null']
+          maxLength: 14
+        email:
+          type: [string, 'null']
+          format: email
+        phone:
+          type: [string, 'null']
+          maxLength: 20
+        version:
+          type: integer
+          format: int64
+    Supplier:
+      allOf:
+        - $ref: '#/components/schemas/SupplierInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    StockMovement:
+      allOf:
+        - $ref: '#/components/schemas/StockMovementInput'
+        - type: object
+          required: [id, balanceAfter, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            balanceAfter:
+              type: string
+              pattern: '^-?[0-9]+(\.[0-9]{1,3})?$'
+            createdAt:
+              type: string
+              format: date-time
+    StockCountInput:
+      type: object
+      additionalProperties: false
+      required: [unitId, countedAt, items]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        countedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [productId, countedQuantity]
+            properties:
+              productId:
+                type: string
+                format: uuid
+              countedQuantity:
+                type: string
+                pattern: '^[0-9]+(\.[0-9]{1,3})?$'
+    StockCountResult:
+      type: object
+      additionalProperties: false
+      required: [countedAt, adjustments]
+      properties:
+        countedAt:
+          type: string
+          format: date-time
+        adjustments:
+          type: array
+          items:
+            $ref: '#/components/schemas/StockMovement'
+    StockPosition:
+      type: object
+      additionalProperties: false
+      required: [unitId, productId, quantity, minimumStock]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        quantity:
+          type: string
+        minimumStock:
+          type: string
+    PurchaseOrderInput:
+      type: object
+      additionalProperties: false
+      required: [unitId, supplierId, expectedAt, items]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        supplierId:
+          type: string
+          format: uuid
+        expectedAt:
+          type: [string, 'null']
+          format: date
+        notes:
+          type: [string, 'null']
+          maxLength: 1000
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [productId, quantity, unitCost]
+            properties:
+              productId:
+                type: string
+                format: uuid
+              quantity:
+                type: string
+                pattern: '^[0-9]+(\.[0-9]{1,3})?$'
+              unitCost:
+                $ref: '#/components/schemas/Money'
+    PurchaseOrder:
+      allOf:
+        - $ref: '#/components/schemas/PurchaseOrderInput'
+        - type: object
+          required: [id, status, totalAmount, createdAt, version]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [DRAFT, ORDERED, PARTIALLY_RECEIVED, RECEIVED, CANCELED]
+            orderedAt:
+              type: [string, 'null']
+              format: date-time
+            totalAmount:
+              $ref: '#/components/schemas/Money'
+            createdAt:
+              type: string
+              format: date-time
+            version:
+              type: integer
+              format: int64
+    PurchaseReceiptInput:
+      type: object
+      additionalProperties: false
+      required: [receivedAt, items, version]
+      properties:
+        receivedAt:
+          type: string
+          format: date-time
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [purchaseOrderItemId, receivedQuantity]
+            properties:
+              purchaseOrderItemId:
+                type: string
+                format: uuid
+              receivedQuantity:
+                type: string
+                pattern: '^[0-9]+(\.[0-9]{1,3})?$'
+        version:
+          type: integer
+          format: int64
+    StockTransferInput:
+      type: object
+      additionalProperties: false
+      required: [sourceUnitId, targetUnitId, items]
+      properties:
+        sourceUnitId:
+          type: string
+          format: uuid
+        targetUnitId:
+          type: string
+          format: uuid
+        notes:
+          type: [string, 'null']
+          maxLength: 500
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [productId, quantity]
+            properties:
+              productId:
+                type: string
+                format: uuid
+              quantity:
+                type: string
+                pattern: '^[0-9]+(\.[0-9]{1,3})?$'
+    StockTransfer:
+      allOf:
+        - $ref: '#/components/schemas/StockTransferInput'
+        - type: object
+          required: [id, status, correlationId, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [REQUESTED, IN_TRANSIT, COMPLETED, CANCELED]
+            correlationId:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+    RestockSuggestion:
+      type: object
+      additionalProperties: false
+      required: [unitId, productId, suggestedQuantity, calculation, calculatedAt]
+      properties:
+        unitId:
+          type: string
+          format: uuid
+        productId:
+          type: string
+          format: uuid
+        suggestedQuantity:
+          type: string
+        calculation:
+          type: string
+        calculatedAt:
+          type: string
+          format: date-time
+    LoyaltyProgramInput:
+      type: object
+      additionalProperties: false
+      required: [name, pointsPerCurrency, active, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        pointsPerCurrency:
+          type: string
+          pattern: '^[0-9]+(\.[0-9]{1,4})?$'
+        expiryDays:
+          type: [integer, 'null']
+          minimum: 1
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    LoyaltyProgram:
+      allOf:
+        - $ref: '#/components/schemas/LoyaltyProgramInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    LoyaltyTransactionInput:
+      type: object
+      additionalProperties: false
+      required: [type, points, referenceType, referenceId]
+      properties:
+        type:
+          type: string
+          enum: [CREDIT, DEBIT, REVERSAL, EXPIRY]
+        points:
+          type: integer
+          format: int64
+          not:
+            const: 0
+        referenceType:
+          type: string
+          minLength: 1
+          maxLength: 60
+        referenceId:
+          type: string
+          format: uuid
+        reason:
+          type: [string, 'null']
+          maxLength: 500
+    LoyaltyTransaction:
+      allOf:
+        - $ref: '#/components/schemas/LoyaltyTransactionInput'
+        - type: object
+          required: [id, accountId, balanceAfter, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            accountId:
+              type: string
+              format: uuid
+            balanceAfter:
+              type: integer
+              format: int64
+            expiresAt:
+              type: [string, 'null']
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+    CustomerPlanInput:
+      type: object
+      additionalProperties: false
+      required: [name, price, billingCycle, items, active, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        billingCycle:
+          type: string
+          enum: [ONE_TIME, MONTHLY]
+        price:
+          $ref: '#/components/schemas/Money'
+        validityDays:
+          type: [integer, 'null']
+          minimum: 1
+        items:
+          type: array
+          minItems: 1
+          items:
+            type: object
+            additionalProperties: false
+            required: [serviceId, credits]
+            properties:
+              serviceId:
+                type: string
+                format: uuid
+              credits:
+                type: integer
+                minimum: 1
+        active:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    CustomerPlan:
+      allOf:
+        - $ref: '#/components/schemas/CustomerPlanInput'
+        - type: object
+          required: [id]
+          properties:
+            id:
+              type: string
+              format: uuid
+    CustomerPlanSubscription:
+      type: object
+      additionalProperties: false
+      required: [id, customerId, planId, status, startsAt, remainingCredits]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customerId:
+          type: string
+          format: uuid
+        planId:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [ACTIVE, PAUSED, CANCELED, EXPIRED]
+        startsAt:
+          type: string
+          format: date-time
+        endsAt:
+          type: [string, 'null']
+          format: date-time
+        remainingCredits:
+          type: object
+          additionalProperties:
+            type: integer
+            minimum: 0
+    CustomerSegment:
+      type: object
+      additionalProperties: false
+      required: [type, criteria, referenceDate, customerIds, total]
+      properties:
+        type:
+          type: string
+        criteria:
+          type: string
+        referenceDate:
+          type: string
+          format: date
+        customerIds:
+          type: array
+          items:
+            type: string
+            format: uuid
+        total:
+          type: integer
+    ReturnReminderInput:
+      type: object
+      additionalProperties: false
+      required: [customerId, serviceId, channel, scheduledAt, templateId]
+      properties:
+        customerId:
+          type: string
+          format: uuid
+        serviceId:
+          type: string
+          format: uuid
+        channel:
+          type: string
+          enum: [EMAIL, WHATSAPP, SMS]
+        scheduledAt:
+          type: string
+          format: date-time
+        templateId:
+          type: string
+          format: uuid
+    ConsentInput:
+      type: object
+      additionalProperties: false
+      required: [purpose, channel, status, source, occurredAt, policyVersion]
+      properties:
+        purpose:
+          type: string
+          enum: [TRANSACTIONAL, MARKETING, ANALYTICS]
+        channel:
+          type: string
+          enum: [EMAIL, WHATSAPP, SMS]
+        status:
+          type: string
+          enum: [GRANTED, WITHDRAWN, OPTED_OUT]
+        source:
+          type: string
+          maxLength: 120
+        occurredAt:
+          type: string
+          format: date-time
+        policyVersion:
+          type: string
+          maxLength: 80
+        proofReference:
+          type: [string, 'null']
+          maxLength: 255
+    CrmAnalytics:
+      type: object
+      additionalProperties: false
+      required: [from, to, sent, delivered, clicked, converted, attributionMethod]
+      properties:
+        from:
+          type: string
+          format: date
+        to:
+          type: string
+          format: date
+        sent:
+          type: integer
+        delivered:
+          type: integer
+        clicked:
+          type: integer
+        converted:
+          type: integer
+        attributionMethod:
+          type: string
+    CampaignInput:
+      type: object
+      additionalProperties: false
+      required: [name, segmentDefinition, templateId, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 160
+        segmentDefinition:
+          type: object
+          additionalProperties: true
+        templateId:
+          type: string
+          format: uuid
+        version:
+          type: integer
+          format: int64
+    Campaign:
+      allOf:
+        - $ref: '#/components/schemas/CampaignInput'
+        - type: object
+          required: [id, status, audienceSize, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            status:
+              type: string
+              enum: [DRAFT, SCHEDULED, RUNNING, COMPLETED, CANCELED]
+            audienceSize:
+              type: integer
+            scheduledAt:
+              type: [string, 'null']
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+    CrmAutomationInput:
+      type: object
+      additionalProperties: false
+      required: [name, trigger, delayMinutes, channel, templateId, enabled, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 160
+        trigger:
+          type: string
+          enum: [APPOINTMENT_COMPLETED, CUSTOMER_BIRTHDAY, CUSTOMER_INACTIVE, RETURN_DUE]
+        delayMinutes:
+          type: integer
+          minimum: 0
+          maximum: 525600
+        conditions:
+          type: object
+          additionalProperties: true
+        channel:
+          type: string
+          enum: [EMAIL, WHATSAPP, SMS]
+        templateId:
+          type: string
+          format: uuid
+        enabled:
+          type: boolean
+        version:
+          type: integer
+          format: int64
+    CrmAutomation:
+      allOf:
+        - $ref: '#/components/schemas/CrmAutomationInput'
+        - type: object
+          required: [id, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            createdAt:
+              type: string
+              format: date-time
+    ContactPolicy:
+      type: object
+      additionalProperties: false
+      required: [limits, quietHoursStart, quietHoursEnd, timeZone, version]
+      properties:
+        limits:
+          type: array
+          items:
+            type: object
+            additionalProperties: false
+            required: [channel, maximumContacts, windowDays]
+            properties:
+              channel:
+                type: string
+                enum: [EMAIL, WHATSAPP, SMS]
+              maximumContacts:
+                type: integer
+                minimum: 1
+              windowDays:
+                type: integer
+                minimum: 1
+        quietHoursStart:
+          type: string
+          format: time
+        quietHoursEnd:
+          type: string
+          format: time
+        timeZone:
+          type: string
+        version:
+          type: integer
+          format: int64
+    IntegrationConfiguration:
+      type: object
+      additionalProperties: false
+      properties:
+        unitId:
+          type: [string, 'null']
+          format: uuid
+        redirectUrl:
+          type: [string, 'null']
+          format: uri
+        senderId:
+          type: [string, 'null']
+          maxLength: 160
+        calendarId:
+          type: [string, 'null']
+          maxLength: 255
+    IntegrationStartResult:
+      type: object
+      additionalProperties: false
+      required: [type, state]
+      properties:
+        type:
+          type: string
+        state:
+          type: string
+          enum: [AUTHORIZATION_REQUIRED, CONNECTED]
+        authorizationUrl:
+          type: [string, 'null']
+          format: uri
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+    SubscriptionStart:
+      type: object
+      additionalProperties: false
+      required: [planId, billingCycle]
+      properties:
+        planId:
+          type: string
+          format: uuid
+        billingCycle:
+          type: string
+          enum: [MONTHLY, ANNUAL]
+        couponCode:
+          type: [string, 'null']
+          maxLength: 40
+        returnUrl:
+          type: [string, 'null']
+          format: uri
+    CheckoutLink:
+      type: object
+      additionalProperties: false
+      required: [id, url, expiresAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        url:
+          type: string
+          format: uri
+        expiresAt:
+          type: string
+          format: date-time
+    ApiCredentialInput:
+      type: object
+      additionalProperties: false
+      required: [name, scopes, expiresAt]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        scopes:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          items:
+            type: string
+        expiresAt:
+          type: [string, 'null']
+          format: date-time
+    ApiCredential:
+      allOf:
+        - $ref: '#/components/schemas/ApiCredentialInput'
+        - type: object
+          required: [id, prefix, status, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            prefix:
+              type: string
+            status:
+              type: string
+              enum: [ACTIVE, REVOKED, EXPIRED]
+            lastUsedAt:
+              type: [string, 'null']
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+    ApiCredentialCreated:
+      allOf:
+        - $ref: '#/components/schemas/ApiCredential'
+        - type: object
+          required: [secret]
+          properties:
+            secret:
+              type: string
+              minLength: 32
+    WebhookSubscriptionInput:
+      type: object
+      additionalProperties: false
+      required: [name, endpointUrl, eventTypes, status, version]
+      properties:
+        name:
+          type: string
+          minLength: 2
+          maxLength: 120
+        endpointUrl:
+          type: string
+          format: uri
+        eventTypes:
+          type: array
+          uniqueItems: true
+          minItems: 1
+          items:
+            type: string
+        status:
+          type: string
+          enum: [ACTIVE, PAUSED, DISABLED]
+        version:
+          type: integer
+          format: int64
+    WebhookSubscription:
+      allOf:
+        - $ref: '#/components/schemas/WebhookSubscriptionInput'
+        - type: object
+          required: [id, failureCount, createdAt]
+          properties:
+            id:
+              type: string
+              format: uuid
+            failureCount:
+              type: integer
+              minimum: 0
+            lastDeliveryAt:
+              type: [string, 'null']
+              format: date-time
+            createdAt:
+              type: string
+              format: date-time
+    WebhookSubscriptionCreated:
+      allOf:
+        - $ref: '#/components/schemas/WebhookSubscription'
+        - type: object
+          required: [signingSecret]
+          properties:
+            signingSecret:
+              type: string
+              minLength: 32
