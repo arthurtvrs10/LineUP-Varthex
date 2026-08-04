@@ -1,12 +1,13 @@
-package com.backend;
+package com.projeto20h;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.web.bind.annotation.GetMapping;
 
 @SpringBootApplication
-public class Application {
+public class Projeto20hApplication {
+
 	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
+		SpringApplication.run(Projeto20hApplication.class, args);
 	}
+
 }
