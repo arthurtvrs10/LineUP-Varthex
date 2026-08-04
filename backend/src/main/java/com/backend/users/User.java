@@ -105,6 +105,10 @@ public class User {
         return status;
     }
 
+    public void setStatus(UserStatus status) {
+        this.status = status;
+    }
+
     public UUID getBarbershopId() {
         return barbershopId;
     }
@@ -129,7 +133,7 @@ public class User {
         this.lastLoginAt = LocalDateTime.now();
     }
 
-    public boolean isActive() {
+    public boolean isActivate() {
         return this.status == UserStatus.ACTIVE;
     }
 }

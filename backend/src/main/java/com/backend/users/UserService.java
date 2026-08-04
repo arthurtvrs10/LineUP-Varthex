@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.UUID;
 
+import static com.backend.users.UserStatus.*;
 import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 //* Aqui ficam regras como:
@@ -36,6 +37,23 @@ public class UserService {
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
     }
 
+    public User findByEmail(String email){
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("Email não encontrado")); // Uma função sem parâmetros que retorna uma RuntimeException.
+    }
+
+    public User blockUser(UUID id){
+        User user = findById(id);
+        user.setStatus(UserStatus.BLOCKED);
+        return userRepository.save(user);
+    }
+
+    public User activateUser(UUID id){
+        User user = findById(id);
+        user.setStatus(UserStatus.ACTIVE);
+        return userRepository.save(user);
+    }
+
     // 1 - recebe dados
     public User createUser(String name, String email, String passwordHash, Role role, UUID barbershopId) {
         // 2 - verifica se faltou algo
@@ -55,7 +73,7 @@ public class UserService {
                 email,
                 passwordHash,
                 role,
-                UserStatus.ACTIVE,
+                ACTIVE,
                 barbershopId,
                 null,
                 null,

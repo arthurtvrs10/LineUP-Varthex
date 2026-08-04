@@ -2,10 +2,13 @@ package com.backend.users;
 
 import com.backend.users.dto.CreateUserRequest;
 import com.backend.users.dto.UserResponse;
+import jakarta.websocket.server.PathParam;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
+
+import static com.backend.users.UserStatus.BLOCKED;
 
 @RestController
 @RequestMapping("/users")
@@ -77,6 +80,31 @@ public class UserController {
         );
     }
 
+    @PatchMapping("/{id}/block")
+    public UserResponse patchBlockUser(@PathVariable UUID id){
+        User user = userService.blockUser(id);
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getBarbershopId(),
+                user.getCreatedAt()
+        );
+    }
 
-
+    @PatchMapping("/{id}/activate")
+    public UserResponse patchActivateUser(@PathVariable UUID id){
+        User user = userService.activateUser(id);
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getBarbershopId(),
+                user.getCreatedAt()
+        );
+    }
 }
