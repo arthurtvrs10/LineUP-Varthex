@@ -1,9 +1,12 @@
-package com.projeto20h.users;
+package com.backend.users;
 
+import com.backend.users.dto.UserResponse;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
+
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
 //* Aqui ficam regras como:
 
@@ -24,8 +27,17 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
+    public List<User> listUsers(){
+        return userRepository.findAll();
+    }
+
+    public User findById(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+    }
+
     // 1 - recebe dados
-    public User createUser(String name, String email, String passwordHash, Role role, UUID barbershopId){
+    public User createUser(String name, String email, String passwordHash, Role role, UUID barbershopId) {
         // 2 - verifica se faltou algo
         if (name == null || email == null || passwordHash == null || role == null){
             throw new RuntimeException("Dados obrigatórios faltando");
@@ -53,9 +65,6 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public List<User> listUsers(){
-        return userRepository.findAll();
-    }
 }
 
 // A lógica em português fica assim:

@@ -1,6 +1,6 @@
-package com.projeto20h.users.dto;
+package com.backend.users.dto;
 
-import com.projeto20h.users.Role;
+import com.backend.users.Role;
 
 import java.util.UUID;
 

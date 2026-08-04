@@ -1,4 +1,4 @@
-package com.projeto20h.users.dto;
+package com.backend.users.dto;
 
 public class UpdateUserStatusRequest {
 }

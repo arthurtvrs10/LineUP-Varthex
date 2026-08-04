@@ -1,4 +1,4 @@
-package com.projeto20h.users;
+package com.backend.users;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 

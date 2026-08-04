@@ -1,4 +1,4 @@
-package com.projeto20h.users;
+package com.backend.users;
 
 import jakarta.persistence.*;
 

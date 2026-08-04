@@ -1,8 +1,8 @@
-package com.projeto20h.users.dto;
+package com.backend.users.dto;
 
-import com.projeto20h.users.Role;
-import com.projeto20h.users.User;
-import com.projeto20h.users.UserStatus;
+import com.backend.users.Role;
+import com.backend.users.User;
+import com.backend.users.UserStatus;
 import org.springframework.cglib.core.Local;
 
 import java.time.LocalDateTime;

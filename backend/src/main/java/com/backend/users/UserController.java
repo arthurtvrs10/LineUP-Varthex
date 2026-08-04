@@ -1,7 +1,7 @@
-package com.projeto20h.users;
+package com.backend.users;
 
-import com.projeto20h.users.dto.CreateUserRequest;
-import com.projeto20h.users.dto.UserResponse;
+import com.backend.users.dto.CreateUserRequest;
+import com.backend.users.dto.UserResponse;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -62,4 +62,21 @@ public class UserController {
                         ))
                 .toList();
     }
+
+    @GetMapping("/{id}")
+    public UserResponse getUserById(@PathVariable UUID id){
+        User user = userService.findById(id);
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getBarbershopId(),
+                user.getCreatedAt()
+        );
+    }
+
+
+
 }
