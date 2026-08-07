@@ -2,6 +2,7 @@ package com.backend.users;
 
 import com.backend.users.dto.CreateUserRequest;
 import com.backend.users.dto.UserResponse;
+import com.backend.users.dto.UserSummaryResponse;
 import jakarta.websocket.server.PathParam;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,25 +51,38 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserResponse> getUsers(){
+    public List<UserSummaryResponse> getUsers(){
         List<User> users = userService.listUsers();
 
         return users.stream()
-                .map(user -> new UserResponse(
+                .map(user -> new UserSummaryResponse(
                         user.getId(),
                         user.getName(),
                         user.getEmail(),
                         user.getRole(),
-                        user.getStatus(),
-                        user.getBarbershopId(),
-                        user.getCreatedAt()
-                        ))
+                        user.getStatus()
+                ))
                 .toList();
     }
 
     @GetMapping("/{id}")
     public UserResponse getUserById(@PathVariable UUID id){
         User user = userService.findById(id);
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getBarbershopId(),
+                user.getCreatedAt()
+        );
+    }
+
+    @GetMapping("/by-email")
+    public UserResponse getUserByEmail(@RequestParam String email){
+        User user = userService.findByEmail(email);
+
         return new UserResponse(
                 user.getId(),
                 user.getName(),
