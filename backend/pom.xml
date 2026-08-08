@@ -59,11 +59,11 @@
 			<artifactId>spring-boot-starter-validation</artifactId>
 		</dependency>
 
-		<!-- Segurança: login, filtros, PasswordEncoder, proteção de rotas
+		<!-- Segurança: login, filtros, PasswordEncoder, proteção de rotas -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
-		</dependency> -->
+		</dependency>
 
 		<!-- Driver do PostgreSQL -->
 		<dependency>

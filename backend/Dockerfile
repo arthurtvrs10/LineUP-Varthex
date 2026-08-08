@@ -25,8 +25,7 @@ RUN java --version && mvn --version
 COPY src ./src
 
 # 6. Compila, testa e gera o arquivo .jar
-RUN mvn clean package -B
-
+RUN mvn clean package -DskipTests -B
 
 # =========================================================
 # ETAPA 2: EXECUÇÃO

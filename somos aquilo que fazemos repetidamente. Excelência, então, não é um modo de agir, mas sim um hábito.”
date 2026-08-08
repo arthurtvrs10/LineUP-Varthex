@@ -1,0 +1,22 @@
+[1mdiff --git a/backend/src/main/java/com/backend/barbershops/Barbershop.java b/backend/src/main/java/com/backend/barbershops/Barbershop.java[m
+[1mindex 5693e13..41dcb65 100644[m
+[1m--- a/backend/src/main/java/com/backend/barbershops/Barbershop.java[m
+[1m+++ b/backend/src/main/java/com/backend/barbershops/Barbershop.java[m
+[36m@@ -3,7 +3,6 @@[m [mpackage com.backend.barbershops;[m
+ import jakarta.persistence.*;[m
+ [m
+ import java.time.LocalDateTime;[m
+[31m-import java.time.OffsetDateTime;[m
+ import java.util.UUID;[m
+ [m
+ @Entity[m
+[1mdiff --git a/backend/src/main/java/com/backend/users/dto/UserResponse.java b/backend/src/main/java/com/backend/users/dto/UserResponse.java[m
+[1mindex 041a6ad..194b73b 100644[m
+[1m--- a/backend/src/main/java/com/backend/users/dto/UserResponse.java[m
+[1m+++ b/backend/src/main/java/com/backend/users/dto/UserResponse.java[m
+[36m@@ -16,5 +16,4 @@[m [mpublic record UserResponse ([m
+         LocalDateTime createdAt[m
+ ) {[m
+ [m
+[31m-[m
+ }[m

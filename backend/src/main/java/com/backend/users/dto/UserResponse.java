@@ -16,5 +16,4 @@ public record UserResponse (
         LocalDateTime createdAt
 ) {
 
-
 }
