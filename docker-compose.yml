@@ -84,22 +84,22 @@ services:
         condition: service_healthy
 
   # Serviço do frontend Next.js
-  frontend:
+  #frontend:
     # Faz o build usando o Dockerfile dentro da pasta frontend
-    build: ./frontend
+    #build: ./frontend
 
     # Nome fixo do container do frontend
-    container_name: varthex-barber-frontend
+    #container_name: varthex-barber-frontend
 
     # Porta do frontend
     # Next.js normalmente roda na porta 3000
-    ports:
-      - "3000:3000"
+    #ports:
+    #  - "3000:3000"
 
     # O frontend depende do backend
     # Isso não garante que a API esteja pronta, mas garante a ordem básica
-    depends_on:
-      - backend
+    #depends_on:
+    #  - backend
 
 # Volumes usados pelos containers
 # Eles permitem persistir dados fora do ciclo de vida do container
