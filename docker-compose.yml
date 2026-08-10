@@ -75,6 +75,11 @@ services:
     ports:
       - "8080:8080"
 
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/varthex_barber
+      SPRING_DATASOURCE_USERNAME: postgres
+      SPRING_DATASOURCE_PASSWORD: postgres
+
     # O backend depende do PostgreSQL e do Redis
     # Ele só deve iniciar depois que os dois estiverem saudáveis
     depends_on:
