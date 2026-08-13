@@ -2,7 +2,6 @@ package com.backend.users.dto;
 
 import com.backend.users.Role;
 import com.backend.users.UserStatus;
-
 import java.time.LocalDateTime;
 import java.util.UUID;
 

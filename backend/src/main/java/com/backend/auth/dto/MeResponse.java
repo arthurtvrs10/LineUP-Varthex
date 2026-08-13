@@ -1,13 +1,12 @@
-package com.backend.users.dto;
+package com.backend.auth.dto;
 
 import com.backend.users.Role;
-
 import java.util.UUID;
 
-public record CreateUserRequest (
-        String name,
+public record  MeResponse(
+        UUID id,
         String email,
-        String password,
         Role role,
         UUID barbershopId
-){}
+) {
+}

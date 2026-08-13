@@ -33,7 +33,7 @@ public class UserController {
         User createdUser = userService.createUser(
                 request.name(),
                 request.email(),
-                request.passwordHash(),
+                request.password(),
                 request.role(),
                 request.barbershopId()
         );
