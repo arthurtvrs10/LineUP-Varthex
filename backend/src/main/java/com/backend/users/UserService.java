@@ -1,6 +1,7 @@
 package com.backend.users;
 
 import com.backend.users.dto.UserResponse;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,9 +24,12 @@ import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public  UserService(UserRepository userRepository) {
+    public  UserService(UserRepository userRepository,
+                        PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<User> listUsers(){
@@ -54,10 +58,20 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User assignBarbershop(UUID userId, UUID barbershopId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new RuntimeException("Usuário não encontrado")
+                );
+
+        user.assignBarbershopId(barbershopId);
+        return userRepository.save(user);
+    }
+
     // 1 - recebe dados
-    public User createUser(String name, String email, String passwordHash, Role role, UUID barbershopId) {
+    public User createUser(String name, String email, String password, Role role, UUID barbershopId) {
         // 2 - verifica se faltou algo
-        if (name == null || email == null || passwordHash == null || role == null){
+        if (name == null || email == null || password == null || role == null){
             throw new RuntimeException("Dados obrigatórios faltando");
         }
         // 3 - verifica se o e-mail ja existe
@@ -66,6 +80,9 @@ public class UserService {
         if (emailAlreadyExists) {
             throw new RuntimeException("E-mail já cadastrado");
         }
+
+        String passwordHash = passwordEncoder.encode(password);
+
         // 4 - Cria o object User
         User user = new User(
                 UUID.randomUUID(),
@@ -84,22 +101,3 @@ public class UserService {
     }
 
 }
-
-// A lógica em português fica assim:
-
-//  Criar usuário:
-//
-//  1 - Recebo nome, email, senha criptografada, role e barbershopId.
-//
-//  2 - Se algum dado obrigatório estiver faltando:
-//    paro e lanço erro.
-//
-//  3 - Pergunto ao banco se o email já existe.
-//
-//  4 - Se o email já existir:
-//    paro e lanço erro.
-//
-//  5 - Se tudo estiver certo:
-//    crio um novo User.
-//    salvo no banco.
-//    retorno o User salvo.

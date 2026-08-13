@@ -8,5 +8,9 @@ public enum Role {
     SUPER_ADMIN,
     ADMIN,
     BARBER,
-    CLIENT
+    CLIENT;
+
+    public String getAuthority(){
+        return "ROLE_" + this.name();
+    }
 }

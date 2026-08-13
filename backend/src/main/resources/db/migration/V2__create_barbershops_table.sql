@@ -1,0 +1,12 @@
+CREATE TABLE barbershops (
+  id UUID PRIMARY KEY,
+  name VARCHAR(160) NOT NULL,
+  document_type VARCHAR(20) NOT NULL,
+  document_number VARCHAR(30) NOT NULL UNIQUE,
+  phone VARCHAR(30) NOT NULL,
+  email VARCHAR(180) NOT NULL UNIQUE,
+  status VARCHAR(50) NOT NULL,
+  timezone VARCHAR(80) NOT NULL,
+  created_at TIMESTAMP NOT NULL,
+  updated_At TIMESTAMP NOT NULL
+);

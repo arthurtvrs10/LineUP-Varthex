@@ -1,8 +1,13 @@
 package com.backend.users;
 
 import jakarta.persistence.*;
+import org.jspecify.annotations.Nullable;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
+import java.util.List;
 import java.util.UUID;
 
 @Entity
@@ -70,6 +75,18 @@ public class User {
         if (this.status == null) {
             this.status = UserStatus.ACTIVE;
         }
+    }
+
+    public void assignBarbershopId(UUID barbershopId){
+        if (barbershopId == null) {
+            throw new IllegalArgumentException("Barbearia é obrigatória");
+        }
+
+        if (this.barbershopId != null){
+            throw new IllegalStateException("Usuário já está vinculado a uma barbearia");
+        }
+
+        this.barbershopId = barbershopId;
     }
 
     @PreUpdate
