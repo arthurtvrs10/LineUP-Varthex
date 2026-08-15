@@ -1,100 +1,60 @@
-# Varthex Barber — Documentação do Produto
+# 💈 Varthex Barber - Gestão SaaS de Barbearias
 
-Documentação inicial do **Varthex Barber**, um sistema SaaS para gestão de barbearias.
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />
+  <img src="https://img.shields.io/badge/Spring_Boot-3.x-6DB33F?style=for-the-badge&logo=spring-boot&logoColor=white" alt="Spring Boot" />
+  <img src="https://img.shields.io/badge/Next.js-14+-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
+  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License MIT" />
+</p>
 
-> Esta versão é **somente documentação**. Não contém backend pronto, frontend pronto nem código de implementação. O objetivo é orientar o desenvolvimento do projeto usando **Java + Spring Boot no backend**, **Next.js no frontend**, **PostgreSQL**, **Redis** e **Docker Compose**.
-
----
-
-## Objetivo do projeto
-
-Criar uma plataforma SaaS para barbearias com:
-
-- agendamento de cortes e serviços;
-- cadastro de clientes, barbeiros, admins e superadmin;
-- controle de horários, bloqueios e disponibilidade;
-- agendamento recorrente;
-- fila de espera;
-- estoque de produtos;
-- programa de fidelidade;
-- planos para clientes;
-- CRM via WhatsApp;
-- notificações;
-- cálculo de comissão;
-- dashboard diário, semanal e mensal;
-- integração futura com Google Agenda;
-- envio de link para avaliação no Google;
-- regras de monetização do SaaS;
-- controle de dispositivos por barbeiro.
+Sistema SaaS multi-tenant completo para **agendamento, gestão operacional e financeira de barbearias e profissionais autônomos**, integrando backend corporativo em **Spring Boot** com frontend dinâmico em **Next.js**.
 
 ---
 
-## Stack definida
+## 🌟 Funcionalidades
 
-| Camada | Tecnologia |
-|---|---|
-| Backend | Java 21 + Spring Boot |
-| Frontend | Next.js + TypeScript |
-| Banco de dados | PostgreSQL |
-| Cache / filas | Redis |
-| DevOps local | Docker Compose |
-| Documentação de API | OpenAPI / Swagger |
-| Segurança | Spring Security + JWT |
-| Migrations | Flyway ou Liquibase |
-| Testes backend | JUnit + Mockito + Testcontainers |
-| Testes frontend | Vitest / React Testing Library / Playwright futuramente |
+- 📅 **Agendamento Inteligente**: Gestão de horários de barbeiros com prevenção de conflitos.
+- 👥 **Gestão de Clientes e Histórico**: Perfil completo do cliente com preferências e histórico de cortes.
+- 💳 **Módulo Financeiro**: Registro de transações, comissões de profissionais e relatórios de faturamento.
+- 🔐 **Autenticação & Segurança**: Controle de acesso seguro por roles com JWT e Spring Security.
+- 🐳 **Ambiente Unificado**: Suporte a execução de todos os módulos via Docker Compose.
 
 ---
 
-## Estrutura da documentação
+## 🏗️ Estrutura do Ecossistema
 
-```txt
+```
 varthex-barber/
-├── README.md
-├── CONTRIBUTING.md
-├── docs/
-│   ├── 00-indice-geral.md
-│   ├── produto/
-│   ├── negocio/
-│   ├── tecnico/
-│   ├── telas/
-│   ├── integracoes/
-│   ├── roadmap/
-│   └── aprendizado/
-└── .github/
-    └── ISSUE_TEMPLATE/
+├── backend/              # API RESTful Spring Boot 3 (Java 21)
+│   ├── src/main/java/    # Controladores, Serviços, Segurança e Entidades
+│   ├── Dockerfile
+│   └── pom.xml
+├── frontend/             # Interface Web / Painel Next.js & React
+├── docs/                 # Documentação técnica e especificações
+├── docker-compose.yml    # Orquestração dos containers
+└── CONTRIBUTING.md
 ```
 
 ---
 
-## Ordem recomendada de leitura
+## 🚀 Como Executar
 
-1. `docs/00-indice-geral.md`
-2. `docs/produto/01-visao-geral.md`
-3. `docs/produto/02-escopo-do-produto.md`
-4. `docs/tecnico/11-arquitetura-tecnica-java.md`
-5. `docs/aprendizado/26-guia-semana-1-sem-codigo.md`
-6. `docs/aprendizado/27-guia-semana-1-correcao-com-comandos.md`
-7. `docs/roadmap/24-cronograma-com-datas.md`
+### Via Docker Compose
+```bash
+docker-compose up --build
+```
 
----
-
-## Regra importante deste repositório
-
-Primeiro o projeto será desenvolvido com foco em aprendizado:
-
-1. entender o que será feito;
-2. estudar a documentação oficial;
-3. montar a estrutura sozinho;
-4. só depois comparar com o guia de correção.
-
-Por isso, a documentação da Semana 1 tem duas partes:
-
-- **guia sem código**, para estudar e tentar fazer sozinho;
-- **guia de correção**, com comandos e estrutura esperada.
+- **Painel Web**: `http://localhost:3000`
+- **Backend API**: `http://localhost:8080`
 
 ---
 
-## Data base do cronograma
+## 📄 Licença
 
-O cronograma começa em **06/07/2026**.
+Este projeto está sob a licença [MIT](LICENSE).
+
+---
+
+<p align="center">Desenvolvido por <a href="https://github.com/arthurtvrs10">Arthur Tavares</a></p>
