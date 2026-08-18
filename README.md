@@ -58,3 +58,5 @@ Este projeto está sob a licença [MIT](LICENSE).
 ---
 
 <p align="center">Desenvolvido por <a href="https://github.com/arthurtvrs10">Arthur Tavares</a></p>
+
+https://www.figma.com/design/Z1CjiLXOT9ok4ByqpWcgKV?node-id=
