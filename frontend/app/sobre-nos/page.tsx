@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Poppins } from "next/font/google";
 import styles from "./sobre.module.css";
-import Image from "next/image";
+import { SiteHeader } from "../components/SiteHeader";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -11,35 +11,7 @@ const poppins = Poppins({
 export default function SobreNosPage() {
   return (
     <main className={`${styles.page} ${poppins.className}`}>
-      <header className={styles.header}>
-        <nav className={styles.navigation}>
-            <Link
-            className={styles.brand}
-            href="/"
-            aria-label="Varthex Barber - Página inicial"
-            >
-            <Image
-                className={styles.logo}
-                src="/icons/logo-varthex.jpeg"
-                alt="Varthex Barber"
-                width={160}
-                height={48}
-                priority
-            />
-            </Link>
-
-        <div className={styles.links}>
-        <a href="#proposito">Propósito</a>
-        <a href="#missao">Missão</a>
-        <a href="#visao">Visão</a>
-        <a href="#valores">Valores</a>
-        </div>
-
-        <Link className={styles.registerLink} href="/cadastro">
-        Cadastro
-        </Link>
-        </nav>
-      </header>
+      <SiteHeader variant="about" />
 
       <section className={styles.hero}>
 

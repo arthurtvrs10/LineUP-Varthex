@@ -79,12 +79,12 @@
 .hero {
   display: flex;
   width: min(100% - 48px, 1200px);
-  min-height: calc(100vh - 76px);
+  min-height: auto;
   margin: 0 auto;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
-  padding: 100px 0;
+  padding: 80px 0 120px;
 }
 
 .eyebrow,
@@ -133,9 +133,9 @@
 .purpose {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  min-height: auto;
   align-items: center;
-  padding: 120px max(24px, calc((100% - 1200px) / 2));
+  padding: 80px max(24px, calc((100% - 1200px) / 2));
   background: #f8fafc;
   scroll-margin-top: 76px;
 }
@@ -171,13 +171,13 @@
 .infoCard {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  min-height: auto;
   flex-direction: column;
   align-items: flex-start;
   justify-content: center;
   border: none;
   border-radius: 0;
-  padding: 120px max(24px, calc((100% - 1200px) / 2));
+  padding: 80px max(24px, calc((100% - 1200px) / 2));
   box-shadow: none;
   scroll-margin-top: 76px;
 }
@@ -219,10 +219,10 @@
 .values {
   display: flex;
   width: 100%;
-  min-height: 100vh;
+  min-height: auto;
   flex-direction: column;
   justify-content: center;
-  padding: 120px max(24px, calc((100% - 1200px) / 2));
+  padding: 80px max(24px, calc((100% - 1200px) / 2));
   background: #ffffff;
   scroll-margin-top: 76px;
 }
@@ -248,7 +248,7 @@
 
 .valuesGrid {
   width: 100%;
-  margin-top: 70px;
+  margin-top: 40px;
   border-top: 1px solid #d0d5dd;
 }
 
@@ -291,7 +291,7 @@
   justify-content: space-between;
   gap: 40px;
   border-top: 1px solid #eaecf0;
-  padding: 100px 0;
+  padding: 64px 0;
 }
 
 .callToAction span {
@@ -384,7 +384,7 @@
 
   .hero {
     width: min(100% - 40px, 1200px);
-    padding: 90px 0;
+    padding: 64px 0;
   }
 
   .hero h1 {
@@ -393,7 +393,7 @@
 
   .purpose {
     display: block;
-    padding: 90px 20px;
+    padding: 64px 20px;
   }
 
   .sectionContent h2,
@@ -404,7 +404,7 @@
 
   .infoCard,
   .values {
-    padding: 90px 20px;
+    padding: 64px 20px;
   }
 
   .valueCard {
@@ -417,7 +417,7 @@
     width: min(100% - 40px, 1200px);
     align-items: flex-start;
     flex-direction: column;
-    padding: 80px 0;
+    padding: 56px 0;
   }
 
   .footer {
