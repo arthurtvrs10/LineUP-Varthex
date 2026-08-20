@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Poppins } from "next/font/google";
+import { UserRound } from "lucide-react";
 import styles from "../auth.module.css";
 
 const poppins = Poppins({
@@ -16,6 +17,27 @@ export default function CadastroPage() {
           <h1>Registre-se</h1>
 
           <form className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label className={styles.srOnly} htmlFor="register-name">
+                Nome
+              </label>
+
+              <UserRound
+                className={styles.inputIcon}
+                size={16}
+                strokeWidth={1.7}
+                aria-hidden="true"
+              />
+
+              <input
+                id="register-name"
+                name="name"
+                type="text"
+                placeholder="Digite seu nome"
+                autoComplete="name"
+              />
+            </div>
+
             <div className={styles.inputGroup}>
               <label className={styles.srOnly} htmlFor="register-email">
                 E-mail

@@ -43,7 +43,7 @@
 }
 
 .dashboardImage {
-  object-fit: contain;
+  object-fit: cover;
   object-position: left center;
   filter: drop-shadow(0 20px 25px rgba(0, 0, 0, 0.18));
 }
