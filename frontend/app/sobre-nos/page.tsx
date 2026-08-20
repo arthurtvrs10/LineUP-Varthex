@@ -49,9 +49,7 @@ export default function SobreNosPage() {
         </h1>
 
         <p>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-          Integer vitae justo sed lorem malesuada tincidunt. Sed
-          dignissim sapien at feugiat aliquet.
+          O Varthex Barber é um sistema SaaS voltado para o gerenciamento de barbearias. A proposta do sistema é permitir o controle de atividades relacionadas à administração da barbearia. 
         </p>
 
       </section>
@@ -64,7 +62,7 @@ export default function SobreNosPage() {
           <h2>Propósito</h2>
 
           <p>
-            Lorem ipsum dolor sit amet consectetur adipisicing elit. Saepe et ducimus dolores, totam culpa voluptatibus, corporis consequatur accusamus porro quibusdam dolorem nostrum veritatis neque expedita. Accusantium nulla provident ad delectus.
+            O Varthex Barber tem como propósito simplificar e modernizar a gestão de barbearias por meio da tecnologia, centralizando processos operacionais, administrativos e de relacionamento com clientes em uma única plataforma.
           </p>
         </div>
       </section>
@@ -73,18 +71,14 @@ export default function SobreNosPage() {
         <article className={styles.infoCard} id="missao">
           <h2>Missão</h2>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Mauris consequat, justo sed luctus tincidunt, arcu libero
-            malesuada augue.
+            Oferecer uma plataforma SaaS completa, intuitiva e confiável para gestão de barbearias, auxiliando profissionais e gestores a otimizar suas operações, melhorar o relacionamento com seus clientes e acompanhar o desempenho de seus negócios, para uma melhor forma de gerir seu negócio. 
           </p>
         </article>
 
         <article className={styles.infoCard} id="visao">
           <h2>Visão</h2>
           <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Mauris consequat, justo sed luctus tincidunt, arcu libero
-            malesuada augue.
+            Tornar-se uma plataforma de referência em gestão de barbearias, reconhecida pela eficiência, facilidade de uso, inovação e confiabilidade, contribuindo para a digitalização e o crescimento sustentável de negócios do segmento. 
           </p>
         </article>
       </section>
@@ -93,42 +87,86 @@ export default function SobreNosPage() {
         <div className={styles.valuesHeading}>
           <span className={styles.sectionLabel}>O que nos orienta</span>
           <h2>Nossos valores</h2>
-          <p>
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit.
-            Nulla facilisi praesent vitae.
-          </p>
         </div>
 
         <div className={styles.valuesGrid}>
           <article className={styles.valueCard}>
             <span>01</span>
-            <h3>Valor 01</h3>
+            <h3>Foco no usuário:</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Desenvolver soluções considerando as necessidades de gestores, barbeiros e clientes.
             </p>
           </article>
 
           <article className={styles.valueCard}>
             <span>02</span>
-            <h3>Valor 02</h3>
+            <h3>Simplicidade</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Tornar processos de gestão mais fáceis, organizados e acessíveis
             </p>
           </article>
 
           <article className={styles.valueCard}>
             <span>03</span>
-            <h3>Valor 03</h3>
+            <h3>Inovação</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              Utilizar tecnologia para solucionar problemas e melhorar continuamente a experiência dos usuários
             </p>
           </article>
 
           <article className={styles.valueCard}>
             <span>04</span>
-            <h3>Valor 04</h3>
+            <h3>Confiabilidade</h3>
             <p>
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+              oferecer uma plataforma estável e consistente para apoiar as operações dos estabelecimentos
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>05</span>
+            <h3>Segurança</h3>
+            <p>
+              Proteger os dados e informações dos usuários, estabelecimentos e clientes
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>06</span>
+            <h3>Eficiência</h3>
+            <p>
+              Reduzir processos manuais e otimizar o tempo e os recursos das barbearias
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>07</span>
+            <h3>Transparência</h3>
+            <p>
+              Manter relações claras e responsáveis com usuários e parceiros
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>08</span>
+            <h3>Evolução contínua</h3>
+            <p>
+              Utilizar feedbacks e resultados para aprimorar constantemente o produto
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>09</span>
+            <h3>Escalabilidade</h3>
+            <p>
+              Desenvolver uma solução preparada para atender desde pequenos estabelecimentos até operações maiores
+            </p>
+          </article>
+
+          <article className={styles.valueCard}>
+            <span>10</span>
+            <h3>Foco no negócio</h3>
+            <p>
+              Garantir que a tecnologia gere valor real para a gestão, produtividade e crescimento das barbearias
             </p>
           </article>
         </div>
