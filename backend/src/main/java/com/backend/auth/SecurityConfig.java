@@ -68,6 +68,16 @@ public class SecurityConfig {
                                 "/barbershops/**"
                         ).hasRole("SUPER_ADMIN")
 
+                        // Barbershops
+                        .requestMatchers(
+                                "/barbershops",
+                                "/barbershops/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN")
+
+                        .requestMatchers(
+                                "/barbers",
+                                "/barbers/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
