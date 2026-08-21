@@ -1,6 +1,8 @@
 package com.backend.barbershops;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -22,15 +24,24 @@ public class BarbershopService {
             String timezone
     ){
         if(name == null || documentType == null || documentNumber == null || phone == null || email == null ||  timezone == null){
-            throw new RuntimeException("Dados obrigatórios faltando");
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "Dados obrigatórios faltando"
+            );
         }
 
         if(barbershopRepository.existsByEmail(email)){
-            throw new RuntimeException("E-mail já cadastraddo para outra barbearia");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "E-mail já cadastrado para outra barbearia"
+            );
         }
 
         if (barbershopRepository.existsByDocumentNumber(documentNumber)){
-            throw new RuntimeException("Documento já registrado");
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "Documento já registrado"
+            );
         }
 
         Barbershop barbershop = new Barbershop(
@@ -54,7 +65,10 @@ public class BarbershopService {
 
     public Barbershop findById(UUID id){
         return barbershopRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Barbearia não encontrada"));
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Barbearia não encontrada"
+                ));
     }
 
     public Barbershop blockBarbershop(UUID id){
@@ -88,7 +102,8 @@ public class BarbershopService {
 
         if (email != null && !email.equals(barbershop.getEmail())) {
             if(barbershopRepository.existsByEmail(email)) {
-                throw new RuntimeException("E-mail já cadastrado em outra barbearia");
+                throw new ResponseStatusException(
+                        HttpStatus.CONFLICT, "E-mail já cadastrado em outra barbearia");
             }
 
             barbershop.setEmail(email);
