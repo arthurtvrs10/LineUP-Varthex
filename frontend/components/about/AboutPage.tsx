@@ -1,6 +1,8 @@
 import Link from "next/link";
+import { ConstellationBackground } from "@/components/landing/previews/ConstellationBackground";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { SectionLabel } from "@/components/ui/SectionLabel";
 
 const values = [
   {
@@ -55,23 +57,29 @@ const values = [
   },
 ];
 
-function SectionLabel({ children }: { children: string }) {
-  return (
-    <span className="flex items-center gap-3.5 text-[11px] font-semibold tracking-[0.1em] text-[#7247f3] uppercase before:h-0.5 before:w-9 before:bg-[#7247f3] before:content-['']">
-      {children}
-    </span>
-  );
-}
-
 export function AboutPage() {
   return (
     <main className="min-h-screen overflow-hidden bg-white text-[#101828]">
-      <SiteHeader variant="about" />
+      <SiteHeader />
 
-      <section className="mx-auto flex w-full max-w-[1216px] flex-col justify-center px-5 py-20 sm:px-6 lg:py-28">
-        <h1 className="max-w-5xl text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] font-bold tracking-[-0.055em]">
+      <section className="relative isolate mx-auto flex w-full max-w-[1216px] flex-col justify-center overflow-hidden px-5 py-20 sm:px-6 lg:py-28">
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-0 -z-10"
+          style={{
+            maskImage:
+              "radial-gradient(ellipse 55% 75% at 25% 15%, black 35%, transparent 85%)",
+            WebkitMaskImage:
+              "radial-gradient(ellipse 55% 75% at 25% 15%, black 35%, transparent 85%)",
+          }}
+        >
+          <ConstellationBackground className="h-full w-full" />
+        </div>
+
+        <SectionLabel>Sobre a Varthex</SectionLabel>
+        <h1 className="mt-5 max-w-5xl font-[var(--font-display)] text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] font-normal tracking-[-0.045em]">
           Uma gestão mais simples para quem vive de{" "}
-          <strong className="text-[#7247f3]">atender bem.</strong>
+          <strong className="font-normal text-[#7247f3]">atender bem.</strong>
         </h1>
         <p className="mt-6 max-w-2xl text-[15px] leading-8 text-[#667085]">
           O Varthex Barber é um sistema SaaS para administrar a rotina da

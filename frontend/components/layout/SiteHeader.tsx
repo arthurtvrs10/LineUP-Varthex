@@ -6,27 +6,16 @@ import { useState } from "react";
 import { Brand } from "@/components/brand/Brand";
 import { ActionLink } from "@/components/ui/ActionLink";
 
-type SiteHeaderProps = {
-  variant?: "landing" | "about";
-};
-
-const landingLinks = [
+const navLinks = [
   { label: "Recursos", href: "/#recursos" },
   { label: "Para quem", href: "/#publicos" },
   { label: "Planos", href: "/#planos" },
+  { label: "Sobre nós", href: "/sobre-nos" },
   { label: "Ajuda", href: "/#faq" },
 ];
 
-const aboutLinks = [
-  { label: "Propósito", href: "#proposito" },
-  { label: "Missão", href: "#missao" },
-  { label: "Visão", href: "#visao" },
-  { label: "Valores", href: "#valores" },
-];
-
-export function SiteHeader({ variant = "landing" }: SiteHeaderProps) {
+export function SiteHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
-  const links = variant === "about" ? aboutLinks : landingLinks;
 
   return (
     <header className="sticky top-0 z-50 border-b border-[#e2e7f0] bg-white">
@@ -39,7 +28,7 @@ export function SiteHeader({ variant = "landing" }: SiteHeaderProps) {
           className="hidden items-center gap-8 lg:flex"
           aria-label="Navegação principal"
         >
-          {links.map((link) => (
+          {navLinks.map((link) => (
             <Link
               key={link.label}
               href={link.href}
@@ -77,7 +66,7 @@ export function SiteHeader({ variant = "landing" }: SiteHeaderProps) {
             className="absolute left-5 right-5 top-[68px] grid gap-1 rounded-xl border border-[#e2e7f0] bg-white p-4 shadow-[0_12px_32px_rgba(33,34,72,0.08)] lg:hidden"
             aria-label="Navegação mobile"
           >
-            {links.map((link) => (
+            {navLinks.map((link) => (
               <Link
                 key={link.label}
                 href={link.href}

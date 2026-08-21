@@ -41,52 +41,56 @@ function FeatureItem({ children, upcoming = false }: { children: string; upcomin
 
 export function FinalSection() {
   return (
-    <section
-      className="mx-auto w-full max-w-[1216px] scroll-mt-20 px-5 py-16 sm:px-6 lg:py-24"
-      id="contato"
-    >
-      <Reveal>
-        <h2 className="max-w-2xl font-[var(--font-display)] text-[clamp(2.25rem,4vw,3.25rem)] leading-tight font-normal tracking-[-0.035em]">
-          Proteja sua margem. Reduza o caos.
-        </h2>
-        <p className="mt-4 max-w-xl text-[15px] leading-7 text-[#5f6f87]">
-          O Varthex Barber mantém sua operação organizada hoje e preparada
-          para os próximos passos.
-        </p>
+    <>
+      <section
+        className="mx-auto w-full max-w-[1216px] scroll-mt-20 px-5 pt-16 sm:px-6 lg:pt-24"
+        id="contato"
+      >
+        <Reveal>
+          <h2 className="max-w-2xl font-[var(--font-display)] text-[clamp(2.25rem,4vw,3.25rem)] leading-tight font-normal tracking-[-0.035em]">
+            Proteja sua margem. Reduza o caos.
+          </h2>
+          <p className="mt-4 max-w-xl text-[15px] leading-7 text-[#5f6f87]">
+            O Varthex Barber mantém sua operação organizada hoje e preparada
+            para os próximos passos.
+          </p>
 
-        <div className="mt-5 flex flex-wrap items-center gap-2">
-          <strong className="mr-1 text-[13px] font-bold text-[#0d1831]">Substitui:</strong>
-          {replaces.map((item) => (
-            <span className="rounded-md bg-[#f2f0f7] px-2 py-1 text-[11px] text-[#687389]" key={item}>
-              {item}
-            </span>
-          ))}
-        </div>
-
-        <div className="mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12">
-          <div className="grid gap-3">
-            {currentFeatures.slice(0, 5).map((feature) => (
-              <FeatureItem key={feature}>{feature}</FeatureItem>
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <strong className="mr-1 text-[13px] font-bold text-[#0d1831]">Substitui:</strong>
+            {replaces.map((item) => (
+              <span className="rounded-md bg-[#f2f0f7] px-2 py-1 text-[11px] text-[#687389]" key={item}>
+                {item}
+              </span>
             ))}
           </div>
-          <div className="grid gap-3">
-            {currentFeatures.slice(5).map((feature) => (
-              <FeatureItem key={feature}>{feature}</FeatureItem>
-            ))}
-          </div>
-          <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
-            {upcomingFeatures.map((feature) => (
-              <FeatureItem upcoming key={feature}>{feature}</FeatureItem>
-            ))}
-          </div>
-        </div>
 
-        <div className="mt-10">
-          <ActionLink href="/cadastro">Começar agora</ActionLink>
-        </div>
-      </Reveal>
+          <div className="mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:gap-12">
+            <div className="grid gap-3">
+              {currentFeatures.slice(0, 5).map((feature) => (
+                <FeatureItem key={feature}>{feature}</FeatureItem>
+              ))}
+            </div>
+            <div className="grid gap-3">
+              {currentFeatures.slice(5).map((feature) => (
+                <FeatureItem key={feature}>{feature}</FeatureItem>
+              ))}
+            </div>
+            <div className="grid gap-3 sm:col-span-2 lg:col-span-1">
+              {upcomingFeatures.map((feature) => (
+                <FeatureItem upcoming key={feature}>{feature}</FeatureItem>
+              ))}
+            </div>
+          </div>
 
-      <SiteFooter />
-    </section>
+          <div className="mt-10">
+            <ActionLink href="/cadastro">Começar agora</ActionLink>
+          </div>
+        </Reveal>
+      </section>
+
+      <div className="mx-auto w-full max-w-[1216px] px-5 pb-8 sm:px-6 lg:pb-10">
+        <SiteFooter />
+      </div>
+    </>
   );
 }
