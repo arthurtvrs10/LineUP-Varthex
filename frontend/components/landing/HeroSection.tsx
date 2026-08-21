@@ -3,14 +3,28 @@ import Link from "next/link";
 import { ActionLink } from "@/components/ui/ActionLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
+import { ConstellationBackground } from "./previews/ConstellationBackground";
 import { DashboardPreview } from "./previews/DashboardPreview";
 
 export function HeroSection() {
   return (
     <section
-      className="relative mx-auto w-full max-w-[1216px] scroll-mt-20 px-5 pt-16 pb-16 sm:px-6 lg:pt-20 lg:pb-20"
+      className="relative isolate mx-auto w-full max-w-[1216px] scroll-mt-20 px-5 pt-16 pb-16 sm:px-6 lg:pt-20 lg:pb-20"
       id="inicio"
     >
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-x-0 top-0 -z-10 h-155 overflow-hidden"
+        style={{
+          maskImage:
+            "radial-gradient(ellipse 60% 60% at 50% 0%, black 45%, transparent 90%)",
+          WebkitMaskImage:
+            "radial-gradient(ellipse 60% 60% at 50% 0%, black 45%, transparent 90%)",
+        }}
+      >
+        <ConstellationBackground className="h-full w-full" />
+      </div>
+
       <div className="mx-auto max-w-2xl text-center">
         <Reveal className="flex justify-center">
           <SectionLabel>Gestão de barbearias</SectionLabel>
