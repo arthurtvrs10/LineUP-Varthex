@@ -24,7 +24,7 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[#eef0f3] bg-white py-2.5 pr-4 pl-7">
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[#eef0f3] bg-white py-2.5 pr-4 pl-14 lg:pl-7">
       <div>
         <p className="text-[11px] text-[#a0aec0]">
           Pages <span className="text-[#2d3748]">/ {breadcrumb}</span>
