@@ -12,9 +12,9 @@ export function AdminShell({ title, breadcrumb, children }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-[#f8f9fa]">
       <AdminSidebar />
-      <div className="pl-[298px]">
+      <div className="lg:pl-60">
         <AdminTopbar title={title} breadcrumb={breadcrumb} />
-        <main className="mx-auto max-w-[1144px] px-8 py-8">{children}</main>
+        <main className="max-w-[1144px] px-7 py-8">{children}</main>
       </div>
     </div>
   );
