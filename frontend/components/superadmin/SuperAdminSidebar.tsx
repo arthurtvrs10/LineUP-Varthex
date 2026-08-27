@@ -39,7 +39,7 @@ const groups: PortalNavGroup[] = [
 
 const bottomLinks = [
   { href: "/superadmin/configuracoes", label: "Configurações", icon: Settings },
-  { href: "#", label: "Ajuda", icon: HelpCircle },
+  { href: "/superadmin/ajuda", label: "Ajuda", icon: HelpCircle },
 ];
 
 export function SuperAdminSidebar() {
@@ -51,6 +51,9 @@ export function SuperAdminSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "RM", name: "Rafael Mendes", email: "admin@varthex.com" }}
+      activeColor="#7247f3"
+      theme="light"
+      profileHref="/superadmin/configuracoes"
     />
   );
 }

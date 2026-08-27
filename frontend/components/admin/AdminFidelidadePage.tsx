@@ -101,25 +101,25 @@ export function AdminFidelidadePage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Fidelidade e planos
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">Planos, assinantes e programa de pontos em um único lugar</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Novo plano
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">{metric.value}</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">{metric.value}</p>
             {metric.trend && <p className="pt-1.5 text-xs text-[#27865b]">{metric.trend}</p>}
           </div>
         ))}
@@ -131,14 +131,14 @@ export function AdminFidelidadePage() {
             key={tab.id}
             type="button"
             onClick={() => scrollToSection(tab.id)}
-            className="rounded-[8px] px-4 py-2.5 text-sm font-medium text-[#686a73] transition hover:bg-[#f7f6f2] hover:text-[#17181d]"
+            className="rounded-[8px] px-4 py-2.5 text-sm font-medium text-[#686a73] transition hover:bg-[#f7f6f2] hover:text-[#0d1831]"
           >
             {tab.label}
           </button>
         ))}
       </div>
 
-      <div id="planos" className="grid w-full grid-cols-3 gap-4 pt-6 scroll-mt-6">
+      <div id="planos" className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-6 scroll-mt-6">
         {planos.map((plano) => {
           const Icon = plano.icon;
           return (
@@ -149,27 +149,27 @@ export function AdminFidelidadePage() {
                 </span>
               )}
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-full bg-[#ede9fd] text-[#6c4cf1]">
+                <span className="grid size-10 place-items-center rounded-full bg-[#ede9fd] text-[#7247f3]">
                   <Icon size={20} strokeWidth={1.8} />
                 </span>
                 <div>
-                  <p className="text-base font-semibold text-[#17181d]">{plano.name}</p>
+                  <p className="text-base font-semibold text-[#0d1831]">{plano.name}</p>
                   <p className="text-xs text-[#686a73]">{plano.cadence}</p>
                 </div>
               </div>
-              <p className="pt-4 font-['Manrope',sans-serif] text-3xl font-bold text-[#17181d]">{plano.price}</p>
+              <p className="pt-4 font-['Manrope',sans-serif] text-3xl font-bold text-[#0d1831]">{plano.price}</p>
               <p className="pt-3 text-sm text-[#686a73]">{plano.description}</p>
               <ul className="flex flex-col gap-2 pt-4">
                 {plano.features.map((feature) => (
-                  <li key={feature} className="flex items-start gap-2 text-sm text-[#17181d]">
-                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#6c4cf1]" />
+                  <li key={feature} className="flex items-start gap-2 text-sm text-[#0d1831]">
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#7247f3]" />
                     {feature}
                   </li>
                 ))}
               </ul>
               <button
                 type="button"
-                className="mt-6 w-full rounded-[10px] border border-[#e6e4df] bg-white py-2 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+                className="mt-6 w-full rounded-[10px] border border-[#e6e4df] bg-white py-2 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
               >
                 Editar
               </button>
@@ -180,8 +180,8 @@ export function AdminFidelidadePage() {
 
       <div id="assinantes" className="w-full pt-8 scroll-mt-6">
         <div className="flex items-center gap-2">
-          <h2 className="text-lg font-semibold text-[#17181d]">Assinantes</h2>
-          <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#6c4cf1]">
+          <h2 className="text-lg font-semibold text-[#0d1831]">Assinantes</h2>
+          <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]">
             {assinantes.length} clientes
           </span>
         </div>
@@ -189,7 +189,7 @@ export function AdminFidelidadePage() {
           <table className="w-full min-w-[800px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-                <th className="px-4 py-3 font-medium">Cliente</th>
+                <th className="sticky left-0 z-10 bg-white px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 font-medium">Plano</th>
                 <th className="px-4 py-3 font-medium">Total gasto</th>
                 <th className="px-4 py-3 font-medium">Pontos</th>
@@ -200,12 +200,12 @@ export function AdminFidelidadePage() {
             <tbody>
               {assinantes.map((a) => (
                 <tr key={a.name} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#6c4cf1]">
+                      <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
                         {a.initials}
                       </span>
-                      <p className="text-sm font-medium text-[#17181d]">{a.name}</p>
+                      <p className="text-sm font-medium text-[#0d1831]">{a.name}</p>
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -213,7 +213,7 @@ export function AdminFidelidadePage() {
                       {a.plan}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-sm font-medium text-[#17181d]">{a.totalSpent}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">{a.totalSpent}</td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{a.points}</td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{a.lastVisit}</td>
                   <td className="px-4 py-3">
@@ -229,47 +229,47 @@ export function AdminFidelidadePage() {
       </div>
 
       <div id="pontos" className="w-full pt-8 scroll-mt-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-[#17181d]">Programa de pontos</h2>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-lg font-semibold text-[#0d1831]">Programa de pontos</h2>
           <button
             type="button"
-            className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+            className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
           >
             <Settings2 size={13} strokeWidth={1.8} />
             Editar regras
           </button>
         </div>
 
-        <div className="grid w-full grid-cols-2 gap-4 pt-4">
+        <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-            <p className="text-sm font-semibold text-[#17181d]">Regras vigentes</p>
-            <div className="flex flex-col divide-y divide-[#eef0f3] pt-2">
+            <p className="text-sm font-semibold text-[#0d1831]">Regras vigentes</p>
+            <div className="flex flex-col divide-y divide-[#e6e4df] pt-2">
               {rules.map((rule) => (
                 <div key={rule.label} className="flex items-center justify-between py-3">
                   <p className="text-sm text-[#686a73]">{rule.label}</p>
-                  <p className="text-sm font-medium text-[#17181d]">{rule.value}</p>
+                  <p className="text-sm font-medium text-[#0d1831]">{rule.value}</p>
                 </div>
               ))}
             </div>
           </div>
 
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-            <p className="text-sm font-semibold text-[#17181d]">Ranking de pontos</p>
+            <p className="text-sm font-semibold text-[#0d1831]">Ranking de pontos</p>
             <div className="flex flex-col gap-4 pt-3">
               {ranking.map((r) => (
                 <div key={r.rank}>
                   <div className="flex items-center gap-3">
                     <span className="w-4 text-sm font-medium text-[#686a73]">{r.rank}</span>
-                    <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#6c4cf1]">
+                    <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
                       {r.initials}
                     </span>
-                    <p className="flex-1 text-sm text-[#17181d]">{r.name}</p>
+                    <p className="flex-1 text-sm text-[#0d1831]">{r.name}</p>
                     <span className="rounded-full bg-[#f0efea] px-2 py-0.5 text-xs font-medium text-[#686a73]">
                       {r.points}
                     </span>
                   </div>
                   <div className="mt-2 ml-7 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
-                    <div className="h-full rounded-full bg-[#6c4cf1]" style={{ width: `${r.percent}%` }} />
+                    <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${r.percent}%` }} />
                   </div>
                 </div>
               ))}

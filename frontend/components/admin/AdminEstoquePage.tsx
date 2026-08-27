@@ -102,14 +102,14 @@ export function AdminEstoquePage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Estoque
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">Controle de produtos e movimentações</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Novo produto
@@ -126,11 +126,11 @@ export function AdminEstoquePage() {
         </div>
       )}
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">{metric.value}</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">{metric.value}</p>
           </div>
         ))}
       </div>
@@ -141,7 +141,7 @@ export function AdminEstoquePage() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar produto..."
-          className="w-full bg-transparent text-sm text-[#17181d] placeholder:text-[#b0afa8] focus:outline-none"
+          className="w-full bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
         />
       </div>
 
@@ -150,7 +150,7 @@ export function AdminEstoquePage() {
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-                <th className="px-4 py-3 font-medium">Produto</th>
+                <th className="sticky left-0 z-10 bg-white px-4 py-3 font-medium">Produto</th>
                 <th className="px-4 py-3 font-medium">Categoria</th>
                 <th className="px-4 py-3 font-medium">Estoque atual</th>
                 <th className="px-4 py-3 font-medium">Mínimo</th>
@@ -164,11 +164,11 @@ export function AdminEstoquePage() {
             <tbody>
               {filtered.map((produto) => (
                 <tr key={produto.name} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
                       <span className={`size-8 shrink-0 rounded-[8px] ${produto.swatch}`} />
                       <div>
-                        <p className="text-sm font-medium text-[#17181d]">{produto.name}</p>
+                        <p className="text-sm font-medium text-[#0d1831]">{produto.name}</p>
                         <p className="text-xs text-[#686a73]">{produto.supplier}</p>
                       </div>
                     </div>
@@ -178,14 +178,14 @@ export function AdminEstoquePage() {
                       {produto.category}
                     </span>
                   </td>
-                  <td className={`px-4 py-3 text-sm font-semibold ${produto.low ? "text-[#e53e3e]" : "text-[#17181d]"}`}>
+                  <td className={`px-4 py-3 text-sm font-semibold ${produto.low ? "text-[#c84a4a]" : "text-[#0d1831]"}`}>
                     {produto.stock} {produto.unit}
                   </td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">
                     {produto.min} {produto.unit}
                   </td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{produto.cost}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-[#17181d]">{produto.price}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">{produto.price}</td>
                   <td className="px-4 py-3">
                     <span className="rounded-full bg-[#e8f7f1] px-2 py-0.5 text-xs font-medium text-[#27865b]">
                       {produto.margin}
@@ -194,7 +194,7 @@ export function AdminEstoquePage() {
                   <td className="px-4 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        produto.low ? "bg-[rgba(229,62,62,0.2)] text-[#e53e3e]" : "bg-[#e8f7f1] text-[#27865b]"
+                        produto.low ? "bg-[#fdeaea] text-[#c84a4a]" : "bg-[#e8f7f1] text-[#27865b]"
                       }`}
                     >
                       {produto.low ? "baixo" : "Ok"}
@@ -203,7 +203,7 @@ export function AdminEstoquePage() {
                   <td className="px-4 py-3">
                     <button
                       type="button"
-                      className="rounded-[10px] border border-[#e6e4df] bg-white px-2.5 py-1.5 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+                      className="rounded-[10px] border border-[#e6e4df] bg-white px-2.5 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
                     >
                       Movimentar
                     </button>

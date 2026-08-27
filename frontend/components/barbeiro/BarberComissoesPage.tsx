@@ -38,30 +38,30 @@ export function BarberComissoesPage() {
     <div className="flex flex-col gap-8">
       <div className="flex items-start justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-[#101828]">Comissões</h1>
-          <p className="mt-1 text-sm text-[#475467]">
+          <h1 className="text-2xl font-semibold text-[#0d1831]">Comissões</h1>
+          <p className="mt-1 text-sm text-[#5f6f87]">
             Consulte suas próprias comissões por período.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#eef1ff] py-3 pl-4 pr-[23px]">
-          <UserCheck className="h-4 w-4 text-[#293aa3]" />
-          <span className="text-xs font-bold text-[#293aa3]">Somente seus dados</span>
+        <div className="flex items-center gap-2 rounded-full bg-[#ede9fd] py-3 pl-4 pr-[23px]">
+          <UserCheck className="h-4 w-4 text-[#7247f3]" />
+          <span className="text-xs font-bold text-[#7247f3]">Somente seus dados</span>
         </div>
       </div>
 
-      <div className="flex items-center justify-between rounded-2xl border border-[#eaecf0] bg-white px-6 py-4">
+      <div className="flex items-center justify-between rounded-[12px] border border-[#e6e4df] bg-white px-6 py-4">
         <div className="flex flex-col gap-2">
-          <p className="text-xs font-bold text-[#344054]">PERÍODO</p>
+          <p className="text-xs font-bold text-[#0d1831]">PERÍODO</p>
           <div className="flex items-center gap-2">
             {periodFilters.map((filter) => (
               <button
                 key={filter}
                 type="button"
                 onClick={() => setActiveFilter(filter)}
-                className={`rounded-2xl px-4 py-2 text-xs font-bold transition ${
+                className={`rounded-[10px] px-4 py-2 text-xs font-bold transition ${
                   activeFilter === filter
-                    ? "bg-[#3448c5] text-white"
-                    : "bg-[#f9fafb] text-[#475467] hover:bg-[#f2f4f7]"
+                    ? "bg-[#7247f3] text-white"
+                    : "bg-[#f7f6f2] text-[#5f6f87] hover:bg-[#eef0f3]"
                 }`}
               >
                 {filter}
@@ -71,31 +71,31 @@ export function BarberComissoesPage() {
         </div>
         <button
           type="button"
-          className="flex items-center gap-8 rounded-2xl border border-[#d0d5dd] bg-[#f9fafb] px-3 py-3"
+          className="flex items-center gap-8 rounded-[10px] border border-[#e6e4df] bg-[#f7f6f2] px-3 py-3"
         >
-          <Calendar className="h-4 w-4 text-[#101828]" />
-          <span className="text-xs font-bold text-[#101828]">01 ago 2026 — 31 ago 2026</span>
-          <ChevronDown className="h-3 w-3 text-[#101828]" />
+          <Calendar className="h-4 w-4 text-[#0d1831]" />
+          <span className="text-xs font-bold text-[#0d1831]">01 ago 2026 — 31 ago 2026</span>
+          <ChevronDown className="h-3 w-3 text-[#0d1831]" />
         </button>
       </div>
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[#101828]">Resumo do período</h2>
-          <p className="mt-1 text-sm text-[#475467]">
+          <h2 className="text-xl font-semibold text-[#0d1831]">Resumo do período</h2>
+          <p className="mt-1 text-sm text-[#5f6f87]">
             Acompanhe quanto foi gerado, aprovado e pago.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {summaryCards.map((card) => (
             <div
               key={card.label}
-              className="rounded-2xl border border-[#eaecf0] bg-white px-6 pb-5 pt-6"
+              className="rounded-[12px] border border-[#e6e4df] bg-white px-6 pb-5 pt-6"
             >
               <div className="flex flex-col gap-3.5">
-                <p className="text-[13px] font-bold text-[#475467]">{card.label}</p>
-                <p className="text-[11px] text-[#667085]">{card.description}</p>
-                <p className="text-[28px] font-bold text-[#101828]">{card.value}</p>
+                <p className="text-[13px] font-bold text-[#5f6f87]">{card.label}</p>
+                <p className="text-[11px] text-[#98a2b3]">{card.description}</p>
+                <p className="text-[28px] font-bold text-[#0d1831]">{card.value}</p>
               </div>
             </div>
           ))}
@@ -104,24 +104,24 @@ export function BarberComissoesPage() {
 
       <div className="flex flex-col gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-[#101828]">Comissão provisionada</h2>
-          <p className="mt-1 text-sm text-[#475467]">
+          <h2 className="text-xl font-semibold text-[#0d1831]">Comissão provisionada</h2>
+          <p className="mt-1 text-sm text-[#5f6f87]">
             Visão diária, semanal e mensal no fuso da unidade.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-5">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {periodBreakdown.map((period) => (
             <div
               key={period.label}
-              className={`rounded-2xl px-6 pb-8 pt-[19px] ${
+              className={`rounded-[12px] px-6 pb-8 pt-[19px] ${
                 period.highlight
-                  ? "bg-[#3448c5]"
-                  : "border border-[#eaecf0] bg-white"
+                  ? "bg-[#7247f3]"
+                  : "border border-[#e6e4df] bg-white"
               }`}
             >
               <p
                 className={`text-xs font-bold ${
-                  period.highlight ? "text-[#dde3ff]" : "text-[#667085]"
+                  period.highlight ? "text-[#ede9fd]" : "text-[#98a2b3]"
                 }`}
               >
                 {period.label}
@@ -129,14 +129,14 @@ export function BarberComissoesPage() {
               <div className="mt-3.5 flex items-center justify-between">
                 <p
                   className={`text-2xl font-bold ${
-                    period.highlight ? "text-white" : "text-[#101828]"
+                    period.highlight ? "text-white" : "text-[#0d1831]"
                   }`}
                 >
                   {period.value}
                 </p>
                 <p
                   className={`text-[11px] ${
-                    period.highlight ? "text-[#dde3ff]" : "text-[#667085]"
+                    period.highlight ? "text-[#ede9fd]" : "text-[#98a2b3]"
                   }`}
                 >
                   {period.range}

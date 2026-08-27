@@ -3,7 +3,7 @@
 import { Search, ChevronDown, Download, AlertTriangle, CheckCircle2, XCircle, Clock, RotateCw } from "lucide-react";
 
 const metrics = [
-  { label: "MRR atual", value: "R$ 217,00", color: "#17181d" },
+  { label: "MRR atual", value: "R$ 217,00", color: "#0d1831" },
   { label: "Assinaturas ativas", value: "2", color: "#27865b" },
   { label: "Inadimplentes", value: "1", color: "#c84a4a" },
   { label: "Em trial", value: "1", color: "#3478c9" },
@@ -32,11 +32,11 @@ const assinaturas: Assinatura[] = [
     initials: "BE",
     name: "Barbearia Estilo Único",
     responsavel: "Rafael Mendes",
-    avatarBg: "#e8f7f1",
-    avatarColor: "#27865b",
+    avatarBg: "#ede9fd",
+    avatarColor: "#7247f3",
     plano: "Pro",
     planoBg: "#ede9fd",
-    planoColor: "#6c4cf1",
+    planoColor: "#7247f3",
     valor: "R$ 119,00",
     status: "Ativo",
     pagamento: "Cartão de crédito",
@@ -46,8 +46,8 @@ const assinaturas: Assinatura[] = [
     initials: "BP",
     name: "BarberKing Premium",
     responsavel: "Carlos Drummond",
-    avatarBg: "#fbf4e8",
-    avatarColor: "#c8a86b",
+    avatarBg: "#ede9fd",
+    avatarColor: "#7247f3",
     plano: "Enterprise",
     planoBg: "#fbf4e8",
     planoColor: "#c8a86b",
@@ -61,8 +61,8 @@ const assinaturas: Assinatura[] = [
     initials: "C&",
     name: "Corte & Arte",
     responsavel: "Pedro Alves",
-    avatarBg: "#fdf3e3",
-    avatarColor: "#d28b27",
+    avatarBg: "#ede9fd",
+    avatarColor: "#7247f3",
     plano: "Starter",
     planoBg: "#f0efea",
     planoColor: "#686a73",
@@ -75,11 +75,11 @@ const assinaturas: Assinatura[] = [
     initials: "SN",
     name: "Studio Nobre",
     responsavel: "André Nobre",
-    avatarBg: "#eaf2fb",
-    avatarColor: "#3478c9",
+    avatarBg: "#ede9fd",
+    avatarColor: "#7247f3",
     plano: "Pro",
     planoBg: "#ede9fd",
-    planoColor: "#6c4cf1",
+    planoColor: "#7247f3",
     valor: "R$ 119,00",
     status: "Cancelado",
     pagamento: "Cartão de crédito",
@@ -89,8 +89,8 @@ const assinaturas: Assinatura[] = [
     initials: "BH",
     name: "Barber House Sul",
     responsavel: "Gustavo Ramos",
-    avatarBg: "#e8f7f1",
-    avatarColor: "#27865b",
+    avatarBg: "#ede9fd",
+    avatarColor: "#7247f3",
     plano: "Starter",
     planoBg: "#f0efea",
     planoColor: "#686a73",
@@ -113,7 +113,7 @@ export function SuperAdminAssinaturasPage() {
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
-      <div className="grid w-full grid-cols-4 gap-[5px]">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-[5px]">
         {metrics.map((m) => (
           <div key={m.label} className="flex-1 rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{m.label}</p>
@@ -124,25 +124,25 @@ export function SuperAdminAssinaturasPage() {
         ))}
       </div>
 
-      <div className="flex w-full items-center gap-3 pt-2">
+      <div className="flex w-full flex-wrap items-center gap-3 pt-2">
         <div className="flex h-9 flex-1 max-w-[384px] items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3">
           <Search size={15} strokeWidth={1.8} className="text-[#b0afa8]" />
           <input
             type="text"
             placeholder="Buscar barbearia ou responsável..."
-            className="h-full flex-1 bg-transparent text-sm text-[#17181d] placeholder:text-[#b0afa8] focus:outline-none"
+            className="h-full flex-1 bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os status
           <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
         </button>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os planos
           <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
@@ -150,7 +150,7 @@ export function SuperAdminAssinaturasPage() {
         <div className="flex-1" />
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-[#4318ff] px-4 text-sm font-medium text-white transition hover:bg-[#3712d1]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Download size={16} strokeWidth={1.8} />
           Exportar
@@ -173,7 +173,7 @@ export function SuperAdminAssinaturasPage() {
         <table className="w-full min-w-[1000px] border-collapse text-left">
           <thead>
             <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-              <th className="px-4 py-3 font-medium">Barbearia</th>
+              <th className="sticky left-0 z-10 bg-white px-4 py-3 font-medium">Barbearia</th>
               <th className="px-4 py-3 font-medium">Plano</th>
               <th className="px-4 py-3 text-center font-medium">Valor</th>
               <th className="px-4 py-3 font-medium">Status</th>
@@ -187,7 +187,7 @@ export function SuperAdminAssinaturasPage() {
               const StatusIcon = statusConfig[a.status].icon;
               return (
                 <tr key={a.name} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
                       <span
                         className="grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold"
@@ -196,7 +196,7 @@ export function SuperAdminAssinaturasPage() {
                         {a.initials}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-[#17181d]">{a.name}</p>
+                        <p className="text-sm font-medium text-[#0d1831]">{a.name}</p>
                         <p className="text-xs text-[#686a73]">{a.responsavel}</p>
                       </div>
                     </div>
@@ -210,7 +210,7 @@ export function SuperAdminAssinaturasPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-center">
-                    <span className="text-sm font-medium text-[#17181d]">{a.valor}</span>
+                    <span className="text-sm font-medium text-[#0d1831]">{a.valor}</span>
                     <span className="text-xs text-[#686a73]">/mês</span>
                   </td>
                   <td className="px-4 py-3">
@@ -232,13 +232,13 @@ export function SuperAdminAssinaturasPage() {
                       {a.status === "Inadimplente" && (
                         <button
                           type="button"
-                          className="flex items-center gap-1.5 text-sm text-[#686a73] transition hover:text-[#17181d]"
+                          className="flex items-center gap-1.5 text-sm text-[#686a73] transition hover:text-[#0d1831]"
                         >
                           <RotateCw size={13} strokeWidth={1.8} />
                           Cobrar
                         </button>
                       )}
-                      <button type="button" className="text-sm text-[#686a73] transition hover:text-[#17181d]">
+                      <button type="button" className="text-sm text-[#686a73] transition hover:text-[#0d1831]">
                         Ver
                       </button>
                     </div>

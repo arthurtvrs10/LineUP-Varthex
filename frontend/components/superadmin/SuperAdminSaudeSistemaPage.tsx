@@ -15,12 +15,12 @@ import {
 } from "lucide-react";
 
 const metrics = [
-  { label: "CPU (API)", value: "38%", bg: "#ede9fd", color: "#6c4cf1", icon: Cpu },
-  { label: "Memória", value: "62%", bg: "#eaf2fb", color: "#3478c9", icon: Layers },
-  { label: "Req/min", value: "1.240", bg: "#e8f7f1", color: "#27865b", icon: Zap },
-  { label: "Latência P99", value: "180ms", bg: "#fdf3e3", color: "#d28b27", icon: Gauge },
+  { label: "CPU (API)", value: "38%", bg: "#f0efea", color: "#686a73", icon: Cpu },
+  { label: "Memória", value: "62%", bg: "#f0efea", color: "#686a73", icon: Layers },
+  { label: "Req/min", value: "1.240", bg: "#f0efea", color: "#686a73", icon: Zap },
+  { label: "Latência P99", value: "180ms", bg: "#f0efea", color: "#686a73", icon: Gauge },
   { label: "Conexões DB", value: "47/100", bg: "#f0efea", color: "#686a73", icon: Database },
-  { label: "Uptime geral", value: "99.94%", bg: "#ede9fd", color: "#6c4cf1", icon: Activity },
+  { label: "Uptime geral", value: "99.94%", bg: "#f0efea", color: "#686a73", icon: Activity },
   { label: "Erros 5xx (1h)", value: "3", bg: "#fdeaea", color: "#c84a4a", icon: AlertOctagon },
   { label: "Largura de banda", value: "12 MB/s", bg: "#f0efea", color: "#686a73", icon: Wifi },
 ];
@@ -120,14 +120,14 @@ export function SuperAdminSaudeSistemaPage() {
         <span className="rounded-full bg-[#fdf3e3] px-2 py-0.5 text-xs font-medium text-[#d28b27]">Degradado</span>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <RotateCw size={15} strokeWidth={1.8} />
           Atualizar
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-8 gap-[10px]">
+      <div className="grid w-full grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-[10px]">
         {metrics.map((m) => {
           const Icon = m.icon;
           return (
@@ -136,15 +136,15 @@ export function SuperAdminSaudeSistemaPage() {
                 <Icon size={16} strokeWidth={1.8} style={{ color: m.color }} />
               </div>
               <p className="pt-2 text-center text-xs text-[#686a73]">{m.label}</p>
-              <p className="pt-0.5 text-center text-sm font-bold text-[#17181d]">{m.value}</p>
+              <p className="pt-0.5 text-center text-sm font-bold text-[#0d1831]">{m.value}</p>
             </div>
           );
         })}
       </div>
 
-      <div className="grid w-full grid-cols-[1.4fr_1fr] gap-4 pt-2">
+      <div className="grid w-full grid-cols-1 lg:grid-cols-[1.4fr_1fr] gap-4 pt-2">
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-bold tracking-[-0.28px] text-[#17181d]">Status dos serviços</p>
+          <p className="text-sm font-bold tracking-[-0.28px] text-[#0d1831]">Status dos serviços</p>
           {services.map((s) => (
             <div key={s.nome} className="flex w-full items-center gap-4 rounded-[12px] border border-[#e6e4df] bg-white px-4 py-3">
               <div
@@ -159,7 +159,7 @@ export function SuperAdminSaudeSistemaPage() {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-[#17181d]">{s.nome}</p>
+                  <p className="text-sm font-medium text-[#0d1831]">{s.nome}</p>
                   <span
                     className="rounded-full px-2 py-0.5 text-xs font-medium"
                     style={{ backgroundColor: statusStyles[s.status].bg, color: statusStyles[s.status].color }}
@@ -170,7 +170,7 @@ export function SuperAdminSaudeSistemaPage() {
                 <p className="pt-0.5 text-xs text-[#686a73]">{s.descricao}</p>
               </div>
               <div className="text-right">
-                <p className="text-sm text-[#17181d]" style={{ fontFamily: "Consolas, monospace" }}>
+                <p className="text-sm text-[#0d1831]" style={{ fontFamily: "Consolas, monospace" }}>
                   {s.latencia}
                 </p>
                 <p className="text-xs text-[#686a73]">{s.uptime}</p>
@@ -180,7 +180,7 @@ export function SuperAdminSaudeSistemaPage() {
         </div>
 
         <div className="flex flex-col gap-3">
-          <p className="text-sm font-bold tracking-[-0.28px] text-[#17181d]">Incidentes recentes</p>
+          <p className="text-sm font-bold tracking-[-0.28px] text-[#0d1831]">Incidentes recentes</p>
           {incidentes.map((inc) => (
             <div key={inc.titulo} className="flex w-full flex-col rounded-[12px] border border-[#e6e4df] bg-white p-4">
               <div className="flex items-center gap-2">
@@ -197,12 +197,12 @@ export function SuperAdminSaudeSistemaPage() {
                   {inc.estado}
                 </span>
               </div>
-              <p className="pt-2 text-sm font-medium text-[#17181d]">{inc.titulo}</p>
+              <p className="pt-2 text-sm font-medium text-[#0d1831]">{inc.titulo}</p>
               <p className="pt-1 text-xs text-[#686a73]">{inc.periodo}</p>
               <div className="mt-3 flex flex-col gap-2 border-l-2 border-[#e6e4df] pl-3">
                 {inc.timeline.map((t, i) => (
                   <p key={i} className="text-xs text-[#686a73]">
-                    <span style={{ fontFamily: "Consolas, monospace" }}>{t.hora}</span> · <span className="text-[#17181d]">{t.texto}</span>
+                    <span style={{ fontFamily: "Consolas, monospace" }}>{t.hora}</span> · <span className="text-[#0d1831]">{t.texto}</span>
                   </p>
                 ))}
               </div>

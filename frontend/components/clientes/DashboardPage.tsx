@@ -1,168 +1,165 @@
-import { ChevronDown } from "lucide-react";
-
-type Service = {
-  name: string;
-  subtitle: string;
-  value: string;
-  color: string;
-  percent: number;
-};
-
-const services: Service[] = [
-  { name: "Cabelo", subtitle: "Serviço individual", value: "R$ 275,00", color: "#7247f3", percent: 50 },
-  { name: "Barba", subtitle: "Serviço individual", value: "R$ 165,00", color: "#ef6f8e", percent: 30 },
-  { name: "Cabelo + barba", subtitle: "Serviço combinado", value: "R$ 110,00", color: "#f2a93b", percent: 20 },
-];
-
-const totalSpent = "R$ 550";
-
-const loyaltyStats = [
-  {
-    label: "PONTOS ACUMULADOS",
-    value: "920",
-    sub: "Saldo disponível no programa",
-    footLabel: "FIDELIDADE",
-    footValue: "01",
-    primary: true,
-  },
-  {
-    label: "VISITAS REALIZADAS",
-    value: "46",
-    sub: "Atendimentos registrados",
-    footLabel: "HISTÓRICO",
-    footValue: "02",
-    primary: false,
-  },
-  {
-    label: "TOTAL GASTO",
-    value: totalSpent,
-    sub: "Valor acumulado em serviços",
-    footLabel: "INVESTIMENTO",
-    footValue: "03",
-    primary: false,
-  },
-];
-
-function buildConicGradient(items: Service[]) {
-  let cursor = 0;
-  const stops = items.map((item) => {
-    const start = cursor;
-    cursor += item.percent;
-    return `${item.color} ${start}% ${cursor}%`;
-  });
-  return `conic-gradient(${stops.join(", ")})`;
-}
+import Link from "next/link";
+import { ArrowRight, CalendarDays, Clock, Gift, MapPin, Scissors, UserRound } from "lucide-react";
+import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
+import { GastosSection } from "./charts/GastosSection";
+import {
+  brl,
+  fidelidade,
+  pontosRestantes,
+  progressoFidelidade,
+  proximoAgendamento,
+} from "./dashboardData";
 
 export function DashboardPage() {
   return (
-    <div className="flex flex-col gap-8">
-      <section className="rounded-2xl border border-[#eceef2] bg-white p-8">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <h1 className="text-[28px] font-bold text-[#202126]">Gastos por serviço</h1>
-            <p className="mt-1 text-sm text-[#74757d]">
-              Distribuição do valor total conforme os serviços contratados.
-            </p>
-          </div>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-full border border-[#e2e0dd] px-4 py-2 text-xs font-bold text-[#686972]"
+    <div className="flex flex-col gap-5">
+      <SaudacaoHeader
+        data="Sexta-feira, 14 de agosto"
+        nome="Rafael"
+        contexto="Barbearia Estilo Único · Unidade Centro"
+        acoes={
+          <Link
+            href="/clientes/agendamento"
+            className="flex h-11 items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
           >
-            Últimos 12 meses
-            <ChevronDown size={14} strokeWidth={2} />
-          </button>
-        </div>
+            Agendar novo horário
+            <ArrowRight size={16} strokeWidth={2.5} />
+          </Link>
+        }
+      />
 
-        <div className="mt-8 grid grid-cols-1 gap-10 lg:grid-cols-[240px_1fr]">
-          <div className="flex flex-col items-center gap-3">
-            <p className="self-start text-[11px] font-bold tracking-wide text-[#8a8b92]">
-              DISTRIBUIÇÃO DO PERÍODO
-            </p>
-            <div
-              className="relative size-[220px] shrink-0 rounded-full"
-              style={{ background: buildConicGradient(services) }}
-            >
-              <div className="absolute inset-[19%] rounded-full bg-white" />
-              <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                <p className="text-[11px] text-[#a0a1a7]">Total gasto</p>
-                <p className="text-[28px] font-bold text-[#202126]">{totalSpent}</p>
-                <p className="text-[11px] text-[#a0a1a7]">3 serviços</p>
+      <section>
+        <h2 className="text-[17px] font-bold text-[#0d1831]">Próximo agendamento</h2>
+
+        <div className="mt-3 rounded-[12px] border border-[#e6e4df] bg-white p-5">
+          <div className="flex flex-wrap items-start gap-6">
+            <div className="flex items-center gap-4">
+              <span className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-[#ede9fd] text-[#7247f3]">
+                <CalendarDays size={22} strokeWidth={1.8} />
+              </span>
+              <div>
+                <p className="text-[11px] font-bold tracking-wide text-[#98a2b3]">
+                  {proximoAgendamento.diaSemana.toUpperCase()}
+                </p>
+                <p className="text-xl font-bold text-[#0d1831]">{proximoAgendamento.data}</p>
+                <p className="mt-0.5 flex items-center gap-1.5 text-sm text-[#5f6f87]">
+                  <Clock size={13} strokeWidth={2} />
+                  {proximoAgendamento.horario}
+                </p>
               </div>
             </div>
-          </div>
 
-          <div>
-            <div className="flex items-center justify-between border-b border-[#eceef2] pb-3">
-              <p className="text-[11px] font-bold tracking-wide text-[#87888f]">SERVIÇO</p>
-              <p className="text-[11px] font-bold tracking-wide text-[#87888f]">VALOR</p>
+            <div className="hidden self-stretch border-l border-[#eef0f3] lg:block" />
+
+            <div className="min-w-[200px] flex-1">
+              <p className="flex items-center gap-1.5 text-sm font-bold text-[#0d1831]">
+                <Scissors size={14} strokeWidth={2} className="text-[#98a2b3]" />
+                {proximoAgendamento.servico}
+              </p>
+              <p className="mt-1 text-xs text-[#98a2b3]">{proximoAgendamento.detalhe}</p>
+              <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[#5f6f87]">
+                <span className="flex items-center gap-1.5">
+                  <UserRound size={13} strokeWidth={2} className="text-[#98a2b3]" />
+                  {proximoAgendamento.profissional}
+                </span>
+                <span className="flex items-center gap-1.5">
+                  <MapPin size={13} strokeWidth={2} className="text-[#98a2b3]" />
+                  {proximoAgendamento.unidade}
+                </span>
+              </div>
             </div>
-            <ul>
-              {services.map((service) => (
-                <li
-                  key={service.name}
-                  className="flex items-center justify-between gap-4 border-b border-[#f1f2f5] py-4 last:border-none"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className="h-8 w-1 shrink-0 rounded-full"
-                      style={{ backgroundColor: service.color }}
-                      aria-hidden="true"
-                    />
-                    <div>
-                      <p className="text-sm font-bold text-[#24252b]">{service.name}</p>
-                      <p className="text-[11px] text-[#8a8b92]">{service.subtitle}</p>
-                    </div>
-                  </div>
-                  <p className="text-base font-bold text-[#24252b]">{service.value}</p>
-                </li>
-              ))}
-            </ul>
+
+            <div className="flex flex-col items-end gap-3">
+              <div className="text-right">
+                <p className="text-[11px] font-bold tracking-wide text-[#98a2b3]">VALOR</p>
+                <p className="text-xl font-bold text-[#0d1831]">
+                  {brl.format(proximoAgendamento.valor)}
+                </p>
+              </div>
+              <Link
+                href="/clientes/historico"
+                className="rounded-[10px] border border-[#e6e4df] px-4 py-2 text-xs font-bold text-[#5f6f87] transition hover:bg-[#f7f6f2] hover:text-[#0d1831]"
+              >
+                Ver detalhes
+              </Link>
+            </div>
           </div>
         </div>
       </section>
 
       <section>
-        <h2 className="text-[28px] font-bold text-[#202126]">Minha fidelidade</h2>
-        <p className="mt-1 text-sm text-[#74757d]">Benefícios e relacionamento com a barbearia.</p>
+        <h2 className="text-[17px] font-bold text-[#0d1831]">Minha fidelidade</h2>
 
-        <div className="mt-6 grid grid-cols-1 gap-5 sm:grid-cols-3">
-          {loyaltyStats.map((stat) => (
-            <div
-              key={stat.label}
-              className={`rounded-2xl p-6 ${
-                stat.primary
-                  ? "bg-[#4318ff] text-white"
-                  : "border border-[#eceef2] bg-white text-[#24252b]"
-              }`}
-            >
-              <p
-                className={`text-[11px] font-bold tracking-wide ${
-                  stat.primary ? "text-[#d9d3ff]" : "text-[#85868d]"
-                }`}
-              >
-                {stat.label}
-              </p>
-              <p className="mt-4 text-[42px] font-bold leading-none">{stat.value}</p>
-              <p className={`mt-3 text-xs ${stat.primary ? "text-[#d8d2ff]" : "text-[#7d7e86]"}`}>
-                {stat.sub}
-              </p>
+        <div className="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[1.6fr_1fr]">
+          <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
+            <div className="flex flex-wrap items-start justify-between gap-4">
+              <div>
+                <p className="text-[11px] font-bold uppercase tracking-wide text-[#98a2b3]">
+                  Pontos acumulados
+                </p>
+                <p className="mt-1.5 text-[22px] font-bold leading-none text-[#0d1831]">
+                  {fidelidade.pontos}
+                </p>
+              </div>
+              <span className="flex items-center gap-2 rounded-full bg-[#ede9fd] px-3 py-1.5 text-xs font-bold text-[#7247f3]">
+                <Gift size={14} strokeWidth={2} />
+                {fidelidade.recompensa}
+              </span>
+            </div>
+
+            <div className="mt-4">
               <div
-                className={`mt-5 flex items-center justify-between border-t pt-3 text-[10px] font-bold tracking-wide ${
-                  stat.primary ? "border-white/15 text-[#ece9ff]" : "border-[#eceef2] text-[#96979e]"
-                }`}
+                role="progressbar"
+                aria-valuenow={fidelidade.pontos}
+                aria-valuemin={0}
+                aria-valuemax={fidelidade.proximaRecompensaEm}
+                aria-label="Progresso para a próxima recompensa"
+                className="h-2 w-full overflow-hidden rounded-full bg-[#eef0f3]"
               >
-                <span>{stat.footLabel}</span>
-                <span>{stat.footValue}</span>
+                <div
+                  className="h-full rounded-full bg-[#7247f3]"
+                  style={{ width: `${progressoFidelidade}%` }}
+                />
+              </div>
+              <div className="mt-2.5 flex items-center justify-between text-xs">
+                <p className="font-bold text-[#0d1831]">
+                  {pontosRestantes > 0
+                    ? `Faltam ${pontosRestantes} pontos para ${fidelidade.recompensa}`
+                    : `Recompensa disponível: ${fidelidade.recompensa}`}
+                </p>
+                <p className="text-[#98a2b3]">
+                  {fidelidade.pontos} / {fidelidade.proximaRecompensaEm}
+                </p>
               </div>
             </div>
-          ))}
+          </div>
+
+          <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
+            <p className="text-[11px] font-bold uppercase tracking-wide text-[#98a2b3]">
+              Visitas realizadas
+            </p>
+            <p className="mt-1.5 text-[22px] font-bold leading-none text-[#0d1831]">
+              {fidelidade.visitasTotais}
+            </p>
+            <p className="mt-1.5 text-[11px] text-[#98a2b3]">
+              Desde o seu cadastro.
+            </p>
+            <Link
+              href="/clientes/historico"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#7247f3] transition hover:text-[#5c2ee0]"
+            >
+              Ver histórico completo
+              <ArrowRight size={13} strokeWidth={2.5} />
+            </Link>
+          </div>
         </div>
       </section>
 
-      <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#eceef2] pt-5 text-[11px] text-[#92939a]">
-        <p>Valores consolidados a partir do histórico de serviços.</p>
-        <p>Resumo do cliente</p>
-      </div>
+      <GastosSection />
+
+      <p className="border-t border-[#e6e4df] pt-5 text-[11px] text-[#98a2b3]">
+        Valores consolidados a partir do seu histórico de serviços.
+      </p>
     </div>
   );
 }

@@ -11,7 +11,6 @@ type Barbearia = {
   criacao: string;
   ultimoAcesso: string;
   status: "Ativo" | "Bloqueado";
-  color: string;
 };
 
 const barbearias: Barbearia[] = [
@@ -24,7 +23,6 @@ const barbearias: Barbearia[] = [
     criacao: "15/01/2024",
     ultimoAcesso: "15/01/2024",
     status: "Ativo",
-    color: "#4fd1c5",
   },
   {
     name: "Corte & Arte",
@@ -35,7 +33,6 @@ const barbearias: Barbearia[] = [
     criacao: "02/03/2024",
     ultimoAcesso: "01/08/2026",
     status: "Bloqueado",
-    color: "#c84a4a",
   },
   {
     name: "Studio Navalha de Ouro",
@@ -46,7 +43,6 @@ const barbearias: Barbearia[] = [
     criacao: "18/05/2024",
     ultimoAcesso: "24/08/2026",
     status: "Ativo",
-    color: "#4318ff",
   },
   {
     name: "Barba Boa",
@@ -57,7 +53,6 @@ const barbearias: Barbearia[] = [
     criacao: "09/09/2024",
     ultimoAcesso: "20/08/2026",
     status: "Ativo",
-    color: "#d28b27",
   },
   {
     name: "Barbearia Vintage",
@@ -68,7 +63,6 @@ const barbearias: Barbearia[] = [
     criacao: "27/11/2024",
     ultimoAcesso: "22/08/2026",
     status: "Ativo",
-    color: "#48bb78",
   },
   {
     name: "Clube do Corte",
@@ -79,56 +73,60 @@ const barbearias: Barbearia[] = [
     criacao: "14/02/2025",
     ultimoAcesso: "19/08/2026",
     status: "Ativo",
-    color: "#8f7bf5",
   },
 ];
 
 const planoStyles: Record<Barbearia["plano"], string> = {
-  pro: "bg-[#48bb78] text-white",
-  free: "bg-[#a0aec0] text-white",
+  pro: "bg-[#ede9fd] text-[#7247f3]",
+  free: "bg-[#f0efea] text-[#686a73]",
+};
+
+const statusStyles: Record<Barbearia["status"], string> = {
+  Ativo: "bg-[#e8f7f1] text-[#27865b]",
+  Bloqueado: "bg-[#fdeaea] text-[#c84a4a]",
 };
 
 export function SuperAdminBarbeariasPage() {
   return (
-    <div className="flex w-full flex-col items-start gap-5">
-      <div className="flex w-full items-center gap-3">
-        <div className="flex h-10 flex-1 items-center gap-2 rounded-[15px] border border-[#e2e8f0] bg-white px-4">
-          <Search size={15} strokeWidth={1.8} className="text-[#a0aec0]" />
+    <div className="flex w-full flex-col items-start gap-4">
+      <div className="flex w-full flex-wrap items-center gap-3">
+        <div className="flex h-10 flex-1 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4">
+          <Search size={15} strokeWidth={1.8} className="text-[#98a2b3]" />
           <input
             type="text"
             placeholder="Buscar por nome ou responsável..."
-            className="h-full flex-1 bg-transparent text-xs text-[#2d3748] placeholder:text-[#a0aec0] focus:outline-none"
+            className="h-full flex-1 bg-transparent text-xs text-[#0d1831] placeholder:text-[#98a2b3] focus:outline-none"
           />
         </div>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[15px] border border-[#e2e8f0] bg-white px-4 text-xs text-[#2d3748]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-xs text-[#0d1831]"
         >
           Todos os status
-          <ChevronDown size={14} strokeWidth={2} className="text-[#a0aec0]" />
+          <ChevronDown size={14} strokeWidth={2} className="text-[#98a2b3]" />
         </button>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[15px] border border-[#e2e8f0] bg-white px-4 text-xs text-[#2d3748]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-xs text-[#0d1831]"
         >
           Todos os planos
-          <ChevronDown size={14} strokeWidth={2} className="text-[#a0aec0]" />
+          <ChevronDown size={14} strokeWidth={2} className="text-[#98a2b3]" />
         </button>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[15px] bg-[#4318ff] px-4 text-xs font-medium text-white transition hover:bg-[#3712d1]"
+          className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-xs font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <FolderPlus size={18} strokeWidth={1.8} />
           Nova barbearia
         </button>
       </div>
 
-      <div className="w-full rounded-[15px] bg-white p-6 shadow-[0px_3.5px_5.5px_rgba(0,0,0,0.02)]">
-        <p className="text-lg font-bold text-[#2d3748]">Barbearias recentes</p>
+      <div className="w-full rounded-[12px] border border-[#e6e4df] bg-white p-6">
+        <p className="text-lg font-bold text-[#0d1831]">Barbearias recentes</p>
         <div className="w-full overflow-x-auto">
           <table className="mt-4 w-full min-w-[900px] border-collapse text-left">
             <thead>
-              <tr className="border-b border-[#e2e8f0] text-[10px] font-bold text-[#a0aec0]">
+              <tr className="border-b border-[#e6e4df] text-[10px] font-bold text-[#98a2b3]">
                 <th className="pb-2 pr-3 font-bold">BARBEARIA</th>
                 <th className="pb-2 pr-3 text-center font-bold">RESPONSÁVEL</th>
                 <th className="pb-2 pr-3 text-center font-bold">PLANO</th>
@@ -142,12 +140,9 @@ export function SuperAdminBarbeariasPage() {
             <tbody>
               {barbearias.map((b) => (
                 <tr key={b.name} className="border-b border-[#eef0f3] last:border-b-0">
-                  <td className="py-3 pr-3">
+                  <td className="sticky left-0 z-10 bg-white py-3 pr-3">
                     <div className="flex items-center gap-3">
-                      <span
-                        className="grid size-10 place-items-center rounded-[12px] text-xs font-bold text-white shadow-[0px_3.5px_5.5px_rgba(0,0,0,0.02)]"
-                        style={{ backgroundColor: b.color }}
-                      >
+                      <span className="grid size-10 place-items-center rounded-[10px] bg-[#ede9fd] text-xs font-bold text-[#7247f3]">
                         {b.name
                           .split(" ")
                           .slice(0, 2)
@@ -155,45 +150,41 @@ export function SuperAdminBarbeariasPage() {
                           .join("")}
                       </span>
                       <div>
-                        <p className="text-sm font-bold text-[#2d3748]">{b.name}</p>
-                        <p className="text-sm text-[#718096]">{b.cnpj}</p>
+                        <p className="text-sm font-bold text-[#0d1831]">{b.name}</p>
+                        <p className="text-sm text-[#5f6f87]">{b.cnpj}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#8e9cae]">{b.responsavel}</td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.responsavel}</td>
                   <td className="py-3 pr-3 text-center">
-                    <span className={`rounded-[8px] px-2.5 py-1 text-sm ${planoStyles[b.plano]}`}>{b.plano}</span>
+                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${planoStyles[b.plano]}`}>
+                      {b.plano}
+                    </span>
                   </td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#8e9cae]">{b.usuarios}</td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#8e9cae]">{b.criacao}</td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#8e9cae]">{b.ultimoAcesso}</td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.usuarios}</td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.criacao}</td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.ultimoAcesso}</td>
                   <td className="py-3 pr-3 text-center">
-                    <span
-                      className={`rounded-[11px] px-2.5 py-0.5 text-[10px] ${
-                        b.status === "Ativo"
-                          ? "bg-[#48bb78]/50 text-[#388e5c]"
-                          : "bg-[#b32323]/30 text-[#b32323]"
-                      }`}
-                    >
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${statusStyles[b.status]}`}>
                       {b.status}
                     </span>
                   </td>
                   <td className="py-3 pr-3">
                     <div className="flex items-center justify-center gap-3">
-                      <button type="button" className="text-sm text-[#8e9cae] transition hover:text-[#2d3748]">
+                      <button type="button" className="text-sm text-[#5f6f87] transition hover:text-[#0d1831]">
                         Ver
                       </button>
                       {b.status === "Ativo" ? (
                         <button
                           type="button"
-                          className="rounded-[8px] bg-[#b32323] px-3 py-1 text-sm font-bold text-white transition hover:bg-[#951c1c]"
+                          className="rounded-[8px] bg-[#c84a4a] px-3 py-1 text-sm font-medium text-white transition hover:bg-[#b13f3f]"
                         >
                           Bloquear
                         </button>
                       ) : (
                         <button
                           type="button"
-                          className="rounded-[8px] border border-[#b7c2cf] px-3 py-1 text-sm text-[#2d3748] transition hover:bg-[#f8f9fa]"
+                          className="rounded-[8px] border border-[#e6e4df] px-3 py-1 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
                         >
                           Ativar
                         </button>

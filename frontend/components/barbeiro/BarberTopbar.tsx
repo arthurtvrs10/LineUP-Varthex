@@ -24,19 +24,19 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
   }, []);
 
   return (
-    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[#eef0f3] bg-white py-2.5 pr-4 pl-14 lg:pl-7">
-      <div>
-        <p className="text-[11px] text-[#a0aec0]">
-          Pages <span className="text-[#2d3748]">/ {breadcrumb}</span>
+    <header className="sticky top-0 z-20 flex items-center justify-between border-b border-[#e6e4df] bg-white py-2.5 pr-4 pl-4 lg:pl-7">
+      <div className="pl-10 lg:pl-0">
+        <p className="text-[11px] text-[#98a2b3]">
+          Pages <span className="text-[#5f6f87]">/ {breadcrumb}</span>
         </p>
-        <p className="text-sm font-bold text-[#2d3748]">{title}</p>
+        <p className="text-sm font-bold text-[#0d1831]">{title}</p>
       </div>
 
       <div className="flex items-center gap-2">
         <button
           type="button"
           aria-label="Notificações"
-          className="relative grid size-9 place-items-center rounded-[10px] text-[#4b5468] transition hover:bg-[#f4f5f7]"
+          className="relative grid size-9 place-items-center rounded-[8px] text-[#5f6f87] transition hover:bg-[#f7f6f2]"
         >
           <Bell size={18} strokeWidth={1.8} />
           <span className="absolute right-2 top-2 size-2 rounded-full bg-[#c84a4a]" />
@@ -50,23 +50,23 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
             onClick={() => setOpen((v) => !v)}
             aria-expanded={open}
             aria-haspopup="menu"
-            className="flex items-center gap-2 rounded-[10px] px-2 py-1 transition hover:bg-[#f4f5f7]"
+            className="flex items-center gap-2 rounded-[8px] px-2 py-1 transition hover:bg-[#f7f6f2]"
           >
             <span className="grid size-8 place-items-center rounded-full bg-[#fdf3e3] text-xs font-semibold text-[#d28b27]">
-              RM
+              PR
             </span>
-            <ChevronDown size={14} className="text-[#8c94aa]" />
+            <ChevronDown size={14} className="text-[#98a2b3]" />
           </button>
 
           {open && (
             <div
               role="menu"
-              className="absolute right-0 top-full z-20 mt-2 w-44 rounded-lg border border-[#e3e5eb] bg-white py-1.5 shadow-lg"
+              className="absolute right-0 top-full z-20 mt-2 w-44 rounded-[10px] border border-[#e6e4df] bg-white py-1.5 shadow-[0_8px_24px_rgba(13,24,49,0.08)]"
             >
               <Link
                 href="/barbeiro/notificacoes"
                 role="menuitem"
-                className="block px-3.5 py-2 text-[13px] text-[#1c1c26] hover:bg-[#f8fafc]"
+                className="block px-3.5 py-2 text-[13px] text-[#0d1831] hover:bg-[#f7f6f2]"
                 onClick={() => setOpen(false)}
               >
                 Notificações
@@ -74,7 +74,7 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
               <Link
                 href="/"
                 role="menuitem"
-                className="block px-3.5 py-2 text-[13px] text-[#1c1c26] hover:bg-[#f8fafc]"
+                className="block px-3.5 py-2 text-[13px] text-[#0d1831] hover:bg-[#f7f6f2]"
                 onClick={() => setOpen(false)}
               >
                 Sair
