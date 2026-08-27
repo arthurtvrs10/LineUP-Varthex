@@ -50,8 +50,8 @@ const groups: PortalNavGroup[] = [
 ];
 
 const bottomLinks = [
-  { href: "#", label: "Configurações", icon: Settings },
-  { href: "#", label: "Ajuda", icon: HelpCircle },
+  { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/admin/ajuda", label: "Ajuda", icon: HelpCircle },
 ];
 
 export function AdminSidebar() {
@@ -63,6 +63,9 @@ export function AdminSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "RM", name: "Rafael Mendes", email: "admin@varthex.com" }}
+      activeColor="#7247f3"
+      theme="light"
+      profileHref="/admin/configuracoes"
     />
   );
 }

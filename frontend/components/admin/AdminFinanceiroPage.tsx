@@ -99,7 +99,7 @@ export function AdminFinanceiroPage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Financeiro
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">Controle de entradas e saídas</p>
@@ -107,14 +107,14 @@ export function AdminFinanceiroPage() {
         <div className="flex items-center gap-3">
           <button
             type="button"
-            className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+            className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
           >
             <Download size={16} strokeWidth={1.8} />
             Exportar
           </button>
           <button
             type="button"
-            className="flex h-10 items-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+            className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
           >
             <Plus size={16} strokeWidth={2} />
             Lançamento
@@ -122,11 +122,11 @@ export function AdminFinanceiroPage() {
         </div>
       </div>
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">{metric.value}</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">{metric.value}</p>
             <div className={`flex items-center gap-1 pt-1.5 text-xs ${metric.positive ? "text-[#27865b]" : "text-[#c84a4a]"}`}>
               {metric.positive ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
               {metric.trend}
@@ -135,15 +135,15 @@ export function AdminFinanceiroPage() {
         ))}
       </div>
 
-      <h2 className="pt-6 text-lg font-semibold text-[#17181d]">Visão geral</h2>
+      <h2 className="pt-6 text-lg font-semibold text-[#0d1831]">Visão geral</h2>
 
-      <div className="grid w-full grid-cols-2 gap-4 pt-3">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 gap-4 pt-3">
         <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#17181d]">Faturamento mensal</h3>
+          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#0d1831]">Faturamento mensal</h3>
           <p className="text-xs text-[#686a73]">Últimos 6 meses</p>
           <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="mt-4 h-40 w-full">
             <path d={area} fill="rgba(108,76,241,0.12)" />
-            <path d={line} fill="none" stroke="#6c4cf1" strokeWidth={2} />
+            <path d={line} fill="none" stroke="#7247f3" strokeWidth={2} />
           </svg>
           <div className="flex justify-between text-xs text-[#686a73]">
             {monthlyRevenue.map((m) => (
@@ -153,13 +153,13 @@ export function AdminFinanceiroPage() {
         </div>
 
         <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#17181d]">Comissões por profissional</h3>
+          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#0d1831]">Comissões por profissional</h3>
           <p className="text-xs text-[#686a73]">Este mês</p>
           <div className="mt-4 flex h-40 items-end justify-around gap-4">
             {commissionsByBarber.map((c) => (
               <div key={c.label} className="flex flex-1 flex-col items-center gap-2">
                 <div
-                  className="w-full rounded-t-[6px] bg-[#6c4cf1]"
+                  className="w-full rounded-t-[6px] bg-[#7247f3]"
                   style={{ height: `${(c.value / maxCommission) * 100}%` }}
                 />
                 <span className="text-xs text-[#686a73]">{c.label}</span>
@@ -171,28 +171,28 @@ export function AdminFinanceiroPage() {
 
       <div className="w-full pt-4">
         <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#17181d]">Categorias de despesa</h3>
+          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#0d1831]">Categorias de despesa</h3>
           <div className="flex flex-col gap-3 pt-4">
             {expenseCategories.map((cat) => (
               <div key={cat.label} className="flex items-center gap-3">
-                <p className="w-28 shrink-0 text-sm text-[#17181d]">{cat.label}</p>
+                <p className="w-28 shrink-0 text-sm text-[#0d1831]">{cat.label}</p>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
-                  <div className="h-full rounded-full bg-[#6c4cf1]" style={{ width: `${cat.percent}%` }} />
+                  <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${cat.percent}%` }} />
                 </div>
-                <p className="w-24 shrink-0 text-right text-sm font-medium text-[#17181d]">{cat.value}</p>
+                <p className="w-24 shrink-0 text-right text-sm font-medium text-[#0d1831]">{cat.value}</p>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      <h2 className="pt-6 text-lg font-semibold text-[#17181d]">Transações</h2>
+      <h2 className="pt-6 text-lg font-semibold text-[#0d1831]">Transações</h2>
       <div className="w-full pt-3">
         <div className="w-full overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">
           <table className="w-full min-w-[800px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-                <th className="px-5 py-3 font-medium">Data</th>
+                <th className="sticky left-0 z-10 bg-white px-5 py-3 font-medium">Data</th>
                 <th className="px-5 py-3 font-medium">Descrição</th>
                 <th className="px-5 py-3 font-medium">Categoria</th>
                 <th className="px-5 py-3 font-medium">Tipo</th>
@@ -202,17 +202,17 @@ export function AdminFinanceiroPage() {
             <tbody>
               {transactions.map((t, i) => (
                 <tr key={i} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-5 py-3 text-sm text-[#686a73]">{t.date}</td>
-                  <td className="px-5 py-3 text-sm text-[#17181d]">{t.description}</td>
+                  <td className="sticky left-0 z-10 bg-white px-5 py-3 text-sm text-[#686a73]">{t.date}</td>
+                  <td className="px-5 py-3 text-sm text-[#0d1831]">{t.description}</td>
                   <td className="px-5 py-3">
-                    <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#6c4cf1]">
+                    <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]">
                       {t.category}
                     </span>
                   </td>
                   <td className="px-5 py-3">
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        t.type === "Entrada" ? "bg-[#e8f7f1] text-[#27865b]" : "bg-[#fbeaea] text-[#c84a4a]"
+                        t.type === "Entrada" ? "bg-[#e8f7f1] text-[#27865b]" : "bg-[#fdeaea] text-[#c84a4a]"
                       }`}
                     >
                       {t.type}
@@ -232,65 +232,65 @@ export function AdminFinanceiroPage() {
         </div>
       </div>
 
-      <h2 className="pt-6 text-lg font-semibold text-[#17181d]">Comissões</h2>
+      <h2 className="pt-6 text-lg font-semibold text-[#0d1831]">Comissões</h2>
       <div className="flex w-full flex-col gap-3 pt-3">
         {commissions.map((c) => (
           <div key={c.name} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-semibold text-[#17181d]">{c.name}</p>
+                <p className="text-sm font-semibold text-[#0d1831]">{c.name}</p>
                 <p className="pt-0.5 text-xs text-[#686a73]">
                   {c.appointments} atendimentos · {c.rate} comissão
                 </p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-[#686a73]">Faturamento</p>
-                <p className="text-sm font-medium text-[#17181d]">{c.revenue}</p>
+                <p className="text-sm font-medium text-[#0d1831]">{c.revenue}</p>
               </div>
               <div className="text-right">
                 <p className="text-xs text-[#686a73]">Comissão</p>
-                <p className="font-['Manrope',sans-serif] text-lg font-bold text-[#17181d]">{c.commission}</p>
+                <p className="font-['Manrope',sans-serif] text-lg font-bold text-[#0d1831]">{c.commission}</p>
               </div>
               <button
                 type="button"
-                className="rounded-[8px] bg-[#6c4cf1] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#5d3fe0]"
+                className="rounded-[8px] bg-[#7247f3] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
               >
                 Pagar
               </button>
             </div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
-              <div className="h-full rounded-full bg-[#6c4cf1]" style={{ width: `${c.percent}%` }} />
+              <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${c.percent}%` }} />
             </div>
           </div>
         ))}
       </div>
 
-      <h2 className="pt-6 text-lg font-semibold text-[#17181d]">Fluxo de caixa</h2>
-      <div className="grid w-full grid-cols-[1fr_2fr] gap-4 pt-3">
+      <h2 className="pt-6 text-lg font-semibold text-[#0d1831]">Fluxo de caixa</h2>
+      <div className="grid w-full grid-cols-1 lg:grid-cols-[1fr_2fr] gap-4 pt-3">
         <div className="flex flex-col gap-3">
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
             <p className="text-sm text-[#686a73]">Total entradas</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">R$ 270,00</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">R$ 270,00</p>
           </div>
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
             <p className="text-sm text-[#686a73]">Total saídas</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">R$ 3.220,00</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">R$ 3.220,00</p>
           </div>
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
             <p className="text-sm text-[#686a73]">Saldo do período</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">-R$ 2.950,00</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">-R$ 2.950,00</p>
           </div>
         </div>
 
         <div className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#17181d]">Entradas e saídas diárias</h3>
+          <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#0d1831]">Entradas e saídas diárias</h3>
           <p className="text-xs text-[#686a73]">Agosto 2026</p>
           <div className="mt-4 flex h-44 items-end justify-around gap-6">
             {cashFlowDays.map((day) => (
               <div key={day.label} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex h-36 w-full items-end justify-center gap-1">
                   <div
-                    className="w-1/2 rounded-t-[4px] bg-[#6c4cf1]"
+                    className="w-1/2 rounded-t-[4px] bg-[#7247f3]"
                     style={{ height: `${(day.entrada / maxCashFlow) * 100}%` }}
                   />
                   <div

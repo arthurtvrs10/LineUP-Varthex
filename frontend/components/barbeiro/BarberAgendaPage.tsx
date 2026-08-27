@@ -28,10 +28,10 @@ const appointments: Appointment[] = [
 ];
 
 const statusStyles: Record<Status, { bg: string; border: string; label: string; labelColor: string }> = {
-  pendente: { bg: "bg-[#fdf1e4]", border: "border-l-4 border-[#dc6803]", label: "PENDENTE", labelColor: "text-[#93370d]" },
-  confirmado: { bg: "bg-[#eef4ff]", border: "border-l-4 border-[#3448c5]", label: "CONFIRMADO", labelColor: "text-[#1849a9]" },
-  atendimento: { bg: "bg-[#e6f7ec]", border: "border-l-4 border-[#159a5b]", label: "EM ATENDIMENTO", labelColor: "text-[#085d3a]" },
-  bloqueio: { bg: "bg-[#f2f4f7]", border: "border-l-4 border-[#98a2b3] border-dashed", label: "BLOQUEIO", labelColor: "text-[#344054]" },
+  pendente: { bg: "bg-[#fdf3e3]", border: "border-l-4 border-[#d28b27]", label: "PENDENTE", labelColor: "text-[#d28b27]" },
+  confirmado: { bg: "bg-[#ede9fd]", border: "border-l-4 border-[#7247f3]", label: "CONFIRMADO", labelColor: "text-[#7247f3]" },
+  atendimento: { bg: "bg-[#e8f7f1]", border: "border-l-4 border-[#27865b]", label: "EM ATENDIMENTO", labelColor: "text-[#27865b]" },
+  bloqueio: { bg: "bg-[#f0efea]", border: "border-l-4 border-[#98a2b3] border-dashed", label: "BLOQUEIO", labelColor: "text-[#686a73]" },
 };
 
 function toMinutes(time: string) {
@@ -89,23 +89,23 @@ export function BarberAgendaPage() {
     <div className="flex flex-col gap-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-[30px] font-bold text-[#101828]">Agenda</h1>
-          <p className="mt-1 text-sm text-[#475467]">Acompanhe seus horários, atendimentos e bloqueios.</p>
+          <h1 className="text-[30px] font-bold text-[#0d1831]">Agenda</h1>
+          <p className="mt-1 text-sm text-[#5f6f87]">Acompanhe seus horários, atendimentos e bloqueios.</p>
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-lg bg-[#4318ff] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#3712d1]"
+          className="flex items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2.5} />
           Novo agendamento
         </button>
       </div>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-[#eaecf0] bg-white p-4">
+      <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-[#e6e4df] bg-white p-4">
         <button
           type="button"
           onClick={goToToday}
-          className="rounded-lg border border-[#d0d5dd] px-3.5 py-2 text-sm font-bold text-[#344054] transition hover:bg-[#f9fafb]"
+          className="rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-sm font-bold text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           Hoje
         </button>
@@ -113,7 +113,7 @@ export function BarberAgendaPage() {
           type="button"
           onClick={() => goToWeek(-1)}
           aria-label="Semana anterior"
-          className="grid size-9 place-items-center rounded-lg border border-[#d0d5dd] text-[#344054] transition hover:bg-[#f9fafb]"
+          className="grid size-9 place-items-center rounded-[10px] border border-[#e6e4df] text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <ChevronLeft size={16} strokeWidth={2} />
         </button>
@@ -121,37 +121,37 @@ export function BarberAgendaPage() {
           type="button"
           onClick={() => goToWeek(1)}
           aria-label="Próxima semana"
-          className="grid size-9 place-items-center rounded-lg border border-[#d0d5dd] text-[#344054] transition hover:bg-[#f9fafb]"
+          className="grid size-9 place-items-center rounded-[10px] border border-[#e6e4df] text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <ChevronRight size={16} strokeWidth={2} />
         </button>
-        <p className="text-base font-bold text-[#101828]">{rangeLabel}</p>
+        <p className="text-base font-bold text-[#0d1831]">{rangeLabel}</p>
 
         <div className="ml-auto flex flex-wrap items-center gap-3">
-          <div className="flex items-center gap-2.5 rounded-lg border border-[#d0d5dd] px-3.5 py-2">
-            <span className="grid size-8 place-items-center rounded-full bg-[#e8e6ff] text-[#293aa3]">
+          <div className="flex items-center gap-2.5 rounded-[10px] border border-[#e6e4df] px-3.5 py-2">
+            <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-[#7247f3]">
               <User size={15} strokeWidth={2} />
             </span>
             <div className="text-left">
-              <p className="text-xs font-bold text-[#101828] leading-tight">João Pereira</p>
-              <p className="text-[10px] text-[#475467] leading-tight">Minha agenda</p>
+              <p className="text-xs font-bold text-[#0d1831] leading-tight">João Pereira</p>
+              <p className="text-[10px] text-[#5f6f87] leading-tight">Minha agenda</p>
             </div>
           </div>
 
-          <div className="rounded-lg border border-[#d0d5dd] px-3.5 py-2">
-            <p className="text-[10px] text-[#475467]">STATUS</p>
-            <p className="flex items-center gap-1 text-xs font-bold text-[#101828]">
+          <div className="rounded-[10px] border border-[#e6e4df] px-3.5 py-2">
+            <p className="text-[10px] text-[#5f6f87]">STATUS</p>
+            <p className="flex items-center gap-1 text-xs font-bold text-[#0d1831]">
               Todos
               <ChevronDown size={12} strokeWidth={2} />
             </p>
           </div>
 
-          <div className="flex items-center gap-1 rounded-lg border border-[#d0d5dd] p-1">
+          <div className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] p-1">
             <button
               type="button"
               onClick={() => setView("dia")}
-              className={`rounded-md px-3.5 py-1.5 text-sm font-bold transition ${
-                view === "dia" ? "bg-[#4318ff] text-white" : "text-[#344054]"
+              className={`rounded-[8px] px-3.5 py-1.5 text-sm font-bold transition ${
+                view === "dia" ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
               }`}
             >
               Dia
@@ -159,8 +159,8 @@ export function BarberAgendaPage() {
             <button
               type="button"
               onClick={() => setView("semana")}
-              className={`rounded-md px-3.5 py-1.5 text-sm font-bold transition ${
-                view === "semana" ? "bg-[#4318ff] text-white" : "text-[#344054]"
+              className={`rounded-[8px] px-3.5 py-1.5 text-sm font-bold transition ${
+                view === "semana" ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
               }`}
             >
               Semana
@@ -170,27 +170,27 @@ export function BarberAgendaPage() {
       </div>
 
       {view === "dia" ? (
-        <div className="grid place-items-center rounded-2xl border border-[#eaecf0] bg-white p-16 text-center">
-          <p className="text-sm text-[#667085]">A visualização por dia chega em breve. Use a visualização Semana por enquanto.</p>
+        <div className="grid place-items-center rounded-[12px] border border-[#e6e4df] bg-white p-16 text-center">
+          <p className="text-sm text-[#98a2b3]">A visualização por dia chega em breve. Use a visualização Semana por enquanto.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-[#eaecf0] bg-white">
+        <div className="overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">
           <div className="min-w-[860px]">
-            <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-[#eaecf0]">
-              <div className="flex items-end justify-center pb-2 text-[11px] text-[#667085]">GMT−3</div>
+            <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-[#e6e4df]">
+              <div className="flex items-end justify-center pb-2 text-[11px] text-[#98a2b3]">GMT−3</div>
               {weekDays.map((date, index) => {
                 const isToday = isSameDay(date, today);
                 return (
-                  <div key={index} className="flex flex-col items-center gap-1 border-l border-[#eaecf0] py-3">
-                    <span className="text-xs font-bold text-[#475467]">{WEEKDAY_LABELS[index]}</span>
+                  <div key={index} className="flex flex-col items-center gap-1 border-l border-[#e6e4df] py-3">
+                    <span className="text-xs font-bold text-[#5f6f87]">{WEEKDAY_LABELS[index]}</span>
                     <span
                       className={`grid size-8 place-items-center rounded-full text-lg font-bold ${
-                        isToday ? "bg-[#293aa3] text-white" : "text-[#101828]"
+                        isToday ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
                       }`}
                     >
                       {date.getDate()}
                     </span>
-                    {isToday && <span className="text-[10px] font-bold text-[#293aa3]">HOJE</span>}
+                    {isToday && <span className="text-[10px] font-bold text-[#7247f3]">HOJE</span>}
                   </div>
                 );
               })}
@@ -202,7 +202,7 @@ export function BarberAgendaPage() {
                   <div
                     key={hour}
                     style={{ height: ROW_HEIGHT }}
-                    className="flex items-start justify-end border-b border-[#f1f2f5] pr-2 pt-[-8px] text-[11px] text-[#667085]"
+                    className="flex items-start justify-end border-b border-[#eef0f3] pr-2 pt-[-8px] text-[11px] text-[#98a2b3]"
                   >
                     {String(hour).padStart(2, "0")}:00
                   </div>
@@ -216,20 +216,20 @@ export function BarberAgendaPage() {
                 return (
                   <div
                     key={dayIndex}
-                    className="relative border-l border-[#eaecf0]"
+                    className="relative border-l border-[#e6e4df]"
                     style={{ height: ROW_HEIGHT * (HOURS.length - 1) }}
                   >
                     {HOURS.slice(0, -1).map((hour) => (
                       <div
                         key={hour}
-                        className="border-b border-[#f1f2f5]"
+                        className="border-b border-[#eef0f3]"
                         style={{ height: ROW_HEIGHT }}
                       />
                     ))}
 
                     {isSunday && (
-                      <div className="absolute inset-2 grid place-items-center rounded-lg bg-[#f2f4f7]">
-                        <span className="text-[11px] font-bold text-[#475467]">Fechado</span>
+                      <div className="absolute inset-2 grid place-items-center rounded-[10px] bg-[#f7f6f2]">
+                        <span className="text-[11px] font-bold text-[#5f6f87]">Fechado</span>
                       </div>
                     )}
 
@@ -246,11 +246,11 @@ export function BarberAgendaPage() {
                           <p className={`text-[9px] font-bold ${style.labelColor}`}>
                             {item.start} • {style.label}
                           </p>
-                          <p className="truncate text-[11px] font-bold text-[#101828]">
+                          <p className="truncate text-[11px] font-bold text-[#0d1831]">
                             {item.client}
                             {item.service && ` • ${item.service}`}
                           </p>
-                          <p className="text-[9px] text-[#475467]">até {item.end}</p>
+                          <p className="text-[9px] text-[#5f6f87]">até {item.end}</p>
                         </div>
                       );
                     })}
@@ -259,16 +259,16 @@ export function BarberAgendaPage() {
               })}
             </div>
 
-            <div className="flex flex-wrap items-center gap-5 border-t border-[#eaecf0] px-4 py-3 text-xs text-[#475467]">
-              <span className="font-bold text-[#475467]">Legenda</span>
+            <div className="flex flex-wrap items-center gap-5 border-t border-[#e6e4df] px-4 py-3 text-xs text-[#5f6f87]">
+              <span className="font-bold text-[#5f6f87]">Legenda</span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#dc6803]" /> Pendente
+                <span className="size-2.5 rounded-full bg-[#d28b27]" /> Pendente
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#3448c5]" /> Confirmado
+                <span className="size-2.5 rounded-full bg-[#7247f3]" /> Confirmado
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#159a5b]" /> Em atendimento
+                <span className="size-2.5 rounded-full bg-[#27865b]" /> Em atendimento
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded border border-dashed border-[#98a2b3]" /> Bloqueio

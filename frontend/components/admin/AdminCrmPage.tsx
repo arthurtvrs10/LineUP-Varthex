@@ -160,37 +160,37 @@ export function AdminCrmPage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             CRM & WhatsApp
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">Relacionamento e comunicação automatizada com clientes</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Nova campanha
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">{metric.value}</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">{metric.value}</p>
             {metric.trend && <p className="pt-1.5 text-xs text-[#27865b]">{metric.trend}</p>}
           </div>
         ))}
       </div>
 
       <div className="flex w-full items-center justify-between pt-8">
-        <h2 className="text-lg font-semibold text-[#17181d]">
+        <h2 className="text-lg font-semibold text-[#0d1831]">
           Automações <span className="text-sm font-normal text-[#686a73]">— {activeCount} de {automations.length} ativas</span>
         </h2>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+          className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Plus size={13} strokeWidth={2} />
           Nova automação
@@ -203,12 +203,12 @@ export function AdminCrmPage() {
           const isActive = activeAutomations.has(automation.name);
           return (
             <div key={automation.name} className="flex items-start gap-4 rounded-[12px] border border-[#e6e4df] bg-white p-5">
-              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#ede9fd] text-[#6c4cf1]">
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#ede9fd] text-[#7247f3]">
                 <Icon size={18} strokeWidth={1.8} />
               </span>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm font-semibold text-[#17181d]">{automation.name}</p>
+                  <p className="text-sm font-semibold text-[#0d1831]">{automation.name}</p>
                   <span
                     className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                       isActive ? "bg-[#e8f7f1] text-[#27865b]" : "bg-[#f0efea] text-[#686a73]"
@@ -232,7 +232,7 @@ export function AdminCrmPage() {
                 role="switch"
                 aria-checked={isActive}
                 onClick={() => toggleAutomation(automation.name)}
-                className={`relative h-5 w-9 shrink-0 rounded-full transition ${isActive ? "bg-[#6c4cf1]" : "bg-[#e6e4df]"}`}
+                className={`relative h-5 w-9 shrink-0 rounded-full transition ${isActive ? "bg-[#7247f3]" : "bg-[#e6e4df]"}`}
               >
                 <span
                   className={`absolute top-0.5 size-4 rounded-full bg-white transition ${
@@ -246,29 +246,29 @@ export function AdminCrmPage() {
       </div>
 
       <div className="flex w-full items-center justify-between pt-8">
-        <h2 className="text-lg font-semibold text-[#17181d]">Modelos de mensagem</h2>
+        <h2 className="text-lg font-semibold text-[#0d1831]">Modelos de mensagem</h2>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+          className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Plus size={13} strokeWidth={2} />
           Novo modelo
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-3 gap-4 pt-4">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-4">
         {templates.map((template) => (
           <div key={template.name} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-semibold text-[#17181d]">{template.name}</p>
+                <p className="text-sm font-semibold text-[#0d1831]">{template.name}</p>
                 <span className="mt-1.5 inline-block rounded-full bg-[#f0efea] px-2 py-0.5 text-xs font-medium text-[#686a73]">
                   {template.category}
                 </span>
               </div>
               <button
                 type="button"
-                className="rounded-[8px] border border-[#e6e4df] bg-white px-2.5 py-1 text-xs font-medium text-[#17181d] transition hover:bg-[#f7f6f2]"
+                className="rounded-[8px] border border-[#e6e4df] bg-white px-2.5 py-1 text-xs font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
               >
                 Editar
               </button>
@@ -276,7 +276,7 @@ export function AdminCrmPage() {
             <p className="mt-4 rounded-[8px] bg-[#f7f6f2] px-3 py-2.5 text-sm text-[#686a73]">{template.message}</p>
             <div className="flex flex-wrap gap-1 pt-3">
               {template.vars.map((v) => (
-                <span key={v} className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#6c4cf1]">
+                <span key={v} className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]">
                   {v}
                 </span>
               ))}
@@ -285,13 +285,13 @@ export function AdminCrmPage() {
         ))}
       </div>
 
-      <h2 className="pt-8 text-lg font-semibold text-[#17181d]">Histórico de contatos</h2>
+      <h2 className="pt-8 text-lg font-semibold text-[#0d1831]">Histórico de contatos</h2>
       <div className="w-full pt-4">
         <div className="w-full overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">
           <table className="w-full min-w-[800px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-                <th className="px-4 py-3 font-medium">Cliente</th>
+                <th className="sticky left-0 z-10 bg-white px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 font-medium">Mensagem enviada</th>
                 <th className="px-4 py-3 font-medium">Canal</th>
                 <th className="px-4 py-3 font-medium">Data</th>
@@ -302,18 +302,18 @@ export function AdminCrmPage() {
             <tbody>
               {history.map((item, i) => (
                 <tr key={i} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#6c4cf1]">
+                      <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
                         {item.initials}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-[#17181d]">{item.name}</p>
+                        <p className="text-sm font-medium text-[#0d1831]">{item.name}</p>
                         <p className="text-xs text-[#686a73]">{item.phone}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-sm text-[#17181d]">{item.message}</td>
+                  <td className="px-4 py-3 text-sm text-[#0d1831]">{item.message}</td>
                   <td className="px-4 py-3">
                     <span className="flex items-center gap-1.5 text-sm text-[#686a73]">
                       <MessageCircle size={13} className="text-[#27865b]" />

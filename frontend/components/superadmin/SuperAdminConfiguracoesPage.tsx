@@ -1,62 +1,12 @@
 "use client";
 
-import { Settings, CreditCard, Bell, Shield, Plug, Mail, Save } from "lucide-react";
-
-function Toggle({ on }: { on: boolean }) {
-  return (
-    <div className={`relative h-5 w-9 shrink-0 rounded-full ${on ? "bg-[#6c4cf1]" : "bg-[#d4d2cc]"}`}>
-      <div
-        className={`absolute top-0.5 size-4 rounded-full bg-white shadow-sm transition-all ${on ? "left-[18px]" : "left-0.5"}`}
-      />
-    </div>
-  );
-}
-
-function FieldInput({ label, value, hint }: { label: string; value: string; hint?: string }) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <p className="text-sm font-medium text-[#17181d]">{label}</p>
-      <div className="flex h-10 items-center rounded-[10px] border border-[#e6e4df] bg-white px-3">
-        <p className="text-sm text-[#17181d]">{value}</p>
-      </div>
-      {hint && <p className="text-xs text-[#686a73]">{hint}</p>}
-    </div>
-  );
-}
-
-function ToggleRow({ title, hint, on, border = true }: { title: string; hint: string; on: boolean; border?: boolean }) {
-  return (
-    <div className={`flex items-center gap-6 py-3 ${border ? "border-b border-[#e6e4df]" : ""}`}>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-[#17181d]">{title}</p>
-        <p className="pt-0.5 text-xs text-[#686a73]">{hint}</p>
-      </div>
-      <Toggle on={on} />
-    </div>
-  );
-}
-
-function SectionCard({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: typeof Settings;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="flex w-full flex-col rounded-[12px] border border-[#e6e4df] bg-white p-6">
-      <div className="flex items-center gap-3 border-b border-[#e6e4df] pb-3">
-        <div className="grid size-8 place-items-center rounded-[8px] bg-[#ede9fd]">
-          <Icon size={16} strokeWidth={1.8} className="text-[#6c4cf1]" />
-        </div>
-        <p className="text-sm font-bold tracking-[-0.28px] text-[#17181d]">{title}</p>
-      </div>
-      <div className="flex flex-col gap-4 pt-5">{children}</div>
-    </div>
-  );
-}
+import { Bell, CreditCard, Mail, Plug, Settings, Shield, UserRound } from "lucide-react";
+import {
+  FieldInput,
+  SaveBar,
+  SectionCard,
+  ToggleRow,
+} from "@/components/ui/SettingsPrimitives";
 
 type Integracao = {
   nome: string;
@@ -84,31 +34,40 @@ export function SuperAdminConfiguracoesPage() {
   return (
     <div className="flex w-full flex-col items-end gap-4">
       <div className="flex w-full flex-col gap-4">
+        <SectionCard icon={UserRound} title="Conta">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Nome" defaultValue="Rafael Mendes" />
+            <FieldInput label="E-mail" defaultValue="admin@varthex.com" type="email" />
+            <FieldInput label="Telefone" defaultValue="(11) 99999-0110" />
+            <FieldInput label="Cargo" defaultValue="Super Admin da plataforma" />
+          </div>
+        </SectionCard>
+
         <SectionCard icon={Settings} title="Geral">
-          <div className="grid grid-cols-2 gap-4">
-            <FieldInput label="Nome da plataforma" value="Varthex Barber" />
-            <FieldInput label="E-mail de suporte" value="suporte@varthex.com" />
-            <FieldInput label="Fuso horário padrão" value="America/Sao_Paulo (BRT)" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Nome da plataforma" defaultValue="Varthex Barber" />
+            <FieldInput label="E-mail de suporte" defaultValue="suporte@varthex.com" />
+            <FieldInput label="Fuso horário padrão" defaultValue="America/Sao_Paulo (BRT)" />
             <FieldInput
               label="Dias de trial para novos ADMINs"
-              value="14"
+              defaultValue="14"
               hint="Período gratuito ao criar uma nova barbearia."
             />
           </div>
           <ToggleRow
             title="Modo manutenção"
             hint="Bloqueia o acesso de todos os usuários não-SUPER_ADMIN."
-            on={false}
+            defaultOn={false}
             border={false}
           />
         </SectionCard>
 
         <SectionCard icon={CreditCard} title="Planos e cobrança">
-          <div className="grid grid-cols-2 gap-4">
-            <FieldInput label="Moeda" value="BRL — Real brasileiro" />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Moeda" defaultValue="BRL — Real brasileiro" />
             <FieldInput
               label="Carência após inadimplência (dias)"
-              value="3"
+              defaultValue="3"
               hint="Dias antes de bloquear automaticamente."
             />
           </div>
@@ -116,12 +75,12 @@ export function SuperAdminConfiguracoesPage() {
             <ToggleRow
               title="Bloquear automaticamente após carência"
               hint="Suspende o acesso da barbearia se não regularizar."
-              on={true}
+              defaultOn
             />
             <ToggleRow
               title="Enviar e-mail de cobrança automaticamente"
               hint="Notifica o responsável quando a fatura está próxima do vencimento."
-              on={true}
+              defaultOn
               border={false}
             />
           </div>
@@ -132,49 +91,49 @@ export function SuperAdminConfiguracoesPage() {
             <ToggleRow
               title="Nova barbearia cadastrada"
               hint="Alerta quando um ADMIN completa o onboarding."
-              on={true}
+              defaultOn
             />
-            <ToggleRow title="Falha no pagamento" hint="Quando uma cobrança automática é recusada." on={true} />
+            <ToggleRow title="Falha no pagamento" hint="Quando uma cobrança automática é recusada." defaultOn />
             <ToggleRow
               title="Alertas de sistema"
               hint="Falhas, latência elevada e incidentes detectados."
-              on={true}
+              defaultOn
             />
             <ToggleRow
               title="Resumo semanal por e-mail"
               hint="Relatório consolidado toda segunda-feira às 8h."
-              on={false}
+              defaultOn={false}
               border={false}
             />
           </div>
           <FieldInput
             label="Webhook para alertas (Slack / Discord)"
-            value=""
+            defaultValue=""
             hint="Envia alertas automáticos para o canal configurado."
           />
         </SectionCard>
 
         <SectionCard icon={Shield} title="Segurança">
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FieldInput
               label="Timeout de sessão (minutos)"
-              value="480"
+              defaultValue="480"
               hint="Sessão encerrada após inatividade."
             />
             <FieldInput
               label="Máx. tentativas de login"
-              value="5"
+              defaultValue="5"
               hint="Conta bloqueada temporariamente após esse número."
             />
           </div>
           <ToggleRow
             title="Exigir 2FA para SUPER_ADMIN"
             hint="Obrigatório para todos com acesso ao painel global."
-            on={false}
+            defaultOn={false}
           />
           <FieldInput
             label="Whitelist de IPs para SUPER_ADMIN"
-            value="191.248.12.44, 200.137.8.91"
+            defaultValue="191.248.12.44, 200.137.8.91"
             hint="Deixe vazio para não restringir. Separe por vírgula."
           />
         </SectionCard>
@@ -187,7 +146,7 @@ export function SuperAdminConfiguracoesPage() {
                 className={`flex items-center gap-4 py-3 ${idx !== integracoes.length - 1 ? "border-b border-[#e6e4df]" : ""}`}
               >
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#17181d]">{i.nome}</p>
+                  <p className="text-sm font-medium text-[#0d1831]">{i.nome}</p>
                   <p className="text-xs text-[#686a73]">{i.descricao}</p>
                 </div>
                 <span
@@ -208,22 +167,16 @@ export function SuperAdminConfiguracoesPage() {
         </SectionCard>
 
         <SectionCard icon={Mail} title="E-mails transacionais">
-          <div className="grid grid-cols-2 gap-4">
-            <FieldInput label="Nome do remetente" value="Varthex Barber" />
-            <FieldInput label="E-mail de envio" value="noreply@varthex.com" />
-            <FieldInput label="E-mail de resposta (reply-to)" value="suporte@varthex.com" />
-            <FieldInput label="Domínio verificado" value="mail.varthex.com" hint="Verificado via DNS." />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <FieldInput label="Nome do remetente" defaultValue="Varthex Barber" />
+            <FieldInput label="E-mail de envio" defaultValue="noreply@varthex.com" />
+            <FieldInput label="E-mail de resposta (reply-to)" defaultValue="suporte@varthex.com" />
+            <FieldInput label="Domínio verificado" defaultValue="mail.varthex.com" hint="Verificado via DNS." />
           </div>
         </SectionCard>
       </div>
 
-      <button
-        type="button"
-        className="flex h-10 items-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-sm transition hover:bg-[#5a3fd6]"
-      >
-        <Save size={15} strokeWidth={1.8} />
-        Salvar alterações
-      </button>
+      <SaveBar />
     </div>
   );
 }

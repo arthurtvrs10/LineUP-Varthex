@@ -92,14 +92,14 @@ export function AdminServicosPage() {
   return (
     <div className="flex w-full flex-col items-start">
       <div>
-        <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+        <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
           Serviços
         </h1>
         <p className="pt-0.5 text-sm text-[#686a73]">{servicos.length} serviços cadastrados</p>
       </div>
 
-      <div className="flex w-full items-center justify-between pt-5">
-        <div className="flex items-center gap-3">
+      <div className="flex w-full flex-col gap-3 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex w-full items-center gap-3 overflow-x-auto pb-1 sm:w-auto sm:overflow-visible sm:pb-0">
           {categories.map((category) => {
             const count = category === "Todos" ? servicos.length : servicos.filter((s) => s.category === category).length;
             const isActive = filter === category;
@@ -108,9 +108,9 @@ export function AdminServicosPage() {
                 key={category}
                 type="button"
                 onClick={() => setFilter(category)}
-                className={`flex h-[34px] items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium transition ${
+                className={`flex h-[34px] shrink-0 items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium transition ${
                   isActive
-                    ? "border border-[#6c4cf1] bg-[#6c4cf1] text-white"
+                    ? "border border-[#7247f3] bg-[#7247f3] text-white"
                     : "border border-[#e6e4df] bg-white text-[#686a73] hover:bg-[#f7f6f2]"
                 }`}
               >
@@ -121,7 +121,7 @@ export function AdminServicosPage() {
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0] sm:w-auto"
         >
           <Plus size={16} strokeWidth={2} />
           Novo serviço
@@ -134,13 +134,13 @@ export function AdminServicosPage() {
             <h3 className="font-['Manrope',sans-serif] text-sm font-bold uppercase tracking-[-0.28px] text-[#686a73]">
               {category}
             </h3>
-            <div className="grid w-full grid-cols-3 gap-3 pt-3">
+            <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-3">
               {items.map((servico) => (
                 <div key={servico.name} className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <div className="flex items-center gap-2">
-                        <p className="text-sm font-semibold text-[#17181d]">{servico.name}</p>
+                        <p className="text-sm font-semibold text-[#0d1831]">{servico.name}</p>
                         {servico.highlight && (
                           <span className="rounded-full bg-[#fbf4e8] px-2 py-0.5 text-xs font-medium text-[#c8a86b]">
                             Destaque
@@ -164,7 +164,7 @@ export function AdminServicosPage() {
                         <p className="text-xs text-[#686a73]">{servico.commission}</p>
                       </div>
                     </div>
-                    <p className="text-base font-bold text-[#17181d]">{servico.price}</p>
+                    <p className="text-base font-bold text-[#0d1831]">{servico.price}</p>
                   </div>
                 </div>
               ))}

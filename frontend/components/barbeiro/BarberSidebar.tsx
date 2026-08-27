@@ -32,8 +32,8 @@ const groups: PortalNavGroup[] = [
 ];
 
 const bottomLinks = [
-  { href: "#", label: "Configurações", icon: Settings },
-  { href: "#", label: "Ajuda", icon: HelpCircle },
+  { href: "/barbeiro/configuracoes", label: "Configurações", icon: Settings },
+  { href: "/barbeiro/ajuda", label: "Ajuda", icon: HelpCircle },
 ];
 
 export function BarberSidebar() {
@@ -45,6 +45,9 @@ export function BarberSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "PR", name: "Paulo Roberto", email: "barber@varthex.com" }}
+      activeColor="#7247f3"
+      theme="light"
+      profileHref="/barbeiro/configuracoes"
     />
   );
 }

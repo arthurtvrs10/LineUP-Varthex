@@ -25,7 +25,7 @@ type Appointment = {
 const barbers: Barber[] = [
   { id: "lucas", name: "Lucas", initials: "LO", badgeBg: "bg-[#e8f7f1]", badgeText: "text-[#27865b]" },
   { id: "gabriel", name: "Gabriel", initials: "GS", badgeBg: "bg-[#e8f7f1]", badgeText: "text-[#27865b]" },
-  { id: "felipe", name: "Felipe", initials: "FC", badgeBg: "bg-[#ede9fd]", badgeText: "text-[#6c4cf1]" },
+  { id: "felipe", name: "Felipe", initials: "FC", badgeBg: "bg-[#ede9fd]", badgeText: "text-[#7247f3]" },
 ];
 
 const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -69,21 +69,21 @@ export function AdminAgendaPage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Agenda
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">Gerencie todos os agendamentos</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Novo agendamento
         </button>
       </div>
 
-      <div className="flex w-full items-center gap-3 pt-6">
+      <div className="flex w-full flex-wrap items-center gap-3 pt-6">
         <div className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] bg-white p-1">
           {(
             [
@@ -97,7 +97,7 @@ export function AdminAgendaPage() {
               type="button"
               onClick={() => setView(value)}
               className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
-                view === value ? "bg-[#6c4cf1] text-white" : "text-[#686a73] hover:bg-[#f7f6f2]"
+                view === value ? "bg-[#7247f3] text-white" : "text-[#686a73] hover:bg-[#f7f6f2]"
               }`}
             >
               {label}
@@ -113,7 +113,7 @@ export function AdminAgendaPage() {
           >
             <ChevronLeft size={16} strokeWidth={1.8} />
           </button>
-          <span className="px-2 text-sm font-medium text-[#17181d]">{date}</span>
+          <span className="px-2 text-sm font-medium text-[#0d1831]">{date}</span>
           <button
             type="button"
             aria-label="Próximo dia"
@@ -129,28 +129,29 @@ export function AdminAgendaPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar cliente..."
-            className="w-full bg-transparent text-sm text-[#17181d] placeholder:text-[#b0afa8] focus:outline-none"
+            className="w-full bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
 
         <button
           type="button"
-          className="flex h-10 w-[178px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 w-[178px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os barbeiros
           <ChevronDown size={12} className="text-[#686a73]" />
         </button>
         <button
           type="button"
-          className="flex h-10 w-[164px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 w-[164px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os status
           <ChevronDown size={12} className="text-[#686a73]" />
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
-        <div className="col-span-3 overflow-clip rounded-[12px] border border-[#e6e4df] bg-white">
+      <div className="grid w-full grid-cols-1 gap-4 pt-6 lg:grid-cols-4">
+        <div className="overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white lg:col-span-3">
+          <div className="min-w-[560px]">
           <div className="grid grid-cols-4 border-b border-[#e6e4df] bg-[#f7f6f2]">
             <div className="p-3">
               <p className="text-xs text-[#686a73]">Horário</p>
@@ -162,7 +163,7 @@ export function AdminAgendaPage() {
                 >
                   {barber.initials}
                 </span>
-                <p className="text-xs font-medium text-[#17181d]">{barber.name}</p>
+                <p className="text-xs font-medium text-[#0d1831]">{barber.name}</p>
               </div>
             ))}
           </div>
@@ -178,7 +179,7 @@ export function AdminAgendaPage() {
                   <div key={barber.id} className="border-l border-[#e6e4df] p-1">
                     {appt && (
                       <div className={`rounded-[8px] border ${appt.cardBorder} ${appt.cardBg} p-2`}>
-                        <p className="text-xs font-medium text-[#17181d]">{appt.client}</p>
+                        <p className="text-xs font-medium text-[#0d1831]">{appt.client}</p>
                         <p className="text-xs text-[#686a73]">{appt.service}</p>
                       </div>
                     )}
@@ -187,11 +188,12 @@ export function AdminAgendaPage() {
               })}
             </div>
           ))}
+          </div>
         </div>
 
         <div className="flex flex-col gap-4">
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
-            <h3 className="font-['Manrope',sans-serif] text-sm font-bold tracking-[-0.28px] text-[#17181d]">
+            <h3 className="font-['Manrope',sans-serif] text-sm font-bold tracking-[-0.28px] text-[#0d1831]">
               Resumo do dia
             </h3>
             <div className="flex flex-col gap-2 pt-3">
@@ -207,10 +209,10 @@ export function AdminAgendaPage() {
           </div>
 
           <div className="rounded-[12px] border border-[#e6e4df] bg-white p-4">
-            <h3 className="font-['Manrope',sans-serif] text-sm font-bold tracking-[-0.28px] text-[#17181d]">
+            <h3 className="font-['Manrope',sans-serif] text-sm font-bold tracking-[-0.28px] text-[#0d1831]">
               Faturamento
             </h3>
-            <p className="pt-3 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">R$ 45,00</p>
+            <p className="pt-3 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">R$ 45,00</p>
             <p className="pt-1 text-xs text-[#686a73]">1 atendimentos concluídos</p>
           </div>
         </div>

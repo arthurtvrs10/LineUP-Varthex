@@ -109,33 +109,33 @@ export function AdminClientesPage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Clientes
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">{clientes.length} clientes cadastrados</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Novo cliente
         </button>
       </div>
 
-      <div className="flex w-full items-center gap-3 pt-6">
+      <div className="flex w-full flex-wrap items-center gap-3 pt-6">
         <div className="flex h-9 flex-1 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3">
           <Search size={15} strokeWidth={1.8} className="text-[#b0afa8]" />
           <input
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Buscar por nome, telefone ou e-mail..."
-            className="w-full bg-transparent text-sm text-[#17181d] placeholder:text-[#b0afa8] focus:outline-none"
+            className="w-full bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
         <button
           type="button"
-          className="flex h-10 w-[155px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 w-[155px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os status
           <ChevronDown size={12} className="text-[#686a73]" />
@@ -147,7 +147,7 @@ export function AdminClientesPage() {
           <table className="w-full min-w-[900px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] bg-[#f7f6f2] text-xs font-medium text-[#686a73]">
-                <th className="px-4 py-3 font-medium">Cliente</th>
+                <th className="sticky left-0 z-10 bg-white px-4 py-3 font-medium">Cliente</th>
                 <th className="px-4 py-3 font-medium">Telefone</th>
                 <th className="px-4 py-3 font-medium">Última visita</th>
                 <th className="px-4 py-3 font-medium">Próx. agendamento</th>
@@ -160,7 +160,7 @@ export function AdminClientesPage() {
             <tbody>
               {filtered.map((cliente) => (
                 <tr key={cliente.email} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="px-4 py-3">
+                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
                       <span
                         className={`grid size-8 shrink-0 place-items-center rounded-full ${cliente.avatarBg} text-xs font-semibold ${cliente.avatarText}`}
@@ -168,7 +168,7 @@ export function AdminClientesPage() {
                         {cliente.initials}
                       </span>
                       <div>
-                        <p className="text-sm font-medium text-[#17181d]">{cliente.name}</p>
+                        <p className="text-sm font-medium text-[#0d1831]">{cliente.name}</p>
                         <p className="text-xs text-[#686a73]">{cliente.email}</p>
                       </div>
                     </div>
@@ -176,7 +176,7 @@ export function AdminClientesPage() {
                   <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.phone}</td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.lastVisit}</td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.nextAppointment}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-[#17181d]">{cliente.totalSpent}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">{cliente.totalSpent}</td>
                   <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.visits}</td>
                   <td className="px-4 py-3">
                     <span

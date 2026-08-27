@@ -53,7 +53,7 @@ const barbeiros: Barbeiro[] = [
   {
     initials: "FC",
     avatarBg: "bg-[#ede9fd]",
-    avatarText: "text-[#6c4cf1]",
+    avatarText: "text-[#7247f3]",
     name: "Felipe Cardoso",
     email: "felipe@estilounico.com.br",
     rating: "4.6",
@@ -70,30 +70,30 @@ export function AdminEquipePage() {
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
         <div>
-          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#17181d]">
+          <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Equipe
           </h1>
           <p className="pt-0.5 text-sm text-[#686a73]">{barbeiros.length} profissionais cadastrados</p>
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 text-sm font-medium text-white shadow-[0px_1px_1.5px_rgba(0,0,0,0.1),0px_1px_1px_rgba(0,0,0,0.1)] transition hover:bg-[#5d3fe0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
           Adicionar barbeiro
         </button>
       </div>
 
-      <div className="grid w-full grid-cols-4 gap-4 pt-6">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#17181d]">{metric.value}</p>
+            <p className="pt-1 font-['Manrope',sans-serif] text-2xl font-bold text-[#0d1831]">{metric.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="grid w-full grid-cols-3 gap-4 pt-6">
+      <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-6">
         {barbeiros.map((barbeiro) => (
           <div key={barbeiro.email} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <div className="flex items-start gap-4">
@@ -104,7 +104,7 @@ export function AdminEquipePage() {
               </span>
               <div className="min-w-0 flex-1">
                 <div className="flex items-center justify-between">
-                  <p className="truncate text-base font-semibold text-[#17181d]">{barbeiro.name}</p>
+                  <p className="truncate text-base font-semibold text-[#0d1831]">{barbeiro.name}</p>
                   <span className="shrink-0 rounded-full bg-[#e8f7f1] px-2 py-0.5 text-xs font-medium text-[#27865b]">
                     Ativo
                   </span>
@@ -123,17 +123,17 @@ export function AdminEquipePage() {
               {barbeiro.specialties.map((specialty) => (
                 <span
                   key={specialty}
-                  className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#6c4cf1]"
+                  className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]"
                 >
                   {specialty}
                 </span>
               ))}
             </div>
 
-            <div className="grid grid-cols-2 gap-3 border-t border-[#e6e4df] pt-4 mt-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-[#e6e4df] pt-4 mt-4">
               <div>
                 <p className="text-xs text-[#686a73]">Faturamento</p>
-                <p className="font-['Manrope',sans-serif] text-base font-bold text-[#17181d]">
+                <p className="font-['Manrope',sans-serif] text-base font-bold text-[#0d1831]">
                   {barbeiro.revenue}
                 </p>
               </div>
@@ -151,7 +151,7 @@ export function AdminEquipePage() {
                   key={index}
                   className={`grid size-6 place-items-center rounded-[4px] text-[9px] font-medium ${
                     barbeiro.activeDays[index]
-                      ? "bg-[#ede9fd] text-[#6c4cf1]"
+                      ? "bg-[#ede9fd] text-[#7247f3]"
                       : "bg-[#f0efea] text-[#b0afa8]"
                   }`}
                 >

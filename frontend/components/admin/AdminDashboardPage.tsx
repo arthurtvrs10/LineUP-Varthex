@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { AreaTrendChart } from "@/components/ui/TrendCharts";
+import { StatCard } from "@/components/ui/StatCard";
+import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
 import {
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
   ChevronRight,
   Star,
   Plus,
@@ -59,8 +59,8 @@ const appointments: Appointment[] = [
     price: "R$ 70,00",
     status: "Confirmado",
     statusBg: "bg-[#ede9fd]",
-    statusColor: "text-[#6c4cf1]",
-    dotColor: "bg-[#6c4cf1]",
+    statusColor: "text-[#7247f3]",
+    dotColor: "bg-[#7247f3]",
   },
   {
     initials: "RC",
@@ -158,98 +158,75 @@ const quickActions = [
 
 const chartDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const chartValues = [11, 12, 8, 15, 18, 25, 0];
-const chartMax = 28;
 
-function buildAreaPath(values: number[], width: number, height: number, max: number) {
-  const step = width / (values.length - 1);
-  const points = values.map((v, i) => {
-    const x = i * step;
-    const y = height - (v / max) * height;
-    return [x, y];
-  });
-  const line = points.map(([x, y], i) => `${i === 0 ? "M" : "L"}${x.toFixed(1)},${y.toFixed(1)}`).join(" ");
-  const area = `${line} L${width},${height} L0,${height} Z`;
-  return { line, area };
-}
-
-function TrendIcon({ trend }: { trend: Metric["trend"] }) {
-  if (trend === "up") return <ArrowUpRight className="h-3 w-3 text-[#27865b]" />;
-  if (trend === "down") return <ArrowDownRight className="h-3 w-3 text-[#c84a4a]" />;
-  return <Minus className="h-3 w-3 text-[#686a73]" />;
-}
+const chartData = chartDays.map((label, i) => ({
+  label,
+  value: chartValues[i],
+  detalhe: `${chartValues[i]} ${chartValues[i] === 1 ? "agendamento" : "agendamentos"}`,
+}));
 
 export function AdminDashboardPage() {
   const [period, setPeriod] = useState<Period>("Hoje");
-  const { line, area } = buildAreaPath(chartValues, 620, 120, chartMax);
 
   return (
-    <div className="flex flex-col gap-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm capitalize text-[#686a73]">sexta-feira, 14 de agosto</p>
-          <h1 className="mt-1 text-2xl font-bold tracking-tight text-[#17181d]">Olá, Rafael 👋</h1>
-          <p className="text-sm text-[#686a73]">Barbearia Estilo Único</p>
-        </div>
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] bg-white p-1">
-            {(["Hoje", "Semana", "Mês"] as Period[]).map((p) => (
-              <button
-                key={p}
-                type="button"
-                onClick={() => setPeriod(p)}
-                className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
-                  period === p ? "bg-[#6c4cf1] text-white" : "text-[#686a73] hover:bg-[#f4f5f7]"
-                }`}
-              >
-                {p}
-              </button>
-            ))}
-          </div>
-          <button
-            type="button"
-            className="flex items-center gap-2 rounded-[10px] bg-[#6c4cf1] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-[#5b3fe0]"
-          >
-            <Plus className="h-4 w-4" />
-            Novo agendamento
-          </button>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-6 gap-2.5">
-        {metrics.map((metric) => (
-          <div key={metric.label} className="rounded-xl border border-[#e6e4df] bg-white p-5">
-            <p className="text-sm text-[#686a73]">{metric.label}</p>
-            <p className="mt-1 text-2xl font-bold text-[#17181d]">{metric.value}</p>
-            <div className="mt-2 flex items-center gap-1">
-              <TrendIcon trend={metric.trend} />
-              <span
-                className={`text-xs font-medium ${
-                  metric.trend === "up"
-                    ? "text-[#27865b]"
-                    : metric.trend === "down"
-                    ? "text-[#c84a4a]"
-                    : "text-[#686a73]"
-                }`}
-              >
-                {metric.delta}
-              </span>
+    <div className="flex flex-col gap-5">
+      <SaudacaoHeader
+        data="Sexta-feira, 14 de agosto"
+        nome="Rafael"
+        contexto="Barbearia Estilo Único · Unidade Centro"
+        acoes={
+          <>
+            <div className="flex h-11 items-center gap-1 rounded-[10px] border border-[#e6e4df] bg-white p-1">
+              {(["Hoje", "Semana", "Mês"] as Period[]).map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  onClick={() => setPeriod(p)}
+                  className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
+                    period === p ? "bg-[#7247f3] text-white" : "text-[#686a73] hover:bg-[#f7f6f2]"
+                  }`}
+                >
+                  {p}
+                </button>
+              ))}
             </div>
-          </div>
+            <button
+              type="button"
+              className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+            >
+              <Plus className="h-4 w-4" />
+              Novo agendamento
+            </button>
+          </>
+        }
+      />
+
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+        {metrics.map((metric) => (
+          <StatCard
+            key={metric.label}
+            label={metric.label}
+            value={metric.value}
+            hint={metric.delta}
+            tone={
+              metric.trend === "up" ? "positivo" : metric.trend === "down" ? "negativo" : "neutro"
+            }
+          />
         ))}
       </div>
 
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-[#17181d]">Agenda de hoje</h2>
+              <h2 className="text-sm font-bold text-[#0d1831]">Agenda de hoje</h2>
               <p className="text-xs text-[#686a73]">{appointments.length} atendimentos</p>
             </div>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#6c4cf1]">
+            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </button>
           </div>
-          <div className="mt-4 flex flex-col divide-y divide-[#f2f1ec]">
+          <div className="mt-4 flex flex-col divide-y divide-[#e6e4df]">
             {appointments.map((apt) => (
               <div key={apt.name} className="flex items-center gap-3 py-3">
                 <span
@@ -259,7 +236,7 @@ export function AdminDashboardPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium text-[#17181d]">{apt.name}</p>
+                    <p className="truncate text-sm font-medium text-[#0d1831]">{apt.name}</p>
                     <span
                       className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${apt.statusBg} ${apt.statusColor}`}
                     >
@@ -270,7 +247,7 @@ export function AdminDashboardPage() {
                   <p className="truncate text-xs text-[#686a73]">{apt.service}</p>
                   <p className="text-xs text-[#686a73]">{apt.time}</p>
                 </div>
-                <p className="shrink-0 text-sm font-semibold text-[#17181d]">{apt.price}</p>
+                <p className="shrink-0 text-sm font-semibold text-[#0d1831]">{apt.price}</p>
               </div>
             ))}
           </div>
@@ -279,10 +256,10 @@ export function AdminDashboardPage() {
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-sm font-bold text-[#17181d]">Desempenho da equipe</h2>
+              <h2 className="text-sm font-bold text-[#0d1831]">Desempenho da equipe</h2>
               <p className="text-xs text-[#686a73]">Este mês</p>
             </div>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#6c4cf1]">
+            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -294,12 +271,12 @@ export function AdminDashboardPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-medium text-[#17181d]">{member.name}</p>
-                    <p className="text-sm font-semibold text-[#17181d]">{member.value}</p>
+                    <p className="truncate text-sm font-medium text-[#0d1831]">{member.name}</p>
+                    <p className="text-sm font-semibold text-[#0d1831]">{member.value}</p>
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
-                      <div className="h-1.5 rounded-full bg-[#6c4cf1]" style={{ width: `${member.progress}%` }} />
+                      <div className="h-1.5 rounded-full bg-[#7247f3]" style={{ width: `${member.progress}%` }} />
                     </div>
                     <span className="flex shrink-0 items-center gap-1 text-xs text-[#686a73]">
                       <Star className="h-2.5 w-2.5 fill-[#d28b27] text-[#d28b27]" />
@@ -313,11 +290,11 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-2.5">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#17181d]">Avaliações recentes</h2>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#6c4cf1]">
+            <h2 className="text-sm font-bold text-[#0d1831]">Avaliações recentes</h2>
+            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -329,7 +306,7 @@ export function AdminDashboardPage() {
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-[#17181d]">{review.name}</p>
+                    <p className="text-xs font-medium text-[#0d1831]">{review.name}</p>
                     <div className="flex items-center gap-px">
                       {Array.from({ length: 5 }).map((_, i) => (
                         <Star
@@ -350,8 +327,8 @@ export function AdminDashboardPage() {
 
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#17181d]">Estoque baixo</h2>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#6c4cf1]">
+            <h2 className="text-sm font-bold text-[#0d1831]">Estoque baixo</h2>
+            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </button>
           </div>
@@ -362,7 +339,7 @@ export function AdminDashboardPage() {
                   <Package className="h-4 w-4 text-[#d28b27]" />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[#17181d]">{item.name}</p>
+                  <p className="truncate text-sm font-medium text-[#0d1831]">{item.name}</p>
                   <p className="text-xs text-[#686a73]">{item.detail}</p>
                 </div>
                 <span className="shrink-0 rounded-full bg-[#fdf3e3] px-2 py-0.5 text-xs font-medium text-[#d28b27]">
@@ -374,19 +351,19 @@ export function AdminDashboardPage() {
         </div>
 
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
-          <h2 className="text-sm font-bold text-[#17181d]">Ações rápidas</h2>
+          <h2 className="text-sm font-bold text-[#0d1831]">Ações rápidas</h2>
           <div className="mt-4 flex flex-col">
             {quickActions.map((action) => (
               <button
                 key={action.label}
                 type="button"
-                className="flex items-center gap-3 rounded-[10px] p-2.5 text-left transition hover:bg-[#f4f5f7]"
+                className="flex items-center gap-3 rounded-[10px] p-2.5 text-left transition hover:bg-[#f7f6f2]"
               >
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#ede9fd]">
-                  <action.icon className="h-4 w-4 text-[#6c4cf1]" />
+                  <action.icon className="h-4 w-4 text-[#7247f3]" />
                 </span>
-                <span className="flex-1 text-sm text-[#17181d]">{action.label}</span>
-                <ChevronRight className="h-3.5 w-3.5 text-[#a0a5b1]" />
+                <span className="flex-1 text-sm text-[#0d1831]">{action.label}</span>
+                <ChevronRight className="h-3.5 w-3.5 text-[#686a73]" />
               </button>
             ))}
           </div>
@@ -394,31 +371,17 @@ export function AdminDashboardPage() {
       </div>
 
       <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
-        <h2 className="text-sm font-bold text-[#17181d]">Agendamentos por dia</h2>
+        <h2 className="text-sm font-bold text-[#0d1831]">Agendamentos por dia</h2>
         <p className="text-xs text-[#686a73]">Semana atual</p>
-        <div className="mt-4 overflow-x-auto">
-          <svg viewBox="0 0 620 140" className="w-full min-w-[480px]" preserveAspectRatio="none">
-            <defs>
-              <linearGradient id="areaFill" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6c4cf1" stopOpacity="0.18" />
-                <stop offset="100%" stopColor="#6c4cf1" stopOpacity="0" />
-              </linearGradient>
-            </defs>
-            <path d={area} fill="url(#areaFill)" />
-            <path d={line} fill="none" stroke="#6c4cf1" strokeWidth="2" />
-            {chartDays.map((day, i) => (
-              <text
-                key={day}
-                x={(620 / (chartDays.length - 1)) * i}
-                y={135}
-                fontSize="11"
-                fill="#686a73"
-                textAnchor={i === 0 ? "start" : i === chartDays.length - 1 ? "end" : "middle"}
-              >
-                {day}
-              </text>
-            ))}
-          </svg>
+        <div className="mt-4">
+          <AreaTrendChart
+            data={chartData}
+            height={200}
+            yWidth={32}
+            label={`Agendamentos por dia na semana atual. ${chartData
+              .map((d) => `${d.label}: ${d.value}`)
+              .join(", ")}.`}
+          />
         </div>
       </div>
     </div>

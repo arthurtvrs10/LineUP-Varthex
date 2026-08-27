@@ -12,10 +12,10 @@ const metrics = [
 type Role = "Super Admin" | "Admin" | "Sistema" | "Barbeiro";
 
 const roleStyles: Record<Role, { bg: string; color: string }> = {
-  "Super Admin": { bg: "#fbf4e8", color: "#c8a86b" },
-  Admin: { bg: "#ede9fd", color: "#6c4cf1" },
+  "Super Admin": { bg: "#ede9fd", color: "#7247f3" },
+  Admin: { bg: "#ede9fd", color: "#7247f3" },
   Sistema: { bg: "#f0efea", color: "#686a73" },
-  Barbeiro: { bg: "#eaf2fb", color: "#3478c9" },
+  Barbeiro: { bg: "#f0efea", color: "#686a73" },
 };
 
 type LogEntry = {
@@ -55,7 +55,7 @@ const entries: LogEntry[] = [
     ip: "191.248.12.44",
     data: "14/08/2026 13:55:02",
     iconBg: "#ede9fd",
-    iconColor: "#6c4cf1",
+    iconColor: "#7247f3",
   },
   {
     titulo: "Criou barbearia",
@@ -116,7 +116,7 @@ const entries: LogEntry[] = [
     ip: "177.82.55.102",
     data: "13/08/2026 18:30:22",
     iconBg: "#ede9fd",
-    iconColor: "#6c4cf1",
+    iconColor: "#7247f3",
   },
   {
     titulo: "Ativou barbearia",
@@ -183,34 +183,34 @@ const entries: LogEntry[] = [
 export function SuperAdminAuditoriasPage() {
   return (
     <div className="flex w-full flex-col items-start gap-4">
-      <div className="grid w-full grid-cols-4 gap-[5px]">
+      <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-[5px]">
         {metrics.map((m) => (
           <div key={m.label} className="flex-1 rounded-[12px] border border-[#e6e4df] bg-white p-5">
             <p className="text-sm text-[#686a73]">{m.label}</p>
-            <p className="pt-1 text-2xl font-bold text-[#17181d]">{m.value}</p>
+            <p className="pt-1 text-2xl font-bold text-[#0d1831]">{m.value}</p>
           </div>
         ))}
       </div>
 
-      <div className="flex w-full items-center gap-3 pt-2">
+      <div className="flex w-full flex-wrap items-center gap-3 pt-2">
         <div className="flex h-9 flex-1 max-w-[384px] items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3">
           <Search size={15} strokeWidth={1.8} className="text-[#b0afa8]" />
           <input
             type="text"
             placeholder="Buscar por ator, ação ou detalhe..."
-            className="h-full flex-1 bg-transparent text-sm text-[#17181d] placeholder:text-[#b0afa8] focus:outline-none"
+            className="h-full flex-1 bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os tipos
           <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
         </button>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#17181d]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
         >
           Todos os resultados
           <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
@@ -218,7 +218,7 @@ export function SuperAdminAuditoriasPage() {
         <div className="flex-1" />
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm text-[#17181d] transition hover:bg-[#f7f6f2]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Download size={16} strokeWidth={1.8} />
           Exportar log
@@ -241,7 +241,7 @@ export function SuperAdminAuditoriasPage() {
             </span>
             <div className="flex flex-1 flex-col gap-1.5">
               <div className="flex items-center gap-2">
-                <p className="text-sm font-semibold text-[#17181d]">{e.titulo}</p>
+                <p className="text-sm font-semibold text-[#0d1831]">{e.titulo}</p>
                 <span
                   className="rounded-full px-2 py-0.5 text-xs font-medium"
                   style={{ backgroundColor: roleStyles[e.role].bg, color: roleStyles[e.role].color }}
