@@ -1,9 +1,17 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 import { AreaTrendChart } from "@/components/ui/TrendCharts";
 import { StatCard } from "@/components/ui/StatCard";
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { BloquearHorarioModal, NovoAgendamentoModal } from "./modals/AgendaModals";
+import {
+  NovoBarbeiroModal,
+  NovoClienteModal,
+  RegistrarDespesaModal,
+} from "./modals/CadastroModals";
 import {
   ChevronRight,
   Star,
@@ -148,12 +156,20 @@ const lowStock = [
   { name: "Cera de acabamento mate", detail: "2 un · mínimo 5" },
 ];
 
-const quickActions = [
-  { label: "Novo agendamento", icon: CalendarPlus },
-  { label: "Cadastrar cliente", icon: UserPlus },
-  { label: "Adicionar barbeiro", icon: UserCog },
-  { label: "Registrar despesa", icon: DollarSign },
-  { label: "Bloquear horário", icon: Clock },
+/** Qual modal cada ação rápida abre. */
+type ModalId =
+  | "agendamento"
+  | "cliente"
+  | "barbeiro"
+  | "despesa"
+  | "bloqueio";
+
+const quickActions: { label: string; icon: typeof CalendarPlus; modal: ModalId }[] = [
+  { label: "Novo agendamento", icon: CalendarPlus, modal: "agendamento" },
+  { label: "Cadastrar cliente", icon: UserPlus, modal: "cliente" },
+  { label: "Adicionar barbeiro", icon: UserCog, modal: "barbeiro" },
+  { label: "Registrar despesa", icon: DollarSign, modal: "despesa" },
+  { label: "Bloquear horário", icon: Clock, modal: "bloqueio" },
 ];
 
 const chartDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
@@ -167,6 +183,11 @@ const chartData = chartDays.map((label, i) => ({
 
 export function AdminDashboardPage() {
   const [period, setPeriod] = useState<Period>("Hoje");
+  /** null = nenhum modal aberto. */
+  const [modalAberto, setModalAberto] = useState<ModalId | null>(null);
+  const toast = useToast();
+
+  const fechar = () => setModalAberto(null);
 
   return (
     <div className="flex flex-col gap-5">
@@ -192,6 +213,7 @@ export function AdminDashboardPage() {
             </div>
             <button
               type="button"
+              onClick={() => setModalAberto("agendamento")}
               className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
             >
               <Plus className="h-4 w-4" />
@@ -222,9 +244,9 @@ export function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-[#0d1831]">Agenda de hoje</h2>
               <p className="text-xs text-[#686a73]">{appointments.length} atendimentos</p>
             </div>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/agenda" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="mt-4 flex flex-col divide-y divide-[#e6e4df]">
             {appointments.map((apt) => (
@@ -259,9 +281,9 @@ export function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-[#0d1831]">Desempenho da equipe</h2>
               <p className="text-xs text-[#686a73]">Este mês</p>
             </div>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/equipe" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="mt-4 flex flex-col gap-4">
             {teamPerformance.map((member) => (
@@ -294,9 +316,9 @@ export function AdminDashboardPage() {
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#0d1831]">Avaliações recentes</h2>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/avaliacoes" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="mt-4 flex flex-col gap-3">
             {reviews.map((review) => (
@@ -328,9 +350,9 @@ export function AdminDashboardPage() {
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#0d1831]">Estoque baixo</h2>
-            <button type="button" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/estoque" className="flex items-center gap-1 text-xs text-[#7247f3]">
               Ver tudo <ChevronRight className="h-3 w-3" />
-            </button>
+            </Link>
           </div>
           <div className="mt-4 flex flex-col gap-3">
             {lowStock.map((item) => (
@@ -357,6 +379,7 @@ export function AdminDashboardPage() {
               <button
                 key={action.label}
                 type="button"
+                onClick={() => setModalAberto(action.modal)}
                 className="flex items-center gap-3 rounded-[10px] p-2.5 text-left transition hover:bg-[#f7f6f2]"
               >
                 <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#ede9fd]">
@@ -384,6 +407,34 @@ export function AdminDashboardPage() {
           />
         </div>
       </div>
+
+      <NovoAgendamentoModal
+        open={modalAberto === "agendamento"}
+        onClose={fechar}
+        onConcluir={toast.mostrar}
+      />
+      <NovoClienteModal
+        open={modalAberto === "cliente"}
+        onClose={fechar}
+        onConcluir={toast.mostrar}
+      />
+      <NovoBarbeiroModal
+        open={modalAberto === "barbeiro"}
+        onClose={fechar}
+        onConcluir={toast.mostrar}
+      />
+      <RegistrarDespesaModal
+        open={modalAberto === "despesa"}
+        onClose={fechar}
+        onConcluir={toast.mostrar}
+      />
+      <BloquearHorarioModal
+        open={modalAberto === "bloqueio"}
+        onClose={fechar}
+        onConcluir={toast.mostrar}
+      />
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

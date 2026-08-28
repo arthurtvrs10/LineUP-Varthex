@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, ChevronLeft, ChevronRight, Search, ChevronDown } from "lucide-react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { FilterSelect } from "@/components/ui/FilterSelect";
+import { NovoAgendamentoModal } from "./modals/AgendaModals";
+import { Plus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
 type ViewMode = "dia" | "semana" | "lista";
 
@@ -57,6 +60,10 @@ const summary = [
 ];
 
 export function AdminAgendaPage() {
+  const [novoAberto, setNovoAberto] = useState(false);
+  const [filtroBarbeiro, setFiltroBarbeiro] = useState("Todos os barbeiros");
+  const [filtroStatus, setFiltroStatus] = useState("Todos os status");
+  const toast = useToast();
   const [view, setView] = useState<ViewMode>("dia");
   const [date, setDate] = useState("13/08/2026");
   const [search, setSearch] = useState("");
@@ -76,6 +83,7 @@ export function AdminAgendaPage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -133,20 +141,20 @@ export function AdminAgendaPage() {
           />
         </div>
 
-        <button
-          type="button"
-          className="flex h-10 w-[178px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os barbeiros
-          <ChevronDown size={12} className="text-[#686a73]" />
-        </button>
-        <button
-          type="button"
-          className="flex h-10 w-[164px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os status
-          <ChevronDown size={12} className="text-[#686a73]" />
-        </button>
+        <FilterSelect
+          label="Filtrar por barbeiro"
+          className="w-[178px]"
+          options={["Todos os barbeiros", "Lucas Oliveira", "Gabriel Santos", "Felipe Cardoso"]}
+          value={filtroBarbeiro}
+          onChange={setFiltroBarbeiro}
+        />
+        <FilterSelect
+          label="Filtrar por status"
+          className="w-[164px]"
+          options={["Todos os status", "Confirmado", "Agendado", "Em atendimento", "Concluído"]}
+          value={filtroStatus}
+          onChange={setFiltroStatus}
+        />
       </div>
 
       <div className="grid w-full grid-cols-1 gap-4 pt-6 lg:grid-cols-4">
@@ -217,6 +225,13 @@ export function AdminAgendaPage() {
           </div>
         </div>
       </div>
+
+      <NovoAgendamentoModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

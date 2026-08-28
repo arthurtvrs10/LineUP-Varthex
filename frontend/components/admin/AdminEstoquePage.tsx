@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { NovoProdutoModal } from "./modals/CadastroModals";
 import { Plus, Search, AlertTriangle } from "lucide-react";
 
 type Produto = {
@@ -94,6 +96,8 @@ const metrics = [
 
 export function AdminEstoquePage() {
   const [search, setSearch] = useState("");
+  const [novoAberto, setNovoAberto] = useState(false);
+  const toast = useToast();
   const lowCount = produtos.filter((p) => p.low).length;
 
   const filtered = produtos.filter((p) => p.name.toLowerCase().includes(search.toLowerCase()));
@@ -109,6 +113,7 @@ export function AdminEstoquePage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -214,6 +219,13 @@ export function AdminEstoquePage() {
           </table>
         </div>
       </div>
+
+      <NovoProdutoModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

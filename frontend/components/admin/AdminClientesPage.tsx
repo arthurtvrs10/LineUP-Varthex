@@ -1,7 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, Search, ChevronDown, MoreVertical } from "lucide-react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { FilterSelect } from "@/components/ui/FilterSelect";
+import { NovoClienteModal } from "./modals/CadastroModals";
+import { Plus, Search, MoreVertical } from "lucide-react";
 
 type Cliente = {
   initials: string;
@@ -100,9 +103,16 @@ const clientes: Cliente[] = [
 
 export function AdminClientesPage() {
   const [search, setSearch] = useState("");
+  const [novoAberto, setNovoAberto] = useState(false);
+  const [filtroStatus, setFiltroStatus] = useState("Todos os status");
+  const toast = useToast();
 
-  const filtered = clientes.filter((c) =>
-    [c.name, c.phone, c.email].some((field) => field.toLowerCase().includes(search.toLowerCase())),
+  const filtered = clientes.filter(
+    (c) =>
+      (filtroStatus === "Todos os status" || c.status === filtroStatus) &&
+      [c.name, c.phone, c.email].some((field) =>
+        field.toLowerCase().includes(search.toLowerCase()),
+      ),
   );
 
   return (
@@ -116,6 +126,7 @@ export function AdminClientesPage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -133,13 +144,13 @@ export function AdminClientesPage() {
             className="w-full bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
-        <button
-          type="button"
-          className="flex h-10 w-[155px] items-center justify-between rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os status
-          <ChevronDown size={12} className="text-[#686a73]" />
-        </button>
+        <FilterSelect
+          label="Filtrar por status"
+          className="w-[155px]"
+          options={["Todos os status", "Ativo", "Inativo"]}
+          value={filtroStatus}
+          onChange={setFiltroStatus}
+        />
       </div>
 
       <div className="w-full pt-6">
@@ -204,6 +215,13 @@ export function AdminClientesPage() {
           </table>
         </div>
       </div>
+
+      <NovoClienteModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }
