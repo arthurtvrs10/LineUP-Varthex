@@ -3,16 +3,7 @@
 import { AreaTrendChart } from "@/components/ui/TrendCharts";
 import { StatCard, type StatTone } from "@/components/ui/StatCard";
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
-import {
-  FileText,
-  UserPlus,
-  Users,
-  CreditCard,
-  AlertTriangle,
-  Bell,
-  CheckCircle2,
-  type LucideIcon,
-} from "lucide-react";
+import { Bell, CheckCircle2 } from "lucide-react";
 
 const mrrCompact = new Intl.NumberFormat("pt-BR", {
   style: "currency",
@@ -26,12 +17,12 @@ const mrrCompact = new Intl.NumberFormat("pt-BR", {
  * todos, o que não informa nada e ainda custa uma linha por card.
  * A variação fica só onde ela é de fato diferente entre as métricas.
  */
-const metrics: { label: string; value: string; hint?: string; tone?: StatTone; icon: LucideIcon }[] = [
-  { label: "Barbearias ativas", value: "4", hint: "+8% vs mês ant.", tone: "positivo", icon: FileText },
-  { label: "Novos cadastros", value: "5", hint: "+2 vs mês ant.", tone: "positivo", icon: UserPlus },
-  { label: "Usuários ativos", value: "284", hint: "+19 vs mês ant.", tone: "positivo", icon: Users },
-  { label: "MRR", value: "R$ 21.400", hint: "+1,2% vs mês ant.", tone: "positivo", icon: CreditCard },
-  { label: "Bloqueadas", value: "1", hint: "requer ação", tone: "negativo", icon: AlertTriangle },
+const metrics: { label: string; value: string; hint?: string; tone?: StatTone }[] = [
+  { label: "Barbearias ativas", value: "4", hint: "+8% vs mês ant.", tone: "positivo" },
+  { label: "Novos cadastros", value: "5", hint: "+2 vs mês ant.", tone: "positivo" },
+  { label: "Usuários ativos", value: "284", hint: "+19 vs mês ant.", tone: "positivo" },
+  { label: "MRR", value: "R$ 21.400", hint: "+1,2% vs mês ant.", tone: "positivo" },
+  { label: "Bloqueadas", value: "1", hint: "requer ação", tone: "negativo" },
 ];
 
 const mrrMonths = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -109,7 +100,6 @@ export function SuperAdminDashboardPage() {
             value={m.value}
             hint={m.hint}
             tone={m.tone}
-            icon={m.icon}
           />
         ))}
       </div>

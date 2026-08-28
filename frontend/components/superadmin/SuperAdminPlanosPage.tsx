@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Scissors, Star, Building2, Check, Plus } from "lucide-react";
+import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
+import { FieldGrid, TextAreaField, TextField } from "@/components/ui/FormFields";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 type Plano = {
   name: string;
@@ -57,11 +61,30 @@ const planos: Plano[] = [
 ];
 
 export function SuperAdminPlanosPage() {
+  const [novoAberto, setNovoAberto] = useState(false);
+  /** Plano em edição — null significa modal fechado. */
+  const [editando, setEditando] = useState<Plano | null>(null);
+  const toast = useToast();
+
+  function salvarNovo(event: React.FormEvent) {
+    event.preventDefault();
+    setNovoAberto(false);
+    toast.mostrar("Plano criado e disponível para novas assinaturas.");
+  }
+
+  function salvarEdicao(event: React.FormEvent) {
+    event.preventDefault();
+    const nome = editando?.name;
+    setEditando(null);
+    toast.mostrar(`Plano ${nome} atualizado.`);
+  }
+
   return (
     <div className="flex w-full flex-col items-start gap-5">
       <div className="flex w-full items-center justify-end">
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-xs font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -129,6 +152,7 @@ export function SuperAdminPlanosPage() {
               <div className="mt-auto flex items-center gap-2 border-t border-[#e6e4df] pt-4">
                 <button
                   type="button"
+                  onClick={() => setEditando(plano)}
                   className={`h-9 flex-1 rounded-[8px] text-sm font-medium transition ${
                     plano.popular ? "text-white hover:opacity-90" : "border border-[#e6e4df] text-[#0d1831] hover:bg-[#f7f6f2]"
                   }`}
@@ -147,6 +171,81 @@ export function SuperAdminPlanosPage() {
           );
         })}
       </div>
+
+      <Modal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        title="Novo plano"
+        description="Fica disponível para novas assinaturas assim que criado."
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setNovoAberto(false)} />
+            <ModalSubmitButton form="form-novo-plano">Criar plano</ModalSubmitButton>
+          </>
+        }
+      >
+        <form id="form-novo-plano" onSubmit={salvarNovo} className="flex flex-col gap-4">
+          <FieldGrid>
+            <TextField label="Nome do plano" required placeholder="Pro" />
+            <TextField label="Preço mensal (R$)" type="number" required placeholder="99" />
+          </FieldGrid>
+          <FieldGrid>
+            <TextField
+              label="Limite de profissionais"
+              type="number"
+              placeholder="10"
+              hint="Deixe vazio para ilimitado."
+            />
+            <TextField label="Dias de trial" type="number" defaultValue="14" />
+          </FieldGrid>
+          <TextAreaField
+            label="Recursos incluídos"
+            placeholder={"Um por linha:\nAté 10 profissionais\nCRM & WhatsApp"}
+            rows={4}
+            hint="Cada linha vira um item na lista do plano."
+          />
+        </form>
+      </Modal>
+
+      <Modal
+        open={editando !== null}
+        onClose={() => setEditando(null)}
+        title={editando ? `Editar plano ${editando.name}` : "Editar plano"}
+        description="Alterações valem para novas assinaturas; as atuais mantêm o preço até a renovação."
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setEditando(null)} />
+            <ModalSubmitButton form="form-editar-plano">Salvar alterações</ModalSubmitButton>
+          </>
+        }
+      >
+        {editando && (
+          <form
+            id="form-editar-plano"
+            /* key força o form a remontar ao trocar de plano, para os
+               defaultValue refletirem o plano recém-selecionado. */
+            key={editando.name}
+            onSubmit={salvarEdicao}
+            className="flex flex-col gap-4"
+          >
+            <FieldGrid>
+              <TextField label="Nome do plano" required defaultValue={editando.name} />
+              <TextField
+                label="Preço mensal"
+                required
+                defaultValue={editando.price.replace("R$ ", "")}
+              />
+            </FieldGrid>
+            <TextAreaField
+              label="Recursos incluídos"
+              rows={5}
+              hint={`${editando.features.length} recursos hoje · ${editando.subscribers}`}
+            />
+          </form>
+        )}
+      </Modal>
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

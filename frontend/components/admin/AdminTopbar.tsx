@@ -2,7 +2,40 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
+
+const notificacoes: Notificacao[] = [
+  {
+    id: "a1",
+    titulo: "Novo agendamento",
+    detalhe: "Rafael Costa marcou corte degradê com Lucas às 10:30.",
+    quando: "há 8 min",
+    tone: "positivo",
+  },
+  {
+    id: "a2",
+    titulo: "Estoque baixo",
+    detalhe: "Cera de acabamento mate: 2 unidades (mínimo 5).",
+    quando: "há 40 min",
+    tone: "atencao",
+  },
+  {
+    id: "a3",
+    titulo: "Cancelamento",
+    detalhe: "Mateus Rodrigues cancelou o horário das 16:00.",
+    quando: "há 2 h",
+    tone: "negativo",
+  },
+  {
+    id: "a4",
+    titulo: "Nova avaliação",
+    detalhe: "João Silva deixou 5 estrelas para Lucas Oliveira.",
+    quando: "ontem",
+    tone: "positivo",
+    lida: true,
+  },
+];
 
 type AdminTopbarProps = {
   title: string;
@@ -33,14 +66,7 @@ export function AdminTopbar({ title, breadcrumb }: AdminTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative grid size-9 place-items-center rounded-[8px] text-[#5f6f87] transition hover:bg-[#f7f6f2]"
-        >
-          <Bell size={18} strokeWidth={1.8} />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-[#c84a4a]" />
-        </button>
+        <NotificacoesPopover notificacoes={notificacoes} />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

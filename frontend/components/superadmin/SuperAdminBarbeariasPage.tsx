@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Search, ChevronDown, FolderPlus } from "lucide-react";
+import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
+import { FieldGrid, SelectField, TextField } from "@/components/ui/FormFields";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 type Barbearia = {
   name: string;
@@ -87,6 +91,16 @@ const statusStyles: Record<Barbearia["status"], string> = {
 };
 
 export function SuperAdminBarbeariasPage() {
+  const [novaAberto, setNovaAberto] = useState(false);
+  const toast = useToast();
+
+  function criarBarbearia(event: React.FormEvent) {
+    event.preventDefault();
+    // Sem backend ainda: é aqui que a chamada de API entra depois.
+    setNovaAberto(false);
+    toast.mostrar("Barbearia criada. Um convite foi enviado ao responsável.");
+  }
+
   return (
     <div className="flex w-full flex-col items-start gap-4">
       <div className="flex w-full flex-wrap items-center gap-3">
@@ -114,6 +128,7 @@ export function SuperAdminBarbeariasPage() {
         </button>
         <button
           type="button"
+          onClick={() => setNovaAberto(true)}
           className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-xs font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <FolderPlus size={18} strokeWidth={1.8} />
@@ -197,6 +212,44 @@ export function SuperAdminBarbeariasPage() {
           </table>
         </div>
       </div>
+
+      <Modal
+        open={novaAberto}
+        onClose={() => setNovaAberto(false)}
+        title="Nova barbearia"
+        description="A barbearia começa em trial e o responsável recebe um convite por e-mail."
+        size="md"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setNovaAberto(false)} />
+            <ModalSubmitButton form="form-nova-barbearia">Criar barbearia</ModalSubmitButton>
+          </>
+        }
+      >
+        <form id="form-nova-barbearia" onSubmit={criarBarbearia} className="flex flex-col gap-4">
+          <FieldGrid>
+            <TextField label="Nome da barbearia" required placeholder="Barbearia Estilo Único" />
+            <TextField label="CNPJ" required placeholder="00.000.000/0001-00" />
+          </FieldGrid>
+          <FieldGrid>
+            <TextField label="Nome do responsável" required placeholder="Rafael Mendes" />
+            <TextField
+              label="E-mail do responsável"
+              type="email"
+              required
+              placeholder="responsavel@barbearia.com"
+              hint="O convite de acesso vai para este endereço."
+            />
+          </FieldGrid>
+          <FieldGrid>
+            <SelectField label="Plano inicial" options={["Básico", "Pro", "Enterprise"]} defaultValue="Básico" />
+            <TextField label="Dias de trial" type="number" defaultValue="14" />
+          </FieldGrid>
+          <TextField label="Cidade / UF" placeholder="São Paulo / SP" />
+        </form>
+      </Modal>
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+import { Toast, useToast } from "@/components/ui/Toast";
 import {
   AlertTriangle,
   RotateCw,
@@ -106,7 +108,29 @@ const incidentes: Incidente[] = [
   },
 ];
 
+/** Hora no formato HH:MM:SS, como o painel já exibia. */
+function horaAgora() {
+  return new Date().toLocaleTimeString("pt-BR", { hour12: false });
+}
+
 export function SuperAdminSaudeSistemaPage() {
+  const [atualizando, setAtualizando] = useState(false);
+  // Começa fixo e só passa a refletir o relógio após o primeiro clique:
+  // gerar a hora na renderização inicial divergiria entre servidor e
+  // cliente e quebraria a hidratação.
+  const [atualizadoEm, setAtualizadoEm] = useState("02:46:41");
+  const toast = useToast();
+
+  function atualizar() {
+    setAtualizando(true);
+    // Sem backend: o refetch real entra aqui.
+    setTimeout(() => {
+      setAtualizando(false);
+      setAtualizadoEm(horaAgora());
+      toast.mostrar("Status dos serviços atualizado.");
+    }, 900);
+  }
+
   return (
     <div className="flex w-full flex-col items-start gap-4">
       <div className="flex w-full items-center gap-4 rounded-[12px] border border-[rgba(210,139,39,0.2)] bg-[#fdf3e3] p-5">
@@ -115,15 +139,24 @@ export function SuperAdminSaudeSistemaPage() {
         </div>
         <div className="flex-1">
           <p className="text-base font-bold text-[#d28b27]">2 serviço(s) com degradação</p>
-          <p className="pt-0.5 text-sm text-[#686a73]">Atualizado às 02:46:41 · 8 serviços monitorados</p>
+          <p className="pt-0.5 text-sm text-[#686a73]" aria-live="polite">
+            {atualizando ? "Atualizando…" : `Atualizado às ${atualizadoEm}`} · {services.length}{" "}
+            serviços monitorados
+          </p>
         </div>
         <span className="rounded-full bg-[#fdf3e3] px-2 py-0.5 text-xs font-medium text-[#d28b27]">Degradado</span>
         <button
           type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
+          onClick={atualizar}
+          disabled={atualizando}
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2] disabled:opacity-60"
         >
-          <RotateCw size={15} strokeWidth={1.8} />
-          Atualizar
+          <RotateCw
+            size={15}
+            strokeWidth={1.8}
+            className={atualizando ? "animate-spin" : undefined}
+          />
+          {atualizando ? "Atualizando" : "Atualizar"}
         </button>
       </div>
 
@@ -210,6 +243,8 @@ export function SuperAdminSaudeSistemaPage() {
           ))}
         </div>
       </div>
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

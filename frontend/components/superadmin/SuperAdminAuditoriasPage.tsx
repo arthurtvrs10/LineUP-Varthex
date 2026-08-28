@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Search, ChevronDown, Download } from "lucide-react";
+import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
+import { FieldGrid, RadioCards, TextField } from "@/components/ui/FormFields";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 const metrics = [
   { label: "Eventos hoje", value: "6" },
@@ -181,6 +185,15 @@ const entries: LogEntry[] = [
 ];
 
 export function SuperAdminAuditoriasPage() {
+  const [exportarAberto, setExportarAberto] = useState(false);
+  const toast = useToast();
+
+  function exportarLog(event: React.FormEvent) {
+    event.preventDefault();
+    setExportarAberto(false);
+    toast.mostrar("Exportação do log iniciada. Você recebe o arquivo por e-mail.");
+  }
+
   return (
     <div className="flex w-full flex-col items-start gap-4">
       <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-[5px]">
@@ -218,6 +231,7 @@ export function SuperAdminAuditoriasPage() {
         <div className="flex-1" />
         <button
           type="button"
+          onClick={() => setExportarAberto(true)}
           className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Download size={16} strokeWidth={1.8} />
@@ -267,6 +281,49 @@ export function SuperAdminAuditoriasPage() {
           </div>
         ))}
       </div>
+
+      <Modal
+        open={exportarAberto}
+        onClose={() => setExportarAberto(false)}
+        title="Exportar log de auditoria"
+        description="O arquivo sai com os mesmos filtros aplicados na tela."
+        size="sm"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setExportarAberto(false)} />
+            <ModalSubmitButton form="form-exportar-log">Exportar log</ModalSubmitButton>
+          </>
+        }
+      >
+        <form id="form-exportar-log" onSubmit={exportarLog} className="flex flex-col gap-5">
+          <FieldGrid>
+            <TextField label="De" type="date" defaultValue="2026-08-12" />
+            <TextField label="Até" type="date" defaultValue="2026-08-14" />
+          </FieldGrid>
+          <div>
+            <p className="mb-2 text-sm font-medium text-[#0d1831]">Formato</p>
+            <RadioCards
+              name="formato-log"
+              defaultValue="csv"
+              options={[
+                { value: "csv", label: "CSV", hint: "Uma linha por evento." },
+                { value: "json", label: "JSON", hint: "Preserva a estrutura completa do evento." },
+              ]}
+            />
+          </div>
+          <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[#e6e4df] px-3.5 py-3 transition hover:bg-[#f7f6f2] has-[:checked]:border-[#7247f3] has-[:checked]:bg-[#ede9fd]">
+            <input type="checkbox" className="mt-0.5 size-4 shrink-0 accent-[#7247f3]" />
+            <span>
+              <span className="block text-sm font-medium text-[#0d1831]">Incluir endereço IP</span>
+              <span className="block text-xs text-[#686a73]">
+                Dado pessoal — inclua apenas se necessário para a investigação.
+              </span>
+            </span>
+          </label>
+        </form>
+      </Modal>
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }
