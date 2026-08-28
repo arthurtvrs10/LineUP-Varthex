@@ -2,7 +2,40 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
+
+const notificacoes: Notificacao[] = [
+  {
+    id: "n1",
+    titulo: "Falha na sincronização",
+    detalhe: "3 agendamentos não sincronizaram na Barbearia Estilo Único.",
+    quando: "há 12 min",
+    tone: "negativo",
+  },
+  {
+    id: "n2",
+    titulo: "5 barbearias aguardam verificação",
+    detalhe: "Cadastros pendentes de validação de dados.",
+    quando: "há 1 h",
+    tone: "atencao",
+  },
+  {
+    id: "n3",
+    titulo: "Worker de agendamentos degradado",
+    detalhe: "Latência acima de 250ms por 15 minutos.",
+    quando: "há 3 h",
+    tone: "atencao",
+  },
+  {
+    id: "n4",
+    titulo: "Pagamento confirmado",
+    detalhe: "BarberKing Premium regularizou a fatura em atraso.",
+    quando: "ontem",
+    tone: "positivo",
+    lida: true,
+  },
+];
 
 type SuperAdminTopbarProps = {
   title: string;
@@ -33,14 +66,7 @@ export function SuperAdminTopbar({ title, breadcrumb }: SuperAdminTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative grid size-9 place-items-center rounded-[8px] text-[#5f6f87] transition hover:bg-[#f7f6f2]"
-        >
-          <Bell size={18} strokeWidth={1.8} />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-[#c84a4a]" />
-        </button>
+        <NotificacoesPopover notificacoes={notificacoes} />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

@@ -1,6 +1,10 @@
 "use client";
 
+import { useState } from "react";
 import { Search, ChevronDown, Download, AlertTriangle, CheckCircle2, XCircle, Clock, RotateCw } from "lucide-react";
+import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
+import { RadioCards, SelectField } from "@/components/ui/FormFields";
+import { Toast, useToast } from "@/components/ui/Toast";
 
 const metrics = [
   { label: "MRR atual", value: "R$ 217,00", color: "#0d1831" },
@@ -110,6 +114,14 @@ const statusConfig: Record<Status, { bg: string; color: string; icon: typeof Che
 
 export function SuperAdminAssinaturasPage() {
   const inadimplentesCount = assinaturas.filter((a) => a.status === "Inadimplente").length;
+  const [exportarAberto, setExportarAberto] = useState(false);
+  const toast = useToast();
+
+  function exportar(event: React.FormEvent) {
+    event.preventDefault();
+    setExportarAberto(false);
+    toast.mostrar("Exportação iniciada. O arquivo chega por e-mail em instantes.");
+  }
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
@@ -150,6 +162,7 @@ export function SuperAdminAssinaturasPage() {
         <div className="flex-1" />
         <button
           type="button"
+          onClick={() => setExportarAberto(true)}
           className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Download size={16} strokeWidth={1.8} />
@@ -249,6 +262,45 @@ export function SuperAdminAssinaturasPage() {
           </tbody>
         </table>
       </div>
+
+      <Modal
+        open={exportarAberto}
+        onClose={() => setExportarAberto(false)}
+        title="Exportar assinaturas"
+        description={`${assinaturas.length} assinaturas no filtro atual.`}
+        size="sm"
+        footer={
+          <>
+            <ModalCancelButton onClick={() => setExportarAberto(false)} />
+            <ModalSubmitButton form="form-exportar-assinaturas">Exportar</ModalSubmitButton>
+          </>
+        }
+      >
+        <form id="form-exportar-assinaturas" onSubmit={exportar} className="flex flex-col gap-5">
+          <div>
+            <p className="mb-2 text-sm font-medium text-[#0d1831]">Formato</p>
+            <RadioCards
+              name="formato"
+              defaultValue="csv"
+              options={[
+                { value: "csv", label: "CSV", hint: "Abre no Excel e no Google Sheets." },
+                { value: "xlsx", label: "Excel (.xlsx)", hint: "Mantém formatação e tipos." },
+                { value: "pdf", label: "PDF", hint: "Para arquivo e envio." },
+              ]}
+            />
+          </div>
+          <SelectField
+            label="Escopo"
+            options={[
+              "Somente as assinaturas filtradas",
+              "Todas as assinaturas",
+              "Somente inadimplentes",
+            ]}
+          />
+        </form>
+      </Modal>
+
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

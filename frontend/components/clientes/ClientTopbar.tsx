@@ -2,7 +2,33 @@
 
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Bell, ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
+
+const notificacoes: Notificacao[] = [
+  {
+    id: "c1",
+    titulo: "Seu horário está confirmado",
+    detalhe: "Sábado, 22 de agosto às 15:00 com João Pereira.",
+    quando: "há 30 min",
+    tone: "positivo",
+  },
+  {
+    id: "c2",
+    titulo: "Faltam 80 pontos",
+    detalhe: "Você está perto de R$ 50 de desconto no programa de fidelidade.",
+    quando: "há 2 dias",
+    tone: "neutro",
+  },
+  {
+    id: "c3",
+    titulo: "Lembrete de agendamento",
+    detalhe: "Seu corte é amanhã. Precisa remarcar?",
+    quando: "há 3 dias",
+    tone: "atencao",
+    lida: true,
+  },
+];
 
 type ClientTopbarProps = {
   title: string;
@@ -33,14 +59,7 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <button
-          type="button"
-          aria-label="Notificações"
-          className="relative grid size-9 place-items-center rounded-[8px] text-[#5f6f87] transition hover:bg-[#f7f6f2]"
-        >
-          <Bell size={18} strokeWidth={1.8} />
-          <span className="absolute right-2 top-2 size-2 rounded-full bg-[#c84a4a]" />
-        </button>
+        <NotificacoesPopover notificacoes={notificacoes} />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 
