@@ -1,4 +1,9 @@
+"use client";
+
+import { useState } from "react";
 import { Plus, Star } from "lucide-react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { NovoBarbeiroModal } from "./modals/CadastroModals";
 
 type Barbeiro = {
   initials: string;
@@ -66,6 +71,9 @@ const barbeiros: Barbeiro[] = [
 ];
 
 export function AdminEquipePage() {
+  const [novoAberto, setNovoAberto] = useState(false);
+  const toast = useToast();
+
   return (
     <div className="flex w-full flex-col items-start">
       <div className="flex w-full items-center justify-between">
@@ -77,6 +85,7 @@ export function AdminEquipePage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -162,6 +171,13 @@ export function AdminEquipePage() {
           </div>
         ))}
       </div>
+
+      <NovoBarbeiroModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

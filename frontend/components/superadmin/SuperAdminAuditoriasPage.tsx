@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronDown, Download } from "lucide-react";
+import { Search, Download } from "lucide-react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
 import { FieldGrid, RadioCards, TextField } from "@/components/ui/FormFields";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { Toast, useToast } from "@/components/ui/Toast";
 
 const metrics = [
@@ -186,7 +187,22 @@ const entries: LogEntry[] = [
 
 export function SuperAdminAuditoriasPage() {
   const [exportarAberto, setExportarAberto] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [filtroTipo, setFiltroTipo] = useState("Todos os tipos");
+  const [filtroResultado, setFiltroResultado] = useState("Todos os resultados");
   const toast = useToast();
+
+  const visiveis = entries.filter((e) => {
+    const resultado = e.falha ? "Falha" : "Sucesso";
+    return (
+      (filtroTipo === "Todos os tipos" || e.role === filtroTipo) &&
+      (filtroResultado === "Todos os resultados" || resultado === filtroResultado) &&
+      (busca === "" ||
+        e.titulo.toLowerCase().includes(busca.toLowerCase()) ||
+        e.ator.toLowerCase().includes(busca.toLowerCase()) ||
+        e.descricao.toLowerCase().includes(busca.toLowerCase()))
+    );
+  });
 
   function exportarLog(event: React.FormEvent) {
     event.preventDefault();
@@ -211,23 +227,23 @@ export function SuperAdminAuditoriasPage() {
           <input
             type="text"
             placeholder="Buscar por ator, ação ou detalhe..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
             className="h-full flex-1 bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os tipos
-          <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os resultados
-          <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
-        </button>
+        <FilterSelect
+          label="Filtrar por tipo de ator"
+          options={["Todos os tipos", "Super Admin", "Admin", "Sistema", "Barbeiro"]}
+          value={filtroTipo}
+          onChange={setFiltroTipo}
+        />
+        <FilterSelect
+          label="Filtrar por resultado"
+          options={["Todos os resultados", "Sucesso", "Falha"]}
+          value={filtroResultado}
+          onChange={setFiltroResultado}
+        />
         <div className="flex-1" />
         <button
           type="button"
@@ -240,7 +256,7 @@ export function SuperAdminAuditoriasPage() {
       </div>
 
       <div className="flex w-full flex-col gap-3">
-        {entries.map((e, i) => (
+        {visiveis.map((e, i) => (
           <div
             key={i}
             className={`flex w-full items-start gap-4 rounded-[12px] border bg-white p-4 ${

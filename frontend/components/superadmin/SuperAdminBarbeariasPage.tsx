@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronDown, FolderPlus } from "lucide-react";
+import { Search, FolderPlus } from "lucide-react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { FieldGrid, SelectField, TextField } from "@/components/ui/FormFields";
 import { Toast, useToast } from "@/components/ui/Toast";
 
@@ -92,7 +94,32 @@ const statusStyles: Record<Barbearia["status"], string> = {
 
 export function SuperAdminBarbeariasPage() {
   const [novaAberto, setNovaAberto] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("Todos os status");
+  const [filtroPlano, setFiltroPlano] = useState("Todos os planos");
+  /** Barbearia cuja mudança de status está sendo confirmada. */
+  const [confirmando, setConfirmando] = useState<Barbearia | null>(null);
   const toast = useToast();
+
+  const visiveis = barbearias.filter(
+    (b) =>
+      (filtroStatus === "Todos os status" || b.status === filtroStatus) &&
+      (filtroPlano === "Todos os planos" || b.plano === filtroPlano) &&
+      (busca === "" ||
+        b.name.toLowerCase().includes(busca.toLowerCase()) ||
+        b.responsavel.toLowerCase().includes(busca.toLowerCase())),
+  );
+
+  function confirmarMudancaDeStatus() {
+    const b = confirmando;
+    setConfirmando(null);
+    if (!b) return;
+    toast.mostrar(
+      b.status === "Ativo"
+        ? `${b.name} foi bloqueada. Os usuários perderam o acesso.`
+        : `${b.name} foi reativada.`,
+    );
+  }
 
   function criarBarbearia(event: React.FormEvent) {
     event.preventDefault();
@@ -109,23 +136,23 @@ export function SuperAdminBarbeariasPage() {
           <input
             type="text"
             placeholder="Buscar por nome ou responsável..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
             className="h-full flex-1 bg-transparent text-xs text-[#0d1831] placeholder:text-[#98a2b3] focus:outline-none"
           />
         </div>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-xs text-[#0d1831]"
-        >
-          Todos os status
-          <ChevronDown size={14} strokeWidth={2} className="text-[#98a2b3]" />
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-xs text-[#0d1831]"
-        >
-          Todos os planos
-          <ChevronDown size={14} strokeWidth={2} className="text-[#98a2b3]" />
-        </button>
+        <FilterSelect
+          label="Filtrar por status"
+          options={["Todos os status", "Ativo", "Bloqueado"]}
+          value={filtroStatus}
+          onChange={setFiltroStatus}
+        />
+        <FilterSelect
+          label="Filtrar por plano"
+          options={["Todos os planos", "pro", "free"]}
+          value={filtroPlano}
+          onChange={setFiltroPlano}
+        />
         <button
           type="button"
           onClick={() => setNovaAberto(true)}
@@ -153,7 +180,7 @@ export function SuperAdminBarbeariasPage() {
               </tr>
             </thead>
             <tbody>
-              {barbearias.map((b) => (
+              {visiveis.map((b) => (
                 <tr key={b.name} className="border-b border-[#eef0f3] last:border-b-0">
                   <td className="sticky left-0 z-10 bg-white py-3 pr-3">
                     <div className="flex items-center gap-3">
@@ -192,6 +219,7 @@ export function SuperAdminBarbeariasPage() {
                       {b.status === "Ativo" ? (
                         <button
                           type="button"
+                          onClick={() => setConfirmando(b)}
                           className="rounded-[8px] bg-[#c84a4a] px-3 py-1 text-sm font-medium text-white transition hover:bg-[#b13f3f]"
                         >
                           Bloquear
@@ -199,6 +227,7 @@ export function SuperAdminBarbeariasPage() {
                       ) : (
                         <button
                           type="button"
+                          onClick={() => setConfirmando(b)}
                           className="rounded-[8px] border border-[#e6e4df] px-3 py-1 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
                         >
                           Ativar
@@ -248,6 +277,30 @@ export function SuperAdminBarbeariasPage() {
           <TextField label="Cidade / UF" placeholder="São Paulo / SP" />
         </form>
       </Modal>
+
+      <ConfirmModal
+        open={confirmando !== null}
+        onClose={() => setConfirmando(null)}
+        onConfirm={confirmarMudancaDeStatus}
+        tone={confirmando?.status === "Ativo" ? "danger" : "accent"}
+        title={
+          confirmando?.status === "Ativo"
+            ? `Bloquear ${confirmando.name}?`
+            : `Reativar ${confirmando?.name}?`
+        }
+        confirmLabel={confirmando?.status === "Ativo" ? "Bloquear barbearia" : "Reativar barbearia"}
+        description={
+          confirmando?.status === "Ativo"
+            ? "Todos os usuários perdem o acesso imediatamente e os agendamentos futuros ficam suspensos. Nenhum dado é apagado — a barbearia pode ser reativada depois."
+            : "Os usuários voltam a ter acesso e os agendamentos suspensos são retomados."
+        }
+      >
+        {confirmando && (
+          <p className="mt-3 rounded-[8px] bg-[#f7f6f2] px-3 py-2 text-xs text-[#5f6f87]">
+            {confirmando.usuarios} usuário(s) · responsável {confirmando.responsavel}
+          </p>
+        )}
+      </ConfirmModal>
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>

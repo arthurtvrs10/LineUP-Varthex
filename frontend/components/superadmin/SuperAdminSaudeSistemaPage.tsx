@@ -133,11 +133,13 @@ export function SuperAdminSaudeSistemaPage() {
 
   return (
     <div className="flex w-full flex-col items-start gap-4">
-      <div className="flex w-full items-center gap-4 rounded-[12px] border border-[rgba(210,139,39,0.2)] bg-[#fdf3e3] p-5">
+      {/* flex-wrap + min-w-0: sem eles o botão "Atualizar" era empurrado
+          para fora do card (medido: 411px numa viewport de 375). */}
+      <div className="flex w-full flex-wrap items-center gap-x-4 gap-y-3 rounded-[12px] border border-[rgba(210,139,39,0.2)] bg-[#fdf3e3] p-5">
         <div className="grid size-12 shrink-0 place-items-center rounded-full bg-[#fdf3e3]">
           <AlertTriangle size={24} strokeWidth={1.8} className="text-[#d28b27]" />
         </div>
-        <div className="flex-1">
+        <div className="min-w-0 flex-1">
           <p className="text-base font-bold text-[#d28b27]">2 serviço(s) com degradação</p>
           <p className="pt-0.5 text-sm text-[#686a73]" aria-live="polite">
             {atualizando ? "Atualizando…" : `Atualizado às ${atualizadoEm}`} · {services.length}{" "}
@@ -149,7 +151,7 @@ export function SuperAdminSaudeSistemaPage() {
           type="button"
           onClick={atualizar}
           disabled={atualizando}
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2] disabled:opacity-60"
+          className="flex h-10 shrink-0 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2] disabled:opacity-60"
         >
           <RotateCw
             size={15}

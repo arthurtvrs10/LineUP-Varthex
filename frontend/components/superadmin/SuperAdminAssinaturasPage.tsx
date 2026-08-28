@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ChevronDown, Download, AlertTriangle, CheckCircle2, XCircle, Clock, RotateCw } from "lucide-react";
+import { Search, Download, AlertTriangle, CheckCircle2, XCircle, Clock, RotateCw } from "lucide-react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
 import { RadioCards, SelectField } from "@/components/ui/FormFields";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { Toast, useToast } from "@/components/ui/Toast";
 
 const metrics = [
@@ -115,7 +116,19 @@ const statusConfig: Record<Status, { bg: string; color: string; icon: typeof Che
 export function SuperAdminAssinaturasPage() {
   const inadimplentesCount = assinaturas.filter((a) => a.status === "Inadimplente").length;
   const [exportarAberto, setExportarAberto] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [filtroStatus, setFiltroStatus] = useState("Todos os status");
+  const [filtroPlano, setFiltroPlano] = useState("Todos os planos");
   const toast = useToast();
+
+  const visiveis = assinaturas.filter(
+    (a) =>
+      (filtroStatus === "Todos os status" || a.status === filtroStatus) &&
+      (filtroPlano === "Todos os planos" || a.plano === filtroPlano) &&
+      (busca === "" ||
+        a.name.toLowerCase().includes(busca.toLowerCase()) ||
+        a.responsavel.toLowerCase().includes(busca.toLowerCase())),
+  );
 
   function exportar(event: React.FormEvent) {
     event.preventDefault();
@@ -142,23 +155,23 @@ export function SuperAdminAssinaturasPage() {
           <input
             type="text"
             placeholder="Buscar barbearia ou responsável..."
+            value={busca}
+            onChange={(e) => setBusca(e.target.value)}
             className="h-full flex-1 bg-transparent text-sm text-[#0d1831] placeholder:text-[#b0afa8] focus:outline-none"
           />
         </div>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os status
-          <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
-        </button>
-        <button
-          type="button"
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831]"
-        >
-          Todos os planos
-          <ChevronDown size={12} strokeWidth={2} className="text-[#686a73]" />
-        </button>
+        <FilterSelect
+          label="Filtrar por status"
+          options={["Todos os status", "Ativo", "Inadimplente", "Cancelado", "Trial"]}
+          value={filtroStatus}
+          onChange={setFiltroStatus}
+        />
+        <FilterSelect
+          label="Filtrar por plano"
+          options={["Todos os planos", "Starter", "Pro", "Enterprise"]}
+          value={filtroPlano}
+          onChange={setFiltroPlano}
+        />
         <div className="flex-1" />
         <button
           type="button"
@@ -196,7 +209,7 @@ export function SuperAdminAssinaturasPage() {
             </tr>
           </thead>
           <tbody>
-            {assinaturas.map((a) => {
+            {visiveis.map((a) => {
               const StatusIcon = statusConfig[a.status].icon;
               return (
                 <tr key={a.name} className="border-b border-[#e6e4df] last:border-b-0">
@@ -267,7 +280,7 @@ export function SuperAdminAssinaturasPage() {
         open={exportarAberto}
         onClose={() => setExportarAberto(false)}
         title="Exportar assinaturas"
-        description={`${assinaturas.length} assinaturas no filtro atual.`}
+        description={`${visiveis.length} assinaturas no filtro atual.`}
         size="sm"
         footer={
           <>

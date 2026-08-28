@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { NovoServicoModal } from "./modals/CadastroModals";
 import { Plus, Clock, Percent } from "lucide-react";
 
 type Servico = {
@@ -82,6 +84,8 @@ type Category = (typeof categories)[number];
 
 export function AdminServicosPage() {
   const [filter, setFilter] = useState<Category>("Todos");
+  const [novoAberto, setNovoAberto] = useState(false);
+  const toast = useToast();
 
   const filtered = filter === "Todos" ? servicos : servicos.filter((s) => s.category === filter);
   const grouped = filtered.reduce<Record<string, Servico[]>>((acc, servico) => {
@@ -121,6 +125,7 @@ export function AdminServicosPage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0] sm:w-auto"
         >
           <Plus size={16} strokeWidth={2} />
@@ -172,6 +177,13 @@ export function AdminServicosPage() {
           </div>
         ))}
       </div>
+
+      <NovoServicoModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

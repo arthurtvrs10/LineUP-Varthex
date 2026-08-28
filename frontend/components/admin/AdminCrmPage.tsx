@@ -1,6 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import {
+  NovaAutomacaoModal,
+  NovaCampanhaModal,
+  NovoModeloModal,
+} from "./modals/CrmModals";
 import {
   Plus,
   Bell,
@@ -141,6 +147,10 @@ const history: ContactHistory[] = [
 ];
 
 export function AdminCrmPage() {
+  const [crmModal, setCrmModal] = useState<"campanha" | "automacao" | "modelo" | null>(null);
+  const toast = useToast();
+  const fecharCrm = () => setCrmModal(null);
+
   const [activeAutomations, setActiveAutomations] = useState(
     () => new Set(automations.filter((a) => a.active).map((a) => a.name)),
   );
@@ -167,6 +177,7 @@ export function AdminCrmPage() {
         </div>
         <button
           type="button"
+          onClick={() => setCrmModal("campanha")}
           className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
         >
           <Plus size={16} strokeWidth={2} />
@@ -190,6 +201,7 @@ export function AdminCrmPage() {
         </h2>
         <button
           type="button"
+          onClick={() => setCrmModal("automacao")}
           className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Plus size={13} strokeWidth={2} />
@@ -249,6 +261,7 @@ export function AdminCrmPage() {
         <h2 className="text-lg font-semibold text-[#0d1831]">Modelos de mensagem</h2>
         <button
           type="button"
+          onClick={() => setCrmModal("modelo")}
           className="flex items-center gap-2 rounded-[8px] border border-[#e6e4df] bg-white px-3 py-1.5 text-sm font-medium text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <Plus size={13} strokeWidth={2} />
@@ -337,6 +350,11 @@ export function AdminCrmPage() {
           </table>
         </div>
       </div>
+
+      <NovaCampanhaModal open={crmModal === "campanha"} onClose={fecharCrm} onConcluir={toast.mostrar} />
+      <NovaAutomacaoModal open={crmModal === "automacao"} onClose={fecharCrm} onConcluir={toast.mostrar} />
+      <NovoModeloModal open={crmModal === "modelo"} onClose={fecharCrm} onConcluir={toast.mostrar} />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

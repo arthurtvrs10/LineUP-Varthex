@@ -58,7 +58,11 @@ export function NotificacoesPopover({
   }, [aberto]);
 
   return (
-    <div className="relative" ref={ref}>
+    /* Sem `relative` no mobile de propósito: assim o painel ancora no
+       <header> sticky (sticky é posicionado), e `top-full` cai logo
+       abaixo dele sem depender de altura fixa — que varia por breakpoint
+       (medido: 98px no mobile, ~58 no desktop). */
+    <div className="sm:relative" ref={ref}>
       <button
         type="button"
         onClick={() => setAberto((v) => !v)}
@@ -83,7 +87,11 @@ export function NotificacoesPopover({
         <div
           role="menu"
           aria-label="Notificações"
-          className="absolute right-0 top-full z-30 mt-2 w-[min(20rem,calc(100vw-2rem))] overflow-hidden rounded-[10px] border border-[#e6e4df] bg-white shadow-[0_12px_32px_rgba(13,24,49,0.14)]"
+          /* Mobile: ancorado no header, ocupa a largura toda com margem.
+             Preso ao sino, um painel de 320px começava fora da tela pela
+             esquerda (medido: left -48px). De sm pra cima cabe, e ele
+             volta a sair do sino. */
+          className="absolute inset-x-3 top-full z-30 mt-2 overflow-hidden rounded-[10px] border border-[#e6e4df] bg-white shadow-[0_12px_32px_rgba(13,24,49,0.14)] sm:inset-x-auto sm:right-0 sm:w-80"
         >
           <div className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-4 py-3">
             <p className="text-sm font-bold text-[#0d1831]">Notificações</p>
