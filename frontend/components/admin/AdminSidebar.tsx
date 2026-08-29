@@ -63,7 +63,7 @@ export function AdminSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "RM", name: "Rafael Mendes", email: "admin@lineup.com" }}
-      activeColor="#ff4a17"
+      activeColor="#2563eb"
       theme="light"
       profileHref="/admin/configuracoes"
     />

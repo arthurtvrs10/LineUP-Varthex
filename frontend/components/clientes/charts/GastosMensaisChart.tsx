@@ -53,7 +53,7 @@ export function GastosMensaisChart({ data }: { data: SerieMensal[] }) {
         <Bar
           dataKey="gasto"
           name="Gasto"
-          fill="#ff4a17"
+          fill="#2563eb"
           radius={[4, 4, 0, 0]}
           maxBarSize={44}
           isAnimationActive={false}

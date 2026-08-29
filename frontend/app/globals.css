@@ -14,12 +14,12 @@
 
 @theme inline {
   /* --- paleta da marca (não usar direto em componente) --- */
-  --color-brand-ink: #0e1012;
+  --color-brand-ink: #3a3f44;
   --color-brand-graphite: #3a3f44;
   --color-brand-steel: #7a8288;
   --color-brand-fog: #e4e7e9;
   --color-brand-paper: #ffffff;
-  --color-brand-signal: #ff4a17;
+  --color-brand-signal: #2563eb;
 
   /* --- semânticos: texto --- */
   --color-ink: #0e1012;          /* 19.06:1 em branco */
@@ -32,14 +32,16 @@
   --color-fog: #e4e7e9;
 
   /* --- acento: três tokens, não um ---
-   * Branco sobre #FF4A17 é 3.36:1 e REPROVA. Por isso o botão primário
-   * é Ink sobre Signal (5.67:1), e laranja como texto em branco usa
-   * accent-strong (5.19:1). */
-  --color-accent: #ff4a17;
-  --color-on-accent: #0e1012;
-  --color-accent-strong: #c73a12;
-  --color-accent-hover: #e63f0f;  /* spec §4.4 */
-  --color-accent-subtle: #fff1ec;
+   * Preto sobre #2563EB é 3.69:1 e REPROVA. Por isso o botão primário
+   * é branco sobre o acento (5.17:1) — invertido em relação ao Signal
+   * laranja, onde era o branco que reprovava. O próprio azul já passa
+   * como texto em branco (5.17:1), então accent-strong reaproveita o
+   * mesmo tom em vez de precisar de uma variante mais escura. */
+  --color-accent: #2563eb;
+  --color-on-accent: #ffffff;
+  --color-accent-strong: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-subtle: #eff6ff;
 
   /* --- semânticos de estado --- */
   --color-success: #1e7a4c;

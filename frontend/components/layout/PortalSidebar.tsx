@@ -204,7 +204,7 @@ export function PortalSidebar({
   groups,
   bottomLinks = [],
   user,
-  activeColor = "#ff4a17",
+  activeColor = "#2563eb",
   theme = "dark",
   profileHref,
   logoutHref = "/login",

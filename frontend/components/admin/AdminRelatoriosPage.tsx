@@ -106,12 +106,12 @@ const servicosMaisExecutados = [
   { label: "Corte + Sobrancelha", value: 33 },
 ];
 
-// Mesma paleta categórica de dashboardData.ts (spec §9): Corte/Cabelo=Signal,
-// Barba=accent-strong, Combo=aqua. Consistente em todo o app.
+// Mesma paleta categórica de dashboardData.ts (spec §9): Corte/Cabelo=azul
+// (marca), Barba=laranja neutro, Combo=aqua. Consistente em todo o app.
 const categorias = [
-  { label: "Corte", percent: 45, color: "#ff4a17" },
+  { label: "Corte", percent: 45, color: "#2563eb" },
   { label: "Combo", percent: 25, color: "#1baf7a" },
-  { label: "Barba", percent: 15, color: "#c73a12" },
+  { label: "Barba", percent: 15, color: "#eb6834" },
   { label: "Outros", percent: 15, color: "#e6e4df" },
 ];
 
@@ -206,8 +206,8 @@ export function AdminRelatoriosPage() {
           <p className="text-sm text-[#686a73]">Últimos 6 meses</p>
           <div className="pt-4">
             <svg viewBox={`0 0 ${areaWidth} ${areaHeight}`} className="h-[180px] w-full" preserveAspectRatio="none">
-              <path d={area} fill="#fff1ec" />
-              <path d={line} fill="none" stroke="#ff4a17" strokeWidth={3} />
+              <path d={area} fill="#eff6ff" />
+              <path d={line} fill="none" stroke="#2563eb" strokeWidth={3} />
             </svg>
             <div className="flex justify-between pt-2 text-xs text-[#686a73]">
               {faturamentoMonths.map((m) => (
@@ -431,7 +431,7 @@ export function AdminRelatoriosPage() {
                     style={{ height: `${(d.entrada / estoqueMax) * 160}px` }}
                   />
                   <div
-                    className="w-5 rounded-t-[4px] bg-[#c73a12]"
+                    className="w-5 rounded-t-[4px] bg-[#eb6834]"
                     style={{ height: `${(d.saida / estoqueMax) * 160}px` }}
                   />
                 </div>
@@ -445,7 +445,7 @@ export function AdminRelatoriosPage() {
               Entrada
             </span>
             <span className="flex items-center gap-1.5 text-xs text-[#686a73]">
-              <span className="size-2.5 rounded-full bg-[#c73a12]" />
+              <span className="size-2.5 rounded-full bg-[#eb6834]" />
               Saída
             </span>
           </div>

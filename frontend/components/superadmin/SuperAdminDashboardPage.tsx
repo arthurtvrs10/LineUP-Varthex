@@ -41,8 +41,8 @@ type Alerta = {
 const alertas: Alerta[] = [
   {
     icon: CheckCircle2,
-    bg: "#fff1ec",
-    color: "#c73a12",
+    bg: "#eff6ff",
+    color: "#2563eb",
     text: 'Barbearia "Corte & Arte" foi bloqueada há 14 dias',
     date: "22 DEZ 19:20",
   },

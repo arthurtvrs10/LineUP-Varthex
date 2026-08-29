@@ -142,8 +142,8 @@ export function AdminFinanceiroPage() {
           <h3 className="font-['Manrope',sans-serif] text-sm font-bold text-[#0d1831]">Faturamento mensal</h3>
           <p className="text-xs text-[#686a73]">Últimos 6 meses</p>
           <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} className="mt-4 h-40 w-full">
-            <path d={area} fill="rgba(255,74,23,0.12)" />
-            <path d={line} fill="none" stroke="#ff4a17" strokeWidth={2} />
+            <path d={area} fill="rgba(37,99,235,0.12)" />
+            <path d={line} fill="none" stroke="#2563eb" strokeWidth={2} />
           </svg>
           <div className="flex justify-between text-xs text-[#686a73]">
             {monthlyRevenue.map((m) => (

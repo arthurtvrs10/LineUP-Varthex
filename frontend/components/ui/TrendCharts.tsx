@@ -27,7 +27,7 @@ export type PontoTendencia = {
 };
 
 /* Slot 1 da paleta categórica validada (spec §9, validate_palette.js). */
-const ACCENT = "#ff4a17";
+const ACCENT = "#2563eb";
 
 /**
  * O formato é um valor serializável, não uma função: props de client

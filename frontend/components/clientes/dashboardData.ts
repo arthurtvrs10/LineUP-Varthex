@@ -22,16 +22,13 @@ export type ServicoMeta = {
   color: string;
 };
 
-// Paleta categórica LINEUP (rebrand §9), toda na família laranja da marca a
-// pedido — sem azul. Cabelo=Signal, Barba=accent-strong (ambos tokens já
-// existentes em globals.css), Combo=aqua (única cor fora da família).
-// validate_palette.js: CVD ΔE 9.2 (protan) OK, mas visão-normal Signal↔
-// accent-strong mede 11.8 — abaixo do piso de 15 (duas laranjas próximas
-// são difíceis de distinguir por cor sozinha). Mitigado pela regra de
-// relief: aqui a cor nunca aparece sem o rótulo do serviço ao lado.
+// Paleta categórica LINEUP (rebrand §9). Marca trocou de laranja para azul
+// #2563EB — Cabelo usa o acento da marca, Barba volta a usar o laranja
+// neutro #eb6834 (não é mais o Signal, então não colide), Combo continua
+// aqua. Validado all-pairs: CVD ΔE 9.2 (deutan), visão-normal ΔE 27.6.
 export const servicosMeta: ServicoMeta[] = [
-  { key: "cabelo", name: "Cabelo", subtitle: "Serviço individual", color: "#ff4a17" },
-  { key: "barba", name: "Barba", subtitle: "Serviço individual", color: "#c73a12" },
+  { key: "cabelo", name: "Cabelo", subtitle: "Serviço individual", color: "#2563eb" },
+  { key: "barba", name: "Barba", subtitle: "Serviço individual", color: "#eb6834" },
   { key: "combo", name: "Cabelo + barba", subtitle: "Serviço combinado", color: "#1baf7a" },
 ];
 

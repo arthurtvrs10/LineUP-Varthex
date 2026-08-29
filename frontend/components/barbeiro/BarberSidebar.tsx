@@ -45,7 +45,7 @@ export function BarberSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "PR", name: "Paulo Roberto", email: "barber@lineup.com" }}
-      activeColor="#ff4a17"
+      activeColor="#2563eb"
       theme="light"
       profileHref="/barbeiro/configuracoes"
     />

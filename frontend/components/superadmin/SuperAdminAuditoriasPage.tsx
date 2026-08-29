@@ -17,8 +17,8 @@ const metrics = [
 type Role = "Super Admin" | "Admin" | "Sistema" | "Barbeiro";
 
 const roleStyles: Record<Role, { bg: string; color: string }> = {
-  "Super Admin": { bg: "#fff1ec", color: "#c73a12" },
-  Admin: { bg: "#fff1ec", color: "#c73a12" },
+  "Super Admin": { bg: "#eff6ff", color: "#2563eb" },
+  Admin: { bg: "#eff6ff", color: "#2563eb" },
   Sistema: { bg: "#f0efea", color: "#686a73" },
   Barbeiro: { bg: "#f0efea", color: "#686a73" },
 };
@@ -59,8 +59,8 @@ const entries: LogEntry[] = [
     recurso: "Barbershop-bs1",
     ip: "191.248.12.44",
     data: "14/08/2026 13:55:02",
-    iconBg: "#fff1ec",
-    iconColor: "#c73a12",
+    iconBg: "#eff6ff",
+    iconColor: "#2563eb",
   },
   {
     titulo: "Criou barbearia",
@@ -120,8 +120,8 @@ const entries: LogEntry[] = [
     recurso: "Barbershop-bs1",
     ip: "177.82.55.102",
     data: "13/08/2026 18:30:22",
-    iconBg: "#fff1ec",
-    iconColor: "#c73a12",
+    iconBg: "#eff6ff",
+    iconColor: "#2563eb",
   },
   {
     titulo: "Ativou barbearia",

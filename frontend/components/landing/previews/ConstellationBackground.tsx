@@ -55,7 +55,7 @@ export function ConstellationBackground({ className = "" }: { className?: string
             cx={node.x}
             cy={node.y}
             r={node.r}
-            fill={node.accent ? "#ff4a17" : "#9aa3ba"}
+            fill={node.accent ? "#2563eb" : "#9aa3ba"}
             fillOpacity={node.accent ? 0.6 : 0.55}
           />
         ))}
