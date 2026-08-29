@@ -30,7 +30,7 @@ export function PerfilPage() {
 
       <section className="flex flex-wrap items-center justify-between gap-6 rounded-[12px] border border-[#e6e4df] bg-white p-6">
         <div className="flex items-center gap-4">
-          <span className="grid size-20 place-items-center rounded-full bg-[#ede9fd] text-2xl font-bold text-[#7247f3]">
+          <span className="grid size-20 place-items-center rounded-full bg-accent-subtle text-2xl font-bold text-accent-strong">
             PR
           </span>
           <div>
@@ -62,7 +62,7 @@ export function PerfilPage() {
               id="nome-completo"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3] focus:ring-3 focus:ring-[#7247f3]/10"
+              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
           </div>
           <div>
@@ -74,7 +74,7 @@ export function PerfilPage() {
               type="email"
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3] focus:ring-3 focus:ring-[#7247f3]/10"
+              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
           </div>
           <div>
@@ -85,7 +85,7 @@ export function PerfilPage() {
               id="whatsapp"
               value={whatsapp}
               onChange={(event) => setWhatsapp(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3] focus:ring-3 focus:ring-[#7247f3]/10"
+              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
           </div>
           <div>
@@ -97,7 +97,7 @@ export function PerfilPage() {
               type="date"
               value={birthDate}
               onChange={(event) => setBirthDate(event.target.value)}
-              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3] focus:ring-3 focus:ring-[#7247f3]/10"
+              className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
           </div>
 
@@ -105,7 +105,7 @@ export function PerfilPage() {
             {saved && <span className="text-xs font-bold text-[#27865b]">Alterações salvas!</span>}
             <button
               type="submit"
-              className="rounded-[10px] bg-[#7247f3] px-6 py-2.5 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+              className="rounded-[10px] bg-accent px-6 py-2.5 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
             >
               Salvar alterações
             </button>
@@ -129,7 +129,7 @@ export function PerfilPage() {
               aria-checked={reminders}
               onClick={() => setReminders((v) => !v)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                reminders ? "bg-[#7247f3]" : "bg-[#d4d2cc]"
+                reminders ? "bg-accent" : "bg-[#d4d2cc]"
               }`}
             >
               <span
@@ -148,7 +148,7 @@ export function PerfilPage() {
               aria-checked={offers}
               onClick={() => setOffers((v) => !v)}
               className={`relative h-6 w-11 shrink-0 rounded-full transition ${
-                offers ? "bg-[#7247f3]" : "bg-[#d4d2cc]"
+                offers ? "bg-accent" : "bg-[#d4d2cc]"
               }`}
             >
               <span
@@ -198,7 +198,7 @@ export function PerfilPage() {
             </div>
             <button
               type="button"
-              className="flex items-center gap-1 text-sm font-bold text-[#7247f3] transition hover:underline"
+              className="flex items-center gap-1 text-sm font-bold text-accent-strong transition hover:underline"
             >
               Gerenciar
               <ChevronRight size={16} strokeWidth={2} />

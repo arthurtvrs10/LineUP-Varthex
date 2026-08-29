@@ -21,8 +21,8 @@ const usuarios: Usuario[] = [
 ];
 
 const roleStyles: Record<Usuario["role"], string> = {
-  "Super Admin": "bg-[#ede9fd] text-[#7247f3]",
-  Admin: "bg-[#ede9fd] text-[#7247f3]",
+  "Super Admin": "bg-accent-subtle text-accent-strong",
+  Admin: "bg-accent-subtle text-accent-strong",
   Barbeiro: "bg-[#f0efea] text-[#686a73]",
   Cliente: "bg-[#f0efea] text-[#686a73]",
 };
@@ -56,7 +56,7 @@ export function SuperAdminUsuariosPage() {
                 <tr key={u.email} className="border-b border-[#eef0f3] last:border-b-0">
                   <td className="sticky left-0 z-10 bg-white py-3 pr-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-10 place-items-center rounded-[10px] bg-[#ede9fd] text-xs font-bold text-[#7247f3]">
+                      <span className="grid size-10 place-items-center rounded-[10px] bg-accent-subtle text-xs font-bold text-accent-strong">
                         {u.name
                           .split(" ")
                           .slice(0, 2)

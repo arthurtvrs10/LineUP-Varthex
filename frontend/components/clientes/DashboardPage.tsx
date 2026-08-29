@@ -20,7 +20,7 @@ export function DashboardPage() {
         acoes={
           <Link
             href="/clientes/agendamento"
-            className="flex h-11 items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+            className="flex h-11 items-center gap-2 rounded-[10px] bg-accent px-5 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
           >
             Agendar novo horário
             <ArrowRight size={16} strokeWidth={2.5} />
@@ -34,7 +34,7 @@ export function DashboardPage() {
         <div className="mt-3 rounded-[12px] border border-[#e6e4df] bg-white p-5">
           <div className="flex flex-wrap items-start gap-6">
             <div className="flex items-center gap-4">
-              <span className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-[#ede9fd] text-[#7247f3]">
+              <span className="grid size-12 shrink-0 place-items-center rounded-[10px] bg-accent-subtle text-accent-strong">
                 <CalendarDays size={22} strokeWidth={1.8} />
               </span>
               <div>
@@ -101,7 +101,7 @@ export function DashboardPage() {
                   {fidelidade.pontos}
                 </p>
               </div>
-              <span className="flex items-center gap-2 rounded-full bg-[#ede9fd] px-3 py-1.5 text-xs font-bold text-[#7247f3]">
+              <span className="flex items-center gap-2 rounded-full bg-accent-subtle px-3 py-1.5 text-xs font-bold text-accent-strong">
                 <Gift size={14} strokeWidth={2} />
                 {fidelidade.recompensa}
               </span>
@@ -117,7 +117,7 @@ export function DashboardPage() {
                 className="h-2 w-full overflow-hidden rounded-full bg-[#eef0f3]"
               >
                 <div
-                  className="h-full rounded-full bg-[#7247f3]"
+                  className="h-full rounded-full bg-accent"
                   style={{ width: `${progressoFidelidade}%` }}
                 />
               </div>
@@ -146,7 +146,7 @@ export function DashboardPage() {
             </p>
             <Link
               href="/clientes/historico"
-              className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-[#7247f3] transition hover:text-[#5c2ee0]"
+              className="mt-4 inline-flex items-center gap-1.5 text-xs font-bold text-accent-strong transition hover:text-accent"
             >
               Ver histórico completo
               <ArrowRight size={13} strokeWidth={2.5} />

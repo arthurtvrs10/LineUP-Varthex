@@ -28,7 +28,7 @@ const replaces = ["Agenda de papel", "Planilhas", "Mensagens perdidas"];
 function FeatureItem({ children, upcoming = false }: { children: string; upcoming?: boolean }) {
   return (
     <span className={`flex items-center gap-2.5 text-xs ${upcoming ? "text-[#8290a2]" : "text-[#4f5d73]"}`}>
-      <i className={`grid size-5 place-items-center rounded-full bg-[#7247f3] text-white ${upcoming ? "opacity-35" : ""}`}>
+      <i className={`grid size-5 place-items-center rounded-full bg-accent text-on-accent ${upcoming ? "opacity-35" : ""}`}>
         <Check size={13} />
       </i>
       {children}

@@ -51,7 +51,7 @@ export function ForgotPasswordPage() {
               </p>
             </div>
             <Link
-              className="text-[12px] font-semibold text-[#7247f3] hover:underline"
+              className="text-[12px] font-semibold text-accent-strong hover:underline"
               href="/login"
             >
               Voltar para o login
@@ -107,7 +107,7 @@ export function ForgotPasswordPage() {
                     className={`h-full w-full rounded-lg border bg-white px-4 pl-11 text-sm text-[#1c1c26] outline-none transition placeholder:text-[#a7acc4] focus:ring-3 ${
                       error
                         ? "border-[#e0333f] focus:border-[#e0333f] focus:ring-[#e0333f]/10"
-                        : "border-[#d9dce5] focus:border-[#7247f3] focus:ring-[#7247f3]/10"
+                        : "border-[#d9dce5] focus:border-accent focus:ring-accent/10"
                     }`}
                   />
                 </div>
@@ -122,7 +122,7 @@ export function ForgotPasswordPage() {
               </div>
 
               <button
-                className="mt-1 flex h-12 w-full items-center justify-center rounded-lg bg-[#7247f3] text-sm font-semibold text-white transition hover:bg-[#5c2ee0] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#7247f3]/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-1 flex h-12 w-full items-center justify-center rounded-lg bg-accent text-sm font-semibold text-on-accent transition hover:bg-accent-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-accent/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={status === "submitting"}
                 type="submit"
               >
@@ -136,7 +136,7 @@ export function ForgotPasswordPage() {
               <p className="mt-1 text-[12px] text-[#9da3b8]">
                 Lembrou a senha?{" "}
                 <Link
-                  className="font-semibold text-[#7247f3] hover:underline"
+                  className="font-semibold text-accent-strong hover:underline"
                   href="/login"
                 >
                   Voltar para o login

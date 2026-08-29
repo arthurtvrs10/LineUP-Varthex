@@ -114,7 +114,7 @@ export function AdminServicosPage() {
                 onClick={() => setFilter(category)}
                 className={`flex h-[34px] shrink-0 items-center justify-center rounded-full px-3 py-1.5 text-sm font-medium transition ${
                   isActive
-                    ? "border border-[#7247f3] bg-[#7247f3] text-white"
+                    ? "border border-accent bg-accent text-on-accent"
                     : "border border-[#e6e4df] bg-white text-[#686a73] hover:bg-[#f7f6f2]"
                 }`}
               >
@@ -126,7 +126,7 @@ export function AdminServicosPage() {
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
-          className="flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0] sm:w-auto"
+          className="flex h-10 w-full items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover sm:w-auto"
         >
           <Plus size={16} strokeWidth={2} />
           Novo serviço

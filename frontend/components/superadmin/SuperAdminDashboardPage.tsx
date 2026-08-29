@@ -41,8 +41,8 @@ type Alerta = {
 const alertas: Alerta[] = [
   {
     icon: CheckCircle2,
-    bg: "#ede9fd",
-    color: "#7247f3",
+    bg: "#fff1ec",
+    color: "#c73a12",
     text: 'Barbearia "Corte & Arte" foi bloqueada há 14 dias',
     date: "22 DEZ 19:20",
   },
@@ -162,7 +162,7 @@ export function SuperAdminDashboardPage() {
           {barbeariasRecentes.map((b) => (
             <div key={b.name} className="flex items-center justify-between py-3">
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-[10px] bg-[#ede9fd] text-xs font-bold text-[#7247f3]">
+                <span className="grid size-10 place-items-center rounded-[10px] bg-accent-subtle text-xs font-bold text-accent-strong">
                   {b.name
                     .split(" ")
                     .slice(0, 2)

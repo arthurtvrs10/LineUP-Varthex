@@ -108,7 +108,7 @@ export function AdminFidelidadePage() {
         </div>
         <button
           type="button"
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2} />
           Novo plano
@@ -149,7 +149,7 @@ export function AdminFidelidadePage() {
                 </span>
               )}
               <div className="flex items-center gap-3">
-                <span className="grid size-10 place-items-center rounded-full bg-[#ede9fd] text-[#7247f3]">
+                <span className="grid size-10 place-items-center rounded-full bg-accent-subtle text-accent-strong">
                   <Icon size={20} strokeWidth={1.8} />
                 </span>
                 <div>
@@ -162,7 +162,7 @@ export function AdminFidelidadePage() {
               <ul className="flex flex-col gap-2 pt-4">
                 {plano.features.map((feature) => (
                   <li key={feature} className="flex items-start gap-2 text-sm text-[#0d1831]">
-                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-[#7247f3]" />
+                    <span className="mt-2 size-1.5 shrink-0 rounded-full bg-accent" />
                     {feature}
                   </li>
                 ))}
@@ -181,7 +181,7 @@ export function AdminFidelidadePage() {
       <div id="assinantes" className="w-full pt-8 scroll-mt-6">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-semibold text-[#0d1831]">Assinantes</h2>
-          <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]">
+          <span className="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent-strong">
             {assinantes.length} clientes
           </span>
         </div>
@@ -202,7 +202,7 @@ export function AdminFidelidadePage() {
                 <tr key={a.name} className="border-b border-[#e6e4df] last:border-b-0">
                   <td className="sticky left-0 z-10 bg-white px-4 py-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
+                      <span className="grid size-8 place-items-center rounded-full bg-accent-subtle text-xs font-semibold text-accent-strong">
                         {a.initials}
                       </span>
                       <p className="text-sm font-medium text-[#0d1831]">{a.name}</p>
@@ -260,7 +260,7 @@ export function AdminFidelidadePage() {
                 <div key={r.rank}>
                   <div className="flex items-center gap-3">
                     <span className="w-4 text-sm font-medium text-[#686a73]">{r.rank}</span>
-                    <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
+                    <span className="grid size-8 place-items-center rounded-full bg-accent-subtle text-xs font-semibold text-accent-strong">
                       {r.initials}
                     </span>
                     <p className="flex-1 text-sm text-[#0d1831]">{r.name}</p>
@@ -269,7 +269,7 @@ export function AdminFidelidadePage() {
                     </span>
                   </div>
                   <div className="mt-2 ml-7 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
-                    <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${r.percent}%` }} />
+                    <div className="h-full rounded-full bg-accent" style={{ width: `${r.percent}%` }} />
                   </div>
                 </div>
               ))}

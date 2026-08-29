@@ -125,7 +125,7 @@ function AuthField({
           } ${
             error
               ? "border-[#e0333f] focus:border-[#e0333f] focus:ring-[#e0333f]/10"
-              : "border-[#d9dce5] focus:border-[#7247f3] focus:ring-[#7247f3]/10"
+              : "border-[#d9dce5] focus:border-accent focus:ring-accent/10"
           }`}
         />
         {rightSlot && (
@@ -233,7 +233,7 @@ export function AuthPage({ mode }: AuthPageProps) {
               </p>
             </div>
             <Link
-              className="mt-1 text-[11px] font-semibold text-[#7247f3] hover:underline"
+              className="mt-1 text-[11px] font-semibold text-accent-strong hover:underline"
               href={registering ? "/login" : "/"}
             >
               {registering ? "Ir para o login" : "Voltar para o início"}
@@ -327,7 +327,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                   <label className="grid grid-cols-[auto_1fr] items-start gap-2.5 text-[11px] leading-5 text-[#5b6472]">
                     <input
                       checked={values.terms}
-                      className="mt-0.5 size-3.5 shrink-0 rounded border-[#d9dce5] text-[#7247f3] focus:ring-[#7247f3]/30"
+                      className="mt-0.5 size-3.5 shrink-0 rounded border-[#d9dce5] text-accent-strong focus:ring-accent/30"
                       onChange={(event) =>
                         updateValue("terms", event.target.checked)
                       }
@@ -335,11 +335,11 @@ export function AuthPage({ mode }: AuthPageProps) {
                     />
                     <span>
                       Eu concordo com os{" "}
-                      <Link className="font-semibold text-[#7247f3] hover:underline" href="/termos">
+                      <Link className="font-semibold text-accent-strong hover:underline" href="/termos">
                         Termos de uso
                       </Link>{" "}
                       e a{" "}
-                      <Link className="font-semibold text-[#7247f3] hover:underline" href="/privacidade">
+                      <Link className="font-semibold text-accent-strong hover:underline" href="/privacidade">
                         Política de privacidade
                       </Link>
                       .
@@ -356,7 +356,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                   <label className="flex items-center gap-2 text-[11px] font-medium text-[#5b6472]">
                     <input
                       checked={values.remember}
-                      className="size-3.5 rounded border-[#d9dce5] text-[#7247f3] focus:ring-[#7247f3]/30"
+                      className="size-3.5 rounded border-[#d9dce5] text-accent-strong focus:ring-accent/30"
                       onChange={(event) =>
                         updateValue("remember", event.target.checked)
                       }
@@ -365,7 +365,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                     Lembrar de mim
                   </label>
                   <Link
-                    className="text-[11px] font-semibold text-[#5326d7] hover:underline"
+                    className="text-[11px] font-semibold text-accent-strong hover:underline"
                     href="/esqueceu-senha"
                   >
                     Esqueceu a senha?
@@ -374,7 +374,7 @@ export function AuthPage({ mode }: AuthPageProps) {
               )}
 
               <button
-                className="mt-0.5 flex h-11 w-full items-center justify-center rounded-lg bg-[#7247f3] text-xs font-semibold text-white transition hover:bg-[#5c2ee0] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#7247f3]/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
+                className="mt-0.5 flex h-11 w-full items-center justify-center rounded-lg bg-accent text-xs font-semibold text-on-accent transition hover:bg-accent-hover focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-accent/25 active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={status === "submitting" || googleLoading}
                 type="submit"
               >
@@ -394,7 +394,7 @@ export function AuthPage({ mode }: AuthPageProps) {
               </div>
 
               <button
-                className="flex h-10.5 w-full items-center justify-center gap-2.5 rounded-lg border border-[#d9dce5] bg-white text-[11px] font-semibold text-[#1c1c26] transition hover:border-[#b8bdcd] hover:bg-[#fafafa] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-[#7247f3]/25 disabled:cursor-not-allowed disabled:opacity-70"
+                className="flex h-10.5 w-full items-center justify-center gap-2.5 rounded-lg border border-[#d9dce5] bg-white text-[11px] font-semibold text-[#1c1c26] transition hover:border-[#b8bdcd] hover:bg-[#fafafa] focus-visible:outline-3 focus-visible:outline-offset-3 focus-visible:outline-accent/25 disabled:cursor-not-allowed disabled:opacity-70"
                 disabled={status === "submitting" || googleLoading}
                 onClick={handleGoogleAuth}
                 type="button"
@@ -414,7 +414,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                   ? "Já tem uma conta? "
                   : "Ainda não tem uma conta? "}
                 <Link
-                  className="font-semibold text-[#7247f3] hover:underline"
+                  className="font-semibold text-accent-strong hover:underline"
                   href={registering ? "/login" : "/cadastro"}
                 >
                   {registering ? "Login" : "Registre-se"}

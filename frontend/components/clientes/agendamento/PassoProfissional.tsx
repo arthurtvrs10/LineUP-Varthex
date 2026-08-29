@@ -32,13 +32,13 @@ export function PassoProfissional({
             onClick={() => onSelecionar(p)}
             className={`flex min-h-[64px] items-center gap-3 rounded-[12px] border p-4 text-left transition ${
               ativo
-                ? "border-[#7247f3] bg-[#ede9fd]"
+                ? "border-accent bg-accent-subtle"
                 : "border-[#e6e4df] bg-white hover:bg-[#f7f6f2]"
             }`}
           >
             <span
               className={`grid size-10 shrink-0 place-items-center rounded-full text-sm font-bold ${
-                qualquer ? "bg-[#fdf3e3] text-[#d28b27]" : "bg-[#ede9fd] text-[#7247f3]"
+                qualquer ? "bg-[#fdf3e3] text-[#d28b27]" : "bg-accent-subtle text-accent-strong"
               }`}
             >
               {p.iniciais}
@@ -67,7 +67,7 @@ export function PassoProfissional({
               )}
               <span
                 className={`grid size-5 place-items-center rounded-full border ${
-                  ativo ? "border-[#7247f3] bg-[#7247f3] text-white" : "border-[#d0d5dd]"
+                  ativo ? "border-accent bg-accent text-on-accent" : "border-[#d0d5dd]"
                 }`}
               >
                 {ativo && <Check size={12} strokeWidth={3} />}

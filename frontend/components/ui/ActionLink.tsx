@@ -17,15 +17,15 @@ export function ActionLink({
 }: ActionLinkProps) {
   const colors =
     variant === "primary"
-      ? "border-transparent bg-[#7247f3] text-white hover:bg-[#5c2ee0]"
+      ? "border-transparent bg-accent text-on-accent hover:bg-accent-hover"
       : variant === "dark"
         ? "border-transparent bg-[#0d1831] text-white hover:bg-[#1a2740]"
-        : "border-[#d0d5dd] bg-white text-[#0d1831] hover:border-[#7247f3] hover:text-[#7247f3]";
+        : "border-[#d0d5dd] bg-white text-[#0d1831] hover:border-accent hover:text-accent-strong";
 
   return (
     <Link
       href={href}
-      className={`group inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-bold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#7247f3] ${colors} ${className}`}
+      className={`group inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border px-5 text-sm font-bold transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-accent ${colors} ${className}`}
     >
       {children}
       <ArrowRight

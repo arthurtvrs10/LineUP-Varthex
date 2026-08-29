@@ -25,7 +25,7 @@ export function FeatureStrip() {
             className="flex items-center justify-center gap-2 text-center sm:justify-start sm:text-left"
             key={label}
           >
-            <Icon className="shrink-0 text-[#7247f3]" size={18} />
+            <Icon className="shrink-0 text-accent-strong" size={18} />
             <span className="text-[13px] font-semibold text-[#4e5d73]">{label}</span>
           </div>
         ))}

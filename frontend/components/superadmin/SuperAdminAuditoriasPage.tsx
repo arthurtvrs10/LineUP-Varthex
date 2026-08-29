@@ -17,8 +17,8 @@ const metrics = [
 type Role = "Super Admin" | "Admin" | "Sistema" | "Barbeiro";
 
 const roleStyles: Record<Role, { bg: string; color: string }> = {
-  "Super Admin": { bg: "#ede9fd", color: "#7247f3" },
-  Admin: { bg: "#ede9fd", color: "#7247f3" },
+  "Super Admin": { bg: "#fff1ec", color: "#c73a12" },
+  Admin: { bg: "#fff1ec", color: "#c73a12" },
   Sistema: { bg: "#f0efea", color: "#686a73" },
   Barbeiro: { bg: "#f0efea", color: "#686a73" },
 };
@@ -59,8 +59,8 @@ const entries: LogEntry[] = [
     recurso: "Barbershop-bs1",
     ip: "191.248.12.44",
     data: "14/08/2026 13:55:02",
-    iconBg: "#ede9fd",
-    iconColor: "#7247f3",
+    iconBg: "#fff1ec",
+    iconColor: "#c73a12",
   },
   {
     titulo: "Criou barbearia",
@@ -120,8 +120,8 @@ const entries: LogEntry[] = [
     recurso: "Barbershop-bs1",
     ip: "177.82.55.102",
     data: "13/08/2026 18:30:22",
-    iconBg: "#ede9fd",
-    iconColor: "#7247f3",
+    iconBg: "#fff1ec",
+    iconColor: "#c73a12",
   },
   {
     titulo: "Ativou barbearia",
@@ -327,8 +327,8 @@ export function SuperAdminAuditoriasPage() {
               ]}
             />
           </div>
-          <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[#e6e4df] px-3.5 py-3 transition hover:bg-[#f7f6f2] has-[:checked]:border-[#7247f3] has-[:checked]:bg-[#ede9fd]">
-            <input type="checkbox" className="mt-0.5 size-4 shrink-0 accent-[#7247f3]" />
+          <label className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[#e6e4df] px-3.5 py-3 transition hover:bg-[#f7f6f2] has-[:checked]:border-accent has-[:checked]:bg-accent-subtle">
+            <input type="checkbox" className="mt-0.5 size-4 shrink-0 accent-accent" />
             <span>
               <span className="block text-sm font-medium text-[#0d1831]">Incluir endereço IP</span>
               <span className="block text-xs text-[#686a73]">

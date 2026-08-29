@@ -127,7 +127,7 @@ export function HistoricoPage() {
         </div>
         <Link
           href="/clientes/agendamento"
-          className="flex items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+          className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2.5} />
           Novo agendamento
@@ -155,7 +155,7 @@ export function HistoricoPage() {
             id="profissional"
             value={professional}
             onChange={(event) => setProfessional(event.target.value)}
-            className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3]"
+            className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent"
           >
             {professionals.map((name) => (
               <option key={name} value={name}>
@@ -173,7 +173,7 @@ export function HistoricoPage() {
             id="status"
             value={status}
             onChange={(event) => setStatus(event.target.value as "Todos" | Status)}
-            className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3]"
+            className="mt-2 h-12 w-full rounded-[10px] border border-[#e6e4df] px-3.5 text-sm text-[#0d1831] outline-none focus:border-accent"
           >
             {statuses.map((name) => (
               <option key={name} value={name}>
@@ -192,7 +192,7 @@ export function HistoricoPage() {
         </button>
         <button
           type="button"
-          className="mt-auto h-12 rounded-[10px] bg-[#7247f3] px-6 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+          className="mt-auto h-12 rounded-[10px] bg-accent px-6 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
         >
           Aplicar
         </button>
@@ -206,7 +206,7 @@ export function HistoricoPage() {
               {filtered.length} de {appointments.length} agendamentos
             </p>
           </div>
-          <button className="flex items-center gap-1.5 rounded-full border border-[#e6e4df] px-3.5 py-1.5 text-xs font-bold text-[#7247f3]">
+          <button className="flex items-center gap-1.5 rounded-full border border-[#e6e4df] px-3.5 py-1.5 text-xs font-bold text-accent-strong">
             <ArrowUpDown size={13} strokeWidth={2} />
             Mais recentes
           </button>
@@ -247,7 +247,7 @@ export function HistoricoPage() {
                     </span>
                   </td>
                   <td className="px-6 py-4 text-right text-sm font-bold text-[#0d1831]">{item.value}</td>
-                  <td className="px-6 py-4 text-right text-sm font-bold text-[#7247f3]">
+                  <td className="px-6 py-4 text-right text-sm font-bold text-accent-strong">
                     <button type="button" className="hover:underline">
                       Detalhes
                     </button>
@@ -287,7 +287,7 @@ export function HistoricoPage() {
               <ChevronLeft size={14} strokeWidth={2} />
               Anterior
             </button>
-            <span className="grid size-10 place-items-center rounded-[10px] border border-[#7247f3] text-sm font-bold text-[#7247f3]">
+            <span className="grid size-10 place-items-center rounded-[10px] border border-accent text-sm font-bold text-accent-strong">
               1
             </span>
             <button

@@ -50,7 +50,7 @@ export function FaqSection() {
         <Reveal>
           <SectionLabel>Perguntas frequentes</SectionLabel>
           <h2 className="mt-3 font-[var(--font-display)] text-[clamp(2rem,3.5vw,2.75rem)] leading-tight font-normal tracking-[-0.03em]">
-            Tudo claro para <span className="text-[#7247f3]">começar.</span>
+            Tudo claro para <span className="text-accent-strong">começar.</span>
           </h2>
           <p className="mt-4 max-w-sm text-[15px] leading-7 text-[#5f6f87]">
             Respostas diretas sobre como o LINEUP entra na rotina da
@@ -73,7 +73,7 @@ export function FaqSection() {
                   <span
                     className={`grid size-10 shrink-0 place-items-center rounded-lg border transition ${
                       expanded
-                        ? "border-[#7247f3] bg-[#eee8ff] text-[#7247f3]"
+                        ? "border-accent bg-accent-subtle text-accent-strong"
                         : "border-[#e2e7f0] text-[#0d1831]"
                     }`}
                   >

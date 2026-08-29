@@ -79,7 +79,7 @@ export function AboutPage() {
         <SectionLabel>Sobre o LINEUP</SectionLabel>
         <h1 className="mt-5 max-w-5xl font-[var(--font-display)] text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] font-normal tracking-[-0.045em]">
           Uma gestão mais simples para quem vive de{" "}
-          <strong className="font-normal text-[#7247f3]">atender bem.</strong>
+          <strong className="font-normal text-accent-strong">atender bem.</strong>
         </h1>
         <p className="mt-6 max-w-2xl text-[15px] leading-8 text-[#667085]">
           O LINEUP é um sistema SaaS para administrar a rotina da
@@ -118,12 +118,12 @@ export function AboutPage() {
         </div>
       </section>
 
-      <section className="scroll-mt-20 bg-[#7247f3] px-5 py-20 text-white sm:px-6 lg:py-24" id="visao">
+      <section className="scroll-mt-20 bg-accent px-5 py-20 text-on-accent sm:px-6 lg:py-24" id="visao">
         <div className="mx-auto w-full max-w-[1216px]">
           <h2 className="font-[var(--font-display)] text-[clamp(3.25rem,7vw,5.1rem)] leading-none font-normal tracking-[-0.05em]">
             Visão
           </h2>
-          <p className="mt-6 max-w-3xl text-base leading-8 text-white/85">
+          <p className="mt-6 max-w-3xl text-base leading-8 text-on-accent/85">
             Tornar-se uma referência em gestão de barbearias, reconhecida pela
             eficiência, facilidade de uso, inovação e confiabilidade, apoiando
             a digitalização e o crescimento sustentável do segmento.
@@ -164,7 +164,7 @@ export function AboutPage() {
 
       <section className="mx-auto flex w-full max-w-[1216px] flex-col items-start justify-between gap-8 border-t border-[#eaecf0] px-5 py-16 sm:px-6 lg:flex-row lg:items-center">
         <div>
-          <span className="text-[11px] font-semibold tracking-[0.1em] text-[#7247f3] uppercase">
+          <span className="text-[11px] font-semibold tracking-[0.1em] text-accent-strong uppercase">
             LINEUP
           </span>
           <h2 className="mt-3 text-[38px] font-bold tracking-[-0.04em]">
@@ -176,7 +176,7 @@ export function AboutPage() {
         </div>
         <Link
           href="/cadastro"
-          className="shrink-0 rounded-xl bg-[#7247f3] px-6 py-3.5 text-xs font-semibold text-white transition hover:bg-[#5c2ee0]"
+          className="shrink-0 rounded-xl bg-accent px-6 py-3.5 text-xs font-semibold text-on-accent transition hover:bg-accent-hover"
         >
           Criar uma conta
         </Link>

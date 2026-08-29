@@ -65,14 +65,14 @@ export function PricingSection() {
           <Reveal
             className={`relative flex flex-col rounded-xl border px-7 py-8 ${
               plan.highlighted
-                ? "border-[#7247f3] bg-white shadow-[0_1px_2px_rgba(16,24,40,0.05)]"
+                ? "border-accent bg-white shadow-[0_1px_2px_rgba(16,24,40,0.05)]"
                 : "border-[#e2e7f0] bg-white"
             }`}
             delay={index * 0.08}
             key={plan.name}
           >
             {plan.highlighted && (
-              <span className="absolute -top-3 left-8 rounded-md bg-[#7247f3] px-3 py-1 text-[10px] font-extrabold text-white">
+              <span className="absolute -top-3 left-8 rounded-md bg-accent px-3 py-1 text-[10px] font-extrabold text-on-accent">
                 Mais escolhido
               </span>
             )}
@@ -91,7 +91,7 @@ export function PricingSection() {
             <ul className="mt-7 grid gap-3">
               {plan.features.map((feature) => (
                 <li className="flex items-start gap-2.5 text-[13px] text-[#4f5e73]" key={feature}>
-                  <Check className="mt-0.5 shrink-0 rounded-full bg-[#7247f3] p-0.5 text-white" size={16} />
+                  <Check className="mt-0.5 shrink-0 rounded-full bg-accent p-0.5 text-on-accent" size={16} />
                   {feature}
                 </li>
               ))}

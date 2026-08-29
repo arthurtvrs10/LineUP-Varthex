@@ -138,9 +138,9 @@ export function BarberNotificacoesPage() {
             Acompanhe avisos importantes da sua conta.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#ede9fd] px-4 py-2">
-          <span className="h-2 w-2 rounded-full bg-[#7247f3]" />
-          <span className="text-xs font-bold text-[#7247f3]">{unreadCount} não lidas</span>
+        <div className="flex items-center gap-2 rounded-full bg-accent-subtle px-4 py-2">
+          <span className="h-2 w-2 rounded-full bg-accent" />
+          <span className="text-xs font-bold text-accent-strong">{unreadCount} não lidas</span>
         </div>
       </div>
 
@@ -178,7 +178,7 @@ export function BarberNotificacoesPage() {
                 onClick={() => setFilter("Todas")}
                 className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition ${
                   filter === "Todas"
-                    ? "bg-[#7247f3] text-white"
+                    ? "bg-accent text-on-accent"
                     : "border border-[#e6e4df] text-[#5f6f87] hover:bg-[#f7f6f2]"
                 }`}
               >
@@ -189,7 +189,7 @@ export function BarberNotificacoesPage() {
                 onClick={() => setFilter("Não lidas")}
                 className={`rounded-full px-4 py-1.5 text-[11px] font-bold transition ${
                   filter === "Não lidas"
-                    ? "bg-[#7247f3] text-white"
+                    ? "bg-accent text-on-accent"
                     : "border border-[#e6e4df] text-[#5f6f87] hover:bg-[#f7f6f2]"
                 }`}
               >
@@ -203,7 +203,7 @@ export function BarberNotificacoesPage() {
               <div key={notification.id} className="flex items-start gap-3 py-4">
                 <span
                   className={`mt-1.5 h-2 w-2 shrink-0 rounded-full ${
-                    notification.read ? "bg-transparent" : "bg-[#7247f3]"
+                    notification.read ? "bg-transparent" : "bg-accent"
                   }`}
                 />
                 <div className="flex-1">
@@ -225,7 +225,7 @@ export function BarberNotificacoesPage() {
                     className={`mt-2 inline-block rounded-full px-2.5 py-1 text-[10px] font-bold ${
                       notification.read
                         ? "bg-[#f0efea] text-[#686a73]"
-                        : "bg-[#ede9fd] text-[#7247f3]"
+                        : "bg-accent-subtle text-accent-strong"
                     }`}
                   >
                     {notification.channel}
@@ -248,7 +248,7 @@ export function BarberNotificacoesPage() {
                     <button
                       type="button"
                       onClick={() => markAsRead(notification.id)}
-                      className="text-[11px] font-bold text-[#7247f3] hover:underline"
+                      className="text-[11px] font-bold text-accent-strong hover:underline"
                     >
                       Marcar como lida
                     </button>
@@ -286,7 +286,7 @@ export function BarberNotificacoesPage() {
                   onClick={() => togglePreference(preference.id)}
                   aria-pressed={preference.enabled}
                   className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-                    preference.enabled ? "bg-[#7247f3]" : "bg-[#e6e4df]"
+                    preference.enabled ? "bg-accent" : "bg-[#e6e4df]"
                   } ${preference.locked ? "cursor-not-allowed opacity-70" : ""}`}
                 >
                   <span
@@ -302,7 +302,7 @@ export function BarberNotificacoesPage() {
           <button
             type="button"
             onClick={() => setSaved(true)}
-            className="mt-5 w-full rounded-[10px] bg-[#7247f3] py-2.5 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+            className="mt-5 w-full rounded-[10px] bg-accent py-2.5 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
           >
             {saved ? "Preferências salvas" : "Salvar preferências"}
           </button>

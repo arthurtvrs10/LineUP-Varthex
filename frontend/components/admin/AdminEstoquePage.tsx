@@ -31,7 +31,7 @@ const produtos: Produto[] = [
     price: "R$ 35,00",
     margin: "66%",
     low: false,
-    swatch: "bg-[#ede9fd]",
+    swatch: "bg-accent-subtle",
   },
   {
     name: "Óleo para barba",
@@ -44,7 +44,7 @@ const produtos: Produto[] = [
     price: "R$ 28,00",
     margin: "71%",
     low: true,
-    swatch: "bg-[#ede9fd]",
+    swatch: "bg-accent-subtle",
   },
   {
     name: "Shampoo anticaspa profissional",
@@ -57,7 +57,7 @@ const produtos: Produto[] = [
     price: "R$ 45,00",
     margin: "67%",
     low: false,
-    swatch: "bg-[#ede9fd]",
+    swatch: "bg-accent-subtle",
   },
   {
     name: "Cera de acabamento mate",
@@ -70,7 +70,7 @@ const produtos: Produto[] = [
     price: "R$ 10,00",
     margin: "67%",
     low: true,
-    swatch: "bg-[#ede9fd]",
+    swatch: "bg-accent-subtle",
   },
   {
     name: "Loção pós-barba",
@@ -83,7 +83,7 @@ const produtos: Produto[] = [
     price: "R$ 25,00",
     margin: "64%",
     low: false,
-    swatch: "bg-[#ede9fd]",
+    swatch: "bg-accent-subtle",
   },
 ];
 
@@ -114,7 +114,7 @@ export function AdminEstoquePage() {
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2} />
           Novo produto

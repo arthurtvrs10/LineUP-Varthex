@@ -83,7 +83,7 @@ const barbearias: Barbearia[] = [
 ];
 
 const planoStyles: Record<Barbearia["plano"], string> = {
-  pro: "bg-[#ede9fd] text-[#7247f3]",
+  pro: "bg-accent-subtle text-accent-strong",
   free: "bg-[#f0efea] text-[#686a73]",
 };
 
@@ -156,7 +156,7 @@ export function SuperAdminBarbeariasPage() {
         <button
           type="button"
           onClick={() => setNovaAberto(true)}
-          className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-xs font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-xs font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <FolderPlus size={18} strokeWidth={1.8} />
           Nova barbearia
@@ -184,7 +184,7 @@ export function SuperAdminBarbeariasPage() {
                 <tr key={b.name} className="border-b border-[#eef0f3] last:border-b-0">
                   <td className="sticky left-0 z-10 bg-white py-3 pr-3">
                     <div className="flex items-center gap-3">
-                      <span className="grid size-10 place-items-center rounded-[10px] bg-[#ede9fd] text-xs font-bold text-[#7247f3]">
+                      <span className="grid size-10 place-items-center rounded-[10px] bg-accent-subtle text-xs font-bold text-accent-strong">
                         {b.name
                           .split(" ")
                           .slice(0, 2)

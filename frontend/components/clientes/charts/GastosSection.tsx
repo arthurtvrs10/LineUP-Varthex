@@ -55,7 +55,7 @@ export function GastosSection() {
                 onClick={() => setPeriodo(item.value)}
                 className={`rounded-[7px] px-3 py-1.5 text-xs font-bold transition ${
                   ativo
-                    ? "bg-[#7247f3] text-white"
+                    ? "bg-accent text-on-accent"
                     : "text-[#5f6f87] hover:bg-[#f7f6f2] hover:text-[#0d1831]"
                 }`}
               >

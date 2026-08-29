@@ -50,7 +50,7 @@ export function PassoDataHora({
                   d.fechado
                     ? "cursor-not-allowed border-[#eef0f3] bg-[#f7f6f2] text-[#98a2b3]"
                     : ativo
-                      ? "border-[#7247f3] bg-[#7247f3] text-white"
+                      ? "border-accent bg-accent text-on-accent"
                       : "border-[#e6e4df] bg-white text-[#0d1831] hover:bg-[#f7f6f2]"
                 }`}
               >
@@ -92,7 +92,7 @@ export function PassoDataHora({
                     ocupado
                       ? "cursor-not-allowed border-[#eef0f3] bg-[#f7f6f2] text-[#c9ccd4] line-through"
                       : ativo
-                        ? "border-[#7247f3] bg-[#7247f3] text-white"
+                        ? "border-accent bg-accent text-on-accent"
                         : "border-[#e6e4df] bg-white text-[#0d1831] hover:bg-[#f7f6f2]"
                   }`}
                 >

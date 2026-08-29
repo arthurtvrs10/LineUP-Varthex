@@ -66,9 +66,9 @@ const appointments: Appointment[] = [
     time: "09:00 – 10:10",
     price: "R$ 70,00",
     status: "Confirmado",
-    statusBg: "bg-[#ede9fd]",
-    statusColor: "text-[#7247f3]",
-    dotColor: "bg-[#7247f3]",
+    statusBg: "bg-accent-subtle",
+    statusColor: "text-accent-strong",
+    dotColor: "bg-accent",
   },
   {
     initials: "RC",
@@ -204,7 +204,7 @@ export function AdminDashboardPage() {
                   type="button"
                   onClick={() => setPeriod(p)}
                   className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
-                    period === p ? "bg-[#7247f3] text-white" : "text-[#686a73] hover:bg-[#f7f6f2]"
+                    period === p ? "bg-accent text-on-accent" : "text-[#686a73] hover:bg-[#f7f6f2]"
                   }`}
                 >
                   {p}
@@ -214,7 +214,7 @@ export function AdminDashboardPage() {
             <button
               type="button"
               onClick={() => setModalAberto("agendamento")}
-              className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+              className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
             >
               <Plus className="h-4 w-4" />
               Novo agendamento
@@ -244,7 +244,7 @@ export function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-[#0d1831]">Agenda de hoje</h2>
               <p className="text-xs text-[#686a73]">{appointments.length} atendimentos</p>
             </div>
-            <Link href="/admin/agenda" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/agenda" className="flex items-center gap-1 text-xs text-accent-strong">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -281,7 +281,7 @@ export function AdminDashboardPage() {
               <h2 className="text-sm font-bold text-[#0d1831]">Desempenho da equipe</h2>
               <p className="text-xs text-[#686a73]">Este mês</p>
             </div>
-            <Link href="/admin/equipe" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/equipe" className="flex items-center gap-1 text-xs text-accent-strong">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -298,7 +298,7 @@ export function AdminDashboardPage() {
                   </div>
                   <div className="mt-1 flex items-center gap-2">
                     <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
-                      <div className="h-1.5 rounded-full bg-[#7247f3]" style={{ width: `${member.progress}%` }} />
+                      <div className="h-1.5 rounded-full bg-accent" style={{ width: `${member.progress}%` }} />
                     </div>
                     <span className="flex shrink-0 items-center gap-1 text-xs text-[#686a73]">
                       <Star className="h-2.5 w-2.5 fill-[#d28b27] text-[#d28b27]" />
@@ -316,7 +316,7 @@ export function AdminDashboardPage() {
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#0d1831]">Avaliações recentes</h2>
-            <Link href="/admin/avaliacoes" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/avaliacoes" className="flex items-center gap-1 text-xs text-accent-strong">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -350,7 +350,7 @@ export function AdminDashboardPage() {
         <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-bold text-[#0d1831]">Estoque baixo</h2>
-            <Link href="/admin/estoque" className="flex items-center gap-1 text-xs text-[#7247f3]">
+            <Link href="/admin/estoque" className="flex items-center gap-1 text-xs text-accent-strong">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
@@ -382,8 +382,8 @@ export function AdminDashboardPage() {
                 onClick={() => setModalAberto(action.modal)}
                 className="flex items-center gap-3 rounded-[10px] p-2.5 text-left transition hover:bg-[#f7f6f2]"
               >
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#ede9fd]">
-                  <action.icon className="h-4 w-4 text-[#7247f3]" />
+                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-accent-subtle">
+                  <action.icon className="h-4 w-4 text-accent-strong" />
                 </span>
                 <span className="flex-1 text-sm text-[#0d1831]">{action.label}</span>
                 <ChevronRight className="h-3.5 w-3.5 text-[#686a73]" />

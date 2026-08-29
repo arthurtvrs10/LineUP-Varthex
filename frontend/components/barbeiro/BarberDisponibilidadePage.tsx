@@ -34,8 +34,8 @@ const initialExceptions: Exception[] = [
   {
     id: "almoco",
     kind: "PAUSA",
-    pillBg: "bg-[#ede9fd]",
-    pillColor: "text-[#7247f3]",
+    pillBg: "bg-accent-subtle",
+    pillColor: "text-accent-strong",
     title: "Almoço",
     description: "Seg–sex • 12:00–13:00 • recorrente",
   },
@@ -113,7 +113,7 @@ export function BarberDisponibilidadePage() {
         </div>
         <button
           type="button"
-          className="rounded-[10px] bg-[#7247f3] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           Salvar jornada
         </button>
@@ -125,7 +125,7 @@ export function BarberDisponibilidadePage() {
             Profissional
           </p>
           <div className="mt-2 flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-subtle text-xs font-semibold text-accent-strong">
               JP
             </span>
             <div>
@@ -171,7 +171,7 @@ export function BarberDisponibilidadePage() {
                   onClick={() => toggleDay(row.day)}
                   aria-pressed={row.enabled}
                   className={`relative h-5 w-9 shrink-0 rounded-full transition ${
-                    row.enabled ? "bg-[#7247f3]" : "bg-[#e6e4df]"
+                    row.enabled ? "bg-accent" : "bg-[#e6e4df]"
                   }`}
                 >
                   <span
@@ -200,7 +200,7 @@ export function BarberDisponibilidadePage() {
                     />
                     <button
                       type="button"
-                      className="ml-auto text-sm font-medium text-[#7247f3] hover:underline"
+                      className="ml-auto text-sm font-medium text-accent-strong hover:underline"
                     >
                       Adicionar faixa
                     </button>
@@ -226,7 +226,7 @@ export function BarberDisponibilidadePage() {
             </div>
             <button
               type="button"
-              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3 py-1.5 text-xs font-medium text-[#7247f3] hover:bg-[#f7f6f2]"
+              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3 py-1.5 text-xs font-medium text-accent-strong hover:bg-[#f7f6f2]"
             >
               <Plus className="h-3.5 w-3.5" />
               Adicionar
@@ -301,7 +301,7 @@ export function BarberDisponibilidadePage() {
           <button
             type="button"
             onClick={() => setQueried(true)}
-            className="rounded-[10px] bg-[#7247f3] px-5 py-2.5 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+            className="rounded-[10px] bg-accent px-5 py-2.5 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
           >
             Consultar
           </button>
@@ -311,13 +311,13 @@ export function BarberDisponibilidadePage() {
           <div className="mt-4 flex items-center gap-2">
             <button
               type="button"
-              className="rounded-[10px] border border-[#7247f3] px-4 py-2 text-sm font-medium text-[#7247f3]"
+              className="rounded-[10px] border border-accent px-4 py-2 text-sm font-medium text-accent-strong"
             >
               09:00
             </button>
             <button
               type="button"
-              className="rounded-[10px] border border-[#7247f3] px-4 py-2 text-sm font-medium text-[#7247f3]"
+              className="rounded-[10px] border border-accent px-4 py-2 text-sm font-medium text-accent-strong"
             >
               10:00
             </button>

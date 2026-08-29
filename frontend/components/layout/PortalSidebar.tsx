@@ -58,7 +58,7 @@ function NavRow({
       href={href}
       onClick={onNavigate}
       className={`flex items-center gap-2.5 rounded-[7px] px-2.5 py-[7px] text-[13px] font-semibold tracking-[-0.1px] transition ${
-        active ? (theme === "light" ? "" : "text-white") : inactiveClasses
+        active ? (theme === "light" ? "" : "text-on-accent") : inactiveClasses
       }`}
       style={
         active
@@ -204,7 +204,7 @@ export function PortalSidebar({
   groups,
   bottomLinks = [],
   user,
-  activeColor = "#4318ff",
+  activeColor = "#ff4a17",
   theme = "dark",
   profileHref,
   logoutHref = "/login",

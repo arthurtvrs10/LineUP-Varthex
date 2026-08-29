@@ -76,7 +76,7 @@ export function BarberDashboardPage() {
             </button>
             <button
               type="button"
-              className="h-11 rounded-[10px] bg-[#7247f3] px-5 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+              className="h-11 rounded-[10px] bg-accent px-5 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
             >
               Atualizar
             </button>

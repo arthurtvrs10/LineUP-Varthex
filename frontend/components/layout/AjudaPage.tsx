@@ -32,7 +32,7 @@ function FaqRow({ item, index }: { item: FaqItem; index: number }) {
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-controls={painelId}
-        className="flex w-full items-center justify-between gap-4 py-4 text-left transition hover:text-[#7247f3]"
+        className="flex w-full items-center justify-between gap-4 py-4 text-left transition hover:text-accent-strong"
       >
         <span className="text-sm font-bold text-[#0d1831]">{item.pergunta}</span>
         <ChevronDown
@@ -60,7 +60,7 @@ export function AjudaPage({
     <div className="flex w-full flex-col gap-5">
       <section className="rounded-[12px] border border-[#e6e4df] bg-white p-6">
         <div className="flex items-start gap-4">
-          <span className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-[#ede9fd] text-[#7247f3]">
+          <span className="grid size-11 shrink-0 place-items-center rounded-[10px] bg-accent-subtle text-accent-strong">
             <LifeBuoy size={22} strokeWidth={1.8} />
           </span>
           <div>
@@ -96,7 +96,7 @@ export function AjudaPage({
               </a>
               <button
                 type="button"
-                className="flex items-center gap-2.5 rounded-[10px] bg-[#7247f3] px-3.5 py-2.5 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+                className="flex items-center gap-2.5 rounded-[10px] bg-accent px-3.5 py-2.5 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
               >
                 <MessageCircle size={15} strokeWidth={2} />
                 Abrir conversa
@@ -112,7 +112,7 @@ export function AjudaPage({
                   <li key={atalho.href} className="border-b border-[#eef0f3] last:border-none">
                     <Link
                       href={atalho.href}
-                      className="block py-2.5 text-sm text-[#5f6f87] transition hover:text-[#7247f3]"
+                      className="block py-2.5 text-sm text-[#5f6f87] transition hover:text-accent-strong"
                     >
                       {atalho.label}
                     </Link>

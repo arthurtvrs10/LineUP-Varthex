@@ -82,12 +82,12 @@ export function AgendamentoFlow() {
               >
                 <span
                   className={`h-1 w-full rounded-full transition ${
-                    concluido || atual ? "bg-[#7247f3]" : "bg-[#eef0f3]"
+                    concluido || atual ? "bg-accent" : "bg-[#eef0f3]"
                   }`}
                 />
                 <span
                   className={`flex items-center gap-1 text-[10px] font-bold uppercase tracking-wide ${
-                    atual ? "text-[#7247f3]" : concluido ? "text-[#5f6f87]" : "text-[#98a2b3]"
+                    atual ? "text-accent-strong" : concluido ? "text-[#5f6f87]" : "text-[#98a2b3]"
                   }`}
                 >
                   {concluido && <Check size={10} strokeWidth={3} />}
@@ -141,7 +141,7 @@ export function AgendamentoFlow() {
             type="button"
             onClick={avancar}
             disabled={!completo[passo]}
-            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] text-sm font-bold text-white transition hover:bg-[#5c2ee0] disabled:cursor-not-allowed disabled:opacity-40"
+            className="flex h-12 flex-1 items-center justify-center gap-2 rounded-[10px] bg-accent text-sm font-bold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-40"
           >
             {ultimo ? "Confirmar agendamento" : "Continuar"}
             {!ultimo && <ArrowRight size={16} strokeWidth={2} />}

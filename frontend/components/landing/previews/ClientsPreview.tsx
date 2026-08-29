@@ -44,7 +44,7 @@ export function ClientsPreview() {
       </div>
 
       <aside className="absolute right-6 bottom-5 hidden w-[350px] grid-cols-[38px_1fr] items-center gap-x-2.5 gap-y-1.5 rounded-2xl border border-[#e0e4ed] bg-white/95 p-5 shadow-[0_22px_60px_rgba(32,34,66,0.16)] backdrop-blur-xl lg:grid">
-        <span className="row-span-2 grid size-8 place-items-center rounded-lg bg-[#eee8ff] text-[#7247f3]">
+        <span className="row-span-2 grid size-8 place-items-center rounded-lg bg-accent-subtle text-accent-strong">
           <MessageCircle size={18} />
         </span>
         <small className="text-[7px] font-extrabold tracking-[0.08em] text-[#9da5b3]">LEMBRETE DE RETORNO</small>

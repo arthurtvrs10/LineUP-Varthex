@@ -49,7 +49,7 @@ export function HeroSection() {
           <ActionLink href="/cadastro">Começar agora</ActionLink>
           <Link
             href="#recursos"
-            className="group inline-flex items-center gap-1.5 text-sm font-bold text-[#0d1831] transition hover:text-[#7247f3]"
+            className="group inline-flex items-center gap-1.5 text-sm font-bold text-[#0d1831] transition hover:text-accent-strong"
           >
             Ver como funciona
             <ArrowRight className="transition group-hover:translate-x-0.5" size={16} />

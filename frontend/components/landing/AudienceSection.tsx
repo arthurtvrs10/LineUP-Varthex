@@ -96,7 +96,7 @@ export function AudienceSection() {
           <button
             className={`min-h-11 shrink-0 border-b-2 px-4 text-[13px] font-bold transition ${
               selected === key
-                ? "border-[#7247f3] text-[#0d1831]"
+                ? "border-accent text-[#0d1831]"
                 : "border-transparent text-[#8290a2] hover:text-[#4e5d73]"
             }`}
             id={`tab-${key}`}
@@ -118,7 +118,7 @@ export function AudienceSection() {
         aria-labelledby={`tab-${selected}`}
       >
         <div>
-          <span className="text-[11px] font-bold tracking-[0.08em] text-[#7247f3] uppercase">
+          <span className="text-[11px] font-bold tracking-[0.08em] text-accent-strong uppercase">
             {profile.eyebrow}
           </span>
           <h3 className="mt-3 font-[var(--font-display)] text-[clamp(1.75rem,3vw,2.5rem)] leading-tight font-normal tracking-[-0.03em]">
@@ -128,7 +128,7 @@ export function AudienceSection() {
           <ul className="mt-6 grid gap-3">
             {profile.benefits.map((benefit) => (
               <li className="flex items-center gap-2.5 text-xs text-[#4f5e73]" key={benefit}>
-                <Check className="rounded-full bg-[#7247f3] p-0.5 text-white" size={16} />
+                <Check className="rounded-full bg-accent p-0.5 text-on-accent" size={16} />
                 {benefit}
               </li>
             ))}
@@ -154,7 +154,7 @@ export function AudienceSection() {
           <div className="mt-5 flex h-36 items-end gap-3 rounded-t-xl border border-[#e3e6ed] bg-white px-4 pt-4">
             {[64, 88, 45, 76, 92, 58, 82].map((height, index) => (
               <i
-                className="flex-1 rounded-t bg-[#7247f3]"
+                className="flex-1 rounded-t bg-accent"
                 key={index}
                 style={{ height: `${height}%` }}
               />

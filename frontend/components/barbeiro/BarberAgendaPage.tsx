@@ -29,7 +29,7 @@ const appointments: Appointment[] = [
 
 const statusStyles: Record<Status, { bg: string; border: string; label: string; labelColor: string }> = {
   pendente: { bg: "bg-[#fdf3e3]", border: "border-l-4 border-[#d28b27]", label: "PENDENTE", labelColor: "text-[#d28b27]" },
-  confirmado: { bg: "bg-[#ede9fd]", border: "border-l-4 border-[#7247f3]", label: "CONFIRMADO", labelColor: "text-[#7247f3]" },
+  confirmado: { bg: "bg-accent-subtle", border: "border-l-4 border-accent", label: "CONFIRMADO", labelColor: "text-accent-strong" },
   atendimento: { bg: "bg-[#e8f7f1]", border: "border-l-4 border-[#27865b]", label: "EM ATENDIMENTO", labelColor: "text-[#27865b]" },
   bloqueio: { bg: "bg-[#f0efea]", border: "border-l-4 border-[#98a2b3] border-dashed", label: "BLOQUEIO", labelColor: "text-[#686a73]" },
 };
@@ -94,7 +94,7 @@ export function BarberAgendaPage() {
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+          className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2.5} />
           Novo agendamento
@@ -129,7 +129,7 @@ export function BarberAgendaPage() {
 
         <div className="ml-auto flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2.5 rounded-[10px] border border-[#e6e4df] px-3.5 py-2">
-            <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-[#7247f3]">
+            <span className="grid size-8 place-items-center rounded-full bg-accent-subtle text-accent-strong">
               <User size={15} strokeWidth={2} />
             </span>
             <div className="text-left">
@@ -151,7 +151,7 @@ export function BarberAgendaPage() {
               type="button"
               onClick={() => setView("dia")}
               className={`rounded-[8px] px-3.5 py-1.5 text-sm font-bold transition ${
-                view === "dia" ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
+                view === "dia" ? "bg-accent text-on-accent" : "text-[#0d1831]"
               }`}
             >
               Dia
@@ -160,7 +160,7 @@ export function BarberAgendaPage() {
               type="button"
               onClick={() => setView("semana")}
               className={`rounded-[8px] px-3.5 py-1.5 text-sm font-bold transition ${
-                view === "semana" ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
+                view === "semana" ? "bg-accent text-on-accent" : "text-[#0d1831]"
               }`}
             >
               Semana
@@ -185,12 +185,12 @@ export function BarberAgendaPage() {
                     <span className="text-xs font-bold text-[#5f6f87]">{WEEKDAY_LABELS[index]}</span>
                     <span
                       className={`grid size-8 place-items-center rounded-full text-lg font-bold ${
-                        isToday ? "bg-[#7247f3] text-white" : "text-[#0d1831]"
+                        isToday ? "bg-accent text-on-accent" : "text-[#0d1831]"
                       }`}
                     >
                       {date.getDate()}
                     </span>
-                    {isToday && <span className="text-[10px] font-bold text-[#7247f3]">HOJE</span>}
+                    {isToday && <span className="text-[10px] font-bold text-accent-strong">HOJE</span>}
                   </div>
                 );
               })}
@@ -265,7 +265,7 @@ export function BarberAgendaPage() {
                 <span className="size-2.5 rounded-full bg-[#d28b27]" /> Pendente
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#7247f3]" /> Confirmado
+                <span className="size-2.5 rounded-full bg-accent" /> Confirmado
               </span>
               <span className="flex items-center gap-1.5">
                 <span className="size-2.5 rounded-full bg-[#27865b]" /> Em atendimento

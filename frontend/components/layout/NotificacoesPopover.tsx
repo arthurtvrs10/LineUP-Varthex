@@ -99,7 +99,7 @@ export function NotificacoesPopover({
               <button
                 type="button"
                 onClick={() => setLidas(notificacoes.map((n) => n.id))}
-                className="flex items-center gap-1 text-xs font-bold text-[#7247f3] transition hover:text-[#5c2ee0]"
+                className="flex items-center gap-1 text-xs font-bold text-accent-strong transition hover:text-accent"
               >
                 <Check size={13} strokeWidth={2.5} />
                 Marcar todas
@@ -138,7 +138,7 @@ export function NotificacoesPopover({
             <Link
               href={verTudoHref}
               onClick={() => setAberto(false)}
-              className="block border-t border-[#eef0f3] px-4 py-3 text-center text-xs font-bold text-[#7247f3] transition hover:bg-[#f7f6f2]"
+              className="block border-t border-[#eef0f3] px-4 py-3 text-center text-xs font-bold text-accent-strong transition hover:bg-[#f7f6f2]"
             >
               Ver todas as notificações
             </Link>

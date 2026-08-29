@@ -41,7 +41,7 @@ export function LegalPage({
           {sections.map((section, index) => (
             <article key={section.title}>
               <h2 className="text-lg font-bold text-[#101828]">
-                <span className="mr-2 text-[#7247f3]">
+                <span className="mr-2 text-accent-strong">
                   {String(index + 1).padStart(2, "0")}.
                 </span>
                 {section.title}
@@ -59,7 +59,7 @@ export function LegalPage({
 
         <p className="mt-14 border-t border-[#eaecf0] pt-8 text-sm leading-7 text-[#667085]">
           Dúvidas sobre este documento? Fale com a gente pela{" "}
-          <Link className="font-semibold text-[#7247f3] hover:underline" href="/#faq">
+          <Link className="font-semibold text-accent-strong hover:underline" href="/#faq">
             central de ajuda
           </Link>
           .

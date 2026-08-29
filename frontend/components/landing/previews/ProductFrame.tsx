@@ -71,7 +71,7 @@ export function ProductFrame({
         </nav>
 
         <div className="mt-auto flex items-center gap-2 border-t border-[#e9ecf2] pt-4">
-          <span className="grid size-7 place-items-center rounded-full bg-[#eee8ff] text-[8px] font-extrabold text-[#5326d7]">
+          <span className="grid size-7 place-items-center rounded-full bg-accent-subtle text-[8px] font-extrabold text-accent-strong">
             AT
           </span>
           <div className="grid gap-0.5">
@@ -118,7 +118,7 @@ export function Avatar({
         ? "bg-[#e6f7f2] text-[#177a5f]"
         : tone === "blue"
           ? "bg-[#e5efff] text-[#2b60b4]"
-          : "bg-[#eee8ff] text-[#5326d7]";
+          : "bg-accent-subtle text-accent-strong";
 
   return (
     <i

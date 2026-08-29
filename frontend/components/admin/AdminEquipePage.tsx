@@ -57,8 +57,8 @@ const barbeiros: Barbeiro[] = [
   },
   {
     initials: "FC",
-    avatarBg: "bg-[#ede9fd]",
-    avatarText: "text-[#7247f3]",
+    avatarBg: "bg-accent-subtle",
+    avatarText: "text-accent-strong",
     name: "Felipe Cardoso",
     email: "felipe@estilounico.com.br",
     rating: "4.6",
@@ -86,7 +86,7 @@ export function AdminEquipePage() {
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2} />
           Adicionar barbeiro
@@ -132,7 +132,7 @@ export function AdminEquipePage() {
               {barbeiro.specialties.map((specialty) => (
                 <span
                   key={specialty}
-                  className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]"
+                  className="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent-strong"
                 >
                   {specialty}
                 </span>
@@ -160,7 +160,7 @@ export function AdminEquipePage() {
                   key={index}
                   className={`grid size-6 place-items-center rounded-[4px] text-[9px] font-medium ${
                     barbeiro.activeDays[index]
-                      ? "bg-[#ede9fd] text-[#7247f3]"
+                      ? "bg-accent-subtle text-accent-strong"
                       : "bg-[#f0efea] text-[#b0afa8]"
                   }`}
                 >

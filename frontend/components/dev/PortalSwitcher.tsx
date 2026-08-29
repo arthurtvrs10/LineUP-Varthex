@@ -121,12 +121,12 @@ export function PortalSwitcher() {
                     aria-current={ativo ? "page" : undefined}
                     onClick={() => setOpen(false)}
                     className={`flex items-center gap-2.5 rounded-[8px] px-2.5 py-2 transition ${
-                      ativo ? "bg-[#ede9fd]" : "hover:bg-[#f7f6f2]"
+                      ativo ? "bg-accent-subtle" : "hover:bg-[#f7f6f2]"
                     }`}
                   >
                     <span
                       className={`grid size-7 shrink-0 place-items-center rounded-[7px] ${
-                        ativo ? "bg-[#7247f3] text-white" : "bg-[#f0efea] text-[#5f6f87]"
+                        ativo ? "bg-accent text-on-accent" : "bg-[#f0efea] text-[#5f6f87]"
                       }`}
                     >
                       <Icon size={15} strokeWidth={1.8} />
@@ -134,7 +134,7 @@ export function PortalSwitcher() {
                     <span className="min-w-0 flex-1">
                       <span
                         className={`block truncate text-[13px] font-bold ${
-                          ativo ? "text-[#7247f3]" : "text-[#0d1831]"
+                          ativo ? "text-accent-strong" : "text-[#0d1831]"
                         }`}
                       >
                         {portal.label}
@@ -143,7 +143,7 @@ export function PortalSwitcher() {
                         {portal.descricao}
                       </span>
                     </span>
-                    {ativo && <Check size={14} strokeWidth={2.5} className="shrink-0 text-[#7247f3]" />}
+                    {ativo && <Check size={14} strokeWidth={2.5} className="shrink-0 text-accent-strong" />}
                   </Link>
                 </li>
               );
@@ -158,7 +158,7 @@ export function PortalSwitcher() {
         aria-expanded={open}
         aria-haspopup="menu"
         title={atual ? `Painel ${atual.label} — trocar` : "Trocar de painel"}
-        className={`grid size-11 place-items-center rounded-full border border-[#e6e4df] bg-white text-[#5f6f87] shadow-[0_6px_20px_rgba(13,24,49,0.12)] transition hover:text-[#7247f3] ${
+        className={`grid size-11 place-items-center rounded-full border border-[#e6e4df] bg-white text-[#5f6f87] shadow-[0_6px_20px_rgba(13,24,49,0.12)] transition hover:text-accent-strong ${
           open ? "opacity-0" : "opacity-100"
         }`}
       >

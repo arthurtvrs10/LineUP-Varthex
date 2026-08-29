@@ -37,11 +37,11 @@ const assinaturas: Assinatura[] = [
     initials: "BE",
     name: "Barbearia Estilo Único",
     responsavel: "Rafael Mendes",
-    avatarBg: "#ede9fd",
-    avatarColor: "#7247f3",
+    avatarBg: "#fff1ec",
+    avatarColor: "#c73a12",
     plano: "Pro",
-    planoBg: "#ede9fd",
-    planoColor: "#7247f3",
+    planoBg: "#fff1ec",
+    planoColor: "#c73a12",
     valor: "R$ 119,00",
     status: "Ativo",
     pagamento: "Cartão de crédito",
@@ -51,8 +51,8 @@ const assinaturas: Assinatura[] = [
     initials: "BP",
     name: "BarberKing Premium",
     responsavel: "Carlos Drummond",
-    avatarBg: "#ede9fd",
-    avatarColor: "#7247f3",
+    avatarBg: "#fff1ec",
+    avatarColor: "#c73a12",
     plano: "Enterprise",
     planoBg: "#fbf4e8",
     planoColor: "#c8a86b",
@@ -66,8 +66,8 @@ const assinaturas: Assinatura[] = [
     initials: "C&",
     name: "Corte & Arte",
     responsavel: "Pedro Alves",
-    avatarBg: "#ede9fd",
-    avatarColor: "#7247f3",
+    avatarBg: "#fff1ec",
+    avatarColor: "#c73a12",
     plano: "Starter",
     planoBg: "#f0efea",
     planoColor: "#686a73",
@@ -80,11 +80,11 @@ const assinaturas: Assinatura[] = [
     initials: "SN",
     name: "Studio Nobre",
     responsavel: "André Nobre",
-    avatarBg: "#ede9fd",
-    avatarColor: "#7247f3",
+    avatarBg: "#fff1ec",
+    avatarColor: "#c73a12",
     plano: "Pro",
-    planoBg: "#ede9fd",
-    planoColor: "#7247f3",
+    planoBg: "#fff1ec",
+    planoColor: "#c73a12",
     valor: "R$ 119,00",
     status: "Cancelado",
     pagamento: "Cartão de crédito",
@@ -94,8 +94,8 @@ const assinaturas: Assinatura[] = [
     initials: "BH",
     name: "Barber House Sul",
     responsavel: "Gustavo Ramos",
-    avatarBg: "#ede9fd",
-    avatarColor: "#7247f3",
+    avatarBg: "#fff1ec",
+    avatarColor: "#c73a12",
     plano: "Starter",
     planoBg: "#f0efea",
     planoColor: "#686a73",
@@ -176,7 +176,7 @@ export function SuperAdminAssinaturasPage() {
         <button
           type="button"
           onClick={() => setExportarAberto(true)}
-          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center gap-2 rounded-[10px] border border-[#e6e4df] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Download size={16} strokeWidth={1.8} />
           Exportar

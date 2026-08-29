@@ -114,7 +114,7 @@ export function AdminFinanceiroPage() {
           </button>
           <button
             type="button"
-            className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+            className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
           >
             <Plus size={16} strokeWidth={2} />
             Lançamento
@@ -159,7 +159,7 @@ export function AdminFinanceiroPage() {
             {commissionsByBarber.map((c) => (
               <div key={c.label} className="flex flex-1 flex-col items-center gap-2">
                 <div
-                  className="w-full rounded-t-[6px] bg-[#7247f3]"
+                  className="w-full rounded-t-[6px] bg-accent"
                   style={{ height: `${(c.value / maxCommission) * 100}%` }}
                 />
                 <span className="text-xs text-[#686a73]">{c.label}</span>
@@ -177,7 +177,7 @@ export function AdminFinanceiroPage() {
               <div key={cat.label} className="flex items-center gap-3">
                 <p className="w-28 shrink-0 text-sm text-[#0d1831]">{cat.label}</p>
                 <div className="h-2 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
-                  <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${cat.percent}%` }} />
+                  <div className="h-full rounded-full bg-accent" style={{ width: `${cat.percent}%` }} />
                 </div>
                 <p className="w-24 shrink-0 text-right text-sm font-medium text-[#0d1831]">{cat.value}</p>
               </div>
@@ -205,7 +205,7 @@ export function AdminFinanceiroPage() {
                   <td className="sticky left-0 z-10 bg-white px-5 py-3 text-sm text-[#686a73]">{t.date}</td>
                   <td className="px-5 py-3 text-sm text-[#0d1831]">{t.description}</td>
                   <td className="px-5 py-3">
-                    <span className="rounded-full bg-[#ede9fd] px-2 py-0.5 text-xs font-medium text-[#7247f3]">
+                    <span className="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent-strong">
                       {t.category}
                     </span>
                   </td>
@@ -253,13 +253,13 @@ export function AdminFinanceiroPage() {
               </div>
               <button
                 type="button"
-                className="rounded-[8px] bg-[#7247f3] px-4 py-1.5 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+                className="rounded-[8px] bg-accent px-4 py-1.5 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
               >
                 Pagar
               </button>
             </div>
             <div className="mt-3 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
-              <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${c.percent}%` }} />
+              <div className="h-full rounded-full bg-accent" style={{ width: `${c.percent}%` }} />
             </div>
           </div>
         ))}
@@ -290,7 +290,7 @@ export function AdminFinanceiroPage() {
               <div key={day.label} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex h-36 w-full items-end justify-center gap-1">
                   <div
-                    className="w-1/2 rounded-t-[4px] bg-[#7247f3]"
+                    className="w-1/2 rounded-t-[4px] bg-accent"
                     style={{ height: `${(day.entrada / maxCashFlow) * 100}%` }}
                   />
                   <div

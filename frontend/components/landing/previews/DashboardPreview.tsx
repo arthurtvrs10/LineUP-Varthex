@@ -73,7 +73,7 @@ export function DashboardPreview({ className = "" }: DashboardPreviewProps) {
     >
       <div className="mt-4 grid grid-cols-1 gap-2.5 sm:grid-cols-3">
         <article className="grid min-h-24 grid-cols-[32px_1fr] gap-x-2.5 rounded-xl border border-[#e8ebf1] p-3.5">
-          <span className="row-span-2 grid size-8 place-items-center rounded-lg bg-[#eee8ff] text-[#7247f3]">
+          <span className="row-span-2 grid size-8 place-items-center rounded-lg bg-accent-subtle text-accent-strong">
             <CalendarDays size={17} />
           </span>
           <small className="text-[8px] text-[#838d9d]">Agendamentos hoje</small>

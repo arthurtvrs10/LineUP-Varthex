@@ -28,7 +28,7 @@ export function ClientSidebar() {
       groups={groups}
       bottomLinks={bottomLinks}
       user={{ initials: "RM", name: "Rafael Mendes", email: "admin@lineup.com" }}
-      activeColor="#7247f3"
+      activeColor="#ff4a17"
       theme="light"
       profileHref="/clientes/perfil"
     />

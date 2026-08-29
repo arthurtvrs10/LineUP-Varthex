@@ -24,7 +24,7 @@ export function PassoServico({
             onClick={() => onSelecionar(s)}
             className={`flex min-h-[64px] items-center gap-3 rounded-[12px] border p-4 text-left transition ${
               ativo
-                ? "border-[#7247f3] bg-[#ede9fd]"
+                ? "border-accent bg-accent-subtle"
                 : "border-[#e6e4df] bg-white hover:bg-[#f7f6f2]"
             }`}
           >
@@ -41,7 +41,7 @@ export function PassoServico({
               <span className="text-sm font-bold text-[#0d1831]">{brl.format(s.preco)}</span>
               <span
                 className={`grid size-5 place-items-center rounded-full border ${
-                  ativo ? "border-[#7247f3] bg-[#7247f3] text-white" : "border-[#d0d5dd]"
+                  ativo ? "border-accent bg-accent text-on-accent" : "border-[#d0d5dd]"
                 }`}
               >
                 {ativo && <Check size={12} strokeWidth={3} />}

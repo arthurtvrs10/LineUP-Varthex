@@ -134,7 +134,7 @@ export function AdminAvaliacoesPage() {
             {byBarber.map((b) => (
               <div key={b.name}>
                 <div className="flex items-center gap-3">
-                  <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
+                  <span className="grid size-8 place-items-center rounded-full bg-accent-subtle text-xs font-semibold text-accent-strong">
                     {b.initials}
                   </span>
                   <p className="flex-1 text-sm font-medium text-[#0d1831]">{b.name}</p>
@@ -144,7 +144,7 @@ export function AdminAvaliacoesPage() {
                   </span>
                 </div>
                 <div className="mt-2 ml-11 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
-                  <div className="h-full rounded-full bg-[#7247f3]" style={{ width: `${b.percent}%` }} />
+                  <div className="h-full rounded-full bg-accent" style={{ width: `${b.percent}%` }} />
                 </div>
               </div>
             ))}
@@ -159,7 +159,7 @@ export function AdminAvaliacoesPage() {
             <div key={`${review.name}-${review.date}`} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full bg-[#ede9fd] text-sm font-semibold text-[#7247f3]">
+                  <span className="grid size-10 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-strong">
                     {review.initials}
                   </span>
                   <div>
@@ -174,8 +174,8 @@ export function AdminAvaliacoesPage() {
               <p className="pt-3 text-sm text-[#0d1831]">{review.text}</p>
 
               {review.reply ? (
-                <div className="mt-4 rounded-[10px] border-l-2 border-[#7247f3] bg-[#ede9fd] p-4">
-                  <p className="text-xs font-semibold text-[#7247f3]">Resposta da barbearia</p>
+                <div className="mt-4 rounded-[10px] border-l-2 border-accent bg-accent-subtle p-4">
+                  <p className="text-xs font-semibold text-accent-strong">Resposta da barbearia</p>
                   <p className="pt-1 text-sm text-[#0d1831]">{review.reply}</p>
                 </div>
               ) : (

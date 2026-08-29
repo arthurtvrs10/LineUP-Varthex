@@ -28,7 +28,7 @@ type Appointment = {
 const barbers: Barber[] = [
   { id: "lucas", name: "Lucas", initials: "LO", badgeBg: "bg-[#e8f7f1]", badgeText: "text-[#27865b]" },
   { id: "gabriel", name: "Gabriel", initials: "GS", badgeBg: "bg-[#e8f7f1]", badgeText: "text-[#27865b]" },
-  { id: "felipe", name: "Felipe", initials: "FC", badgeBg: "bg-[#ede9fd]", badgeText: "text-[#7247f3]" },
+  { id: "felipe", name: "Felipe", initials: "FC", badgeBg: "bg-accent-subtle", badgeText: "text-accent-strong" },
 ];
 
 const hours = ["08:00", "09:00", "10:00", "11:00", "12:00", "13:00", "14:00", "15:00", "16:00", "17:00", "18:00"];
@@ -39,7 +39,7 @@ const appointments: Appointment[] = [
     barberId: "lucas",
     client: "João Silva",
     service: "Corte + barba",
-    cardBg: "bg-[#ede9fd]",
+    cardBg: "bg-accent-subtle",
     cardBorder: "border-[rgba(108,76,241,0.2)]",
   },
   {
@@ -84,7 +84,7 @@ export function AdminAgendaPage() {
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
-          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2} />
           Novo agendamento
@@ -105,7 +105,7 @@ export function AdminAgendaPage() {
               type="button"
               onClick={() => setView(value)}
               className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
-                view === value ? "bg-[#7247f3] text-white" : "text-[#686a73] hover:bg-[#f7f6f2]"
+                view === value ? "bg-accent text-on-accent" : "text-[#686a73] hover:bg-[#f7f6f2]"
               }`}
             >
               {label}

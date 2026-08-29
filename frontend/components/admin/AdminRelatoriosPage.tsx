@@ -183,7 +183,7 @@ export function AdminRelatoriosPage() {
           </button>
           <button
             type="button"
-            className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+            className="flex h-10 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
           >
             <Download size={16} strokeWidth={2} />
             Exportar
@@ -231,7 +231,7 @@ export function AdminRelatoriosPage() {
               {weekDays.map((d) => (
                 <div key={d.label} className="flex flex-1 flex-col items-center gap-2">
                   <div
-                    className="w-full rounded-t-[6px] bg-[#7247f3]"
+                    className="w-full rounded-t-[6px] bg-accent"
                     style={{ height: `${(d.value / weekMax) * 160}px` }}
                   />
                   <span className="text-xs text-[#686a73]">{d.label}</span>
@@ -271,7 +271,7 @@ export function AdminRelatoriosPage() {
               {novosClientesMonths.map((d) => (
                 <div key={d.label} className="flex flex-1 flex-col items-center gap-2">
                   <div
-                    className="w-full rounded-t-[6px] bg-[#7247f3]"
+                    className="w-full rounded-t-[6px] bg-accent"
                     style={{ height: `${(d.value / novosMax) * 140}px` }}
                   />
                   <span className="text-xs text-[#686a73]">{d.label}</span>
@@ -285,7 +285,7 @@ export function AdminRelatoriosPage() {
               {melhoresClientes.map((c) => (
                 <div key={c.name} className="flex items-center gap-3 py-2.5">
                   <span className="w-4 text-sm text-[#686a73]">{c.rank}</span>
-                  <span className="grid size-8 place-items-center rounded-full bg-[#ede9fd] text-xs font-semibold text-[#7247f3]">
+                  <span className="grid size-8 place-items-center rounded-full bg-accent-subtle text-xs font-semibold text-accent-strong">
                     {c.initials}
                   </span>
                   <p className="flex-1 text-sm text-[#0d1831]">{c.name}</p>
@@ -305,7 +305,7 @@ export function AdminRelatoriosPage() {
             {equipe.map((b) => (
               <div key={b.name} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
                 <div className="flex items-center gap-3">
-                  <span className="grid size-10 place-items-center rounded-full bg-[#ede9fd] text-sm font-semibold text-[#7247f3]">
+                  <span className="grid size-10 place-items-center rounded-full bg-accent-subtle text-sm font-semibold text-accent-strong">
                     {b.initials}
                   </span>
                   <div className="flex-1">
@@ -342,7 +342,7 @@ export function AdminRelatoriosPage() {
                     R$ {(p.value / 1000).toFixed(1)}k
                   </span>
                   <div
-                    className="w-full rounded-t-[6px] bg-[#7247f3]"
+                    className="w-full rounded-t-[6px] bg-accent"
                     style={{ height: `${(p.value / profMax) * 200}px` }}
                   />
                   <span className="text-xs text-[#686a73]">{p.label}</span>
@@ -365,7 +365,7 @@ export function AdminRelatoriosPage() {
                   <span className="w-32 shrink-0 text-sm text-[#686a73]">{s.label}</span>
                   <div className="h-2.5 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
                     <div
-                      className="h-full rounded-full bg-[#7247f3]"
+                      className="h-full rounded-full bg-accent"
                       style={{ width: `${(s.value / servicoMax) * 100}%` }}
                     />
                   </div>
@@ -425,7 +425,7 @@ export function AdminRelatoriosPage() {
               <div key={d.label} className="flex flex-1 flex-col items-center gap-2">
                 <div className="flex w-full items-end justify-center gap-1.5" style={{ height: 160 }}>
                   <div
-                    className="w-5 rounded-t-[4px] bg-[#7247f3]"
+                    className="w-5 rounded-t-[4px] bg-accent"
                     style={{ height: `${(d.entrada / estoqueMax) * 160}px` }}
                   />
                   <div
@@ -439,7 +439,7 @@ export function AdminRelatoriosPage() {
           </div>
           <div className="flex items-center gap-4 pt-3">
             <span className="flex items-center gap-1.5 text-xs text-[#686a73]">
-              <span className="size-2.5 rounded-full bg-[#7247f3]" />
+              <span className="size-2.5 rounded-full bg-accent" />
               Entrada
             </span>
             <span className="flex items-center gap-1.5 text-xs text-[#686a73]">

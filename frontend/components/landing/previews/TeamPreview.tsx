@@ -47,7 +47,7 @@ export function TeamPreview() {
             <span className="hidden items-center sm:flex">
               <i className="mr-2 h-1.5 w-14 overflow-hidden rounded-full bg-[#eceef3]">
                 <i
-                  className="block h-full rounded-full bg-[#7247f3]"
+                  className="block h-full rounded-full bg-accent"
                   style={{ width: professional.occupancy }}
                 />
               </i>

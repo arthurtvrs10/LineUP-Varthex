@@ -25,7 +25,7 @@ function FeatureRow({
   return (
     <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
       <div className={reverse ? "lg:order-2" : ""}>
-        <span className="text-[11px] font-bold tracking-[0.1em] text-[#7247f3] uppercase">
+        <span className="text-[11px] font-bold tracking-[0.1em] text-accent-strong uppercase">
           {eyebrow}
         </span>
         <h3 className="mt-3 font-[var(--font-display)] text-[clamp(1.75rem,3vw,2.25rem)] leading-tight font-normal tracking-[-0.02em]">
@@ -35,7 +35,7 @@ function FeatureRow({
         <ul className="mt-5 grid gap-2.5">
           {bullets.map((item) => (
             <li className="flex items-start gap-2.5 text-[13px] text-[#4f5e73]" key={item}>
-              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-[#7247f3]" />
+              <span className="mt-1.5 size-1.5 shrink-0 rounded-full bg-accent" />
               {item}
             </li>
           ))}

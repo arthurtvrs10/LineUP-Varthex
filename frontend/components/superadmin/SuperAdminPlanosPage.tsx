@@ -39,11 +39,11 @@ const planos: Plano[] = [
     subscribers: "8 assinantes",
     features: ["Até 10 profissionais", "CRM & WhatsApp", "Relatórios avançados", "Fidelidade"],
     icon: Star,
-    iconBg: "#ede9fd",
-    iconColor: "#7247f3",
-    badgeBg: "#ede9fd",
-    badgeColor: "#7247f3",
-    accent: "#7247f3",
+    iconBg: "#fff1ec",
+    iconColor: "#c73a12",
+    badgeBg: "#fff1ec",
+    badgeColor: "#c73a12",
+    accent: "#c73a12",
     popular: true,
   },
   {
@@ -85,7 +85,7 @@ export function SuperAdminPlanosPage() {
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
-          className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-xs font-medium text-white transition hover:bg-[#5c2ee0]"
+          className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-xs font-medium text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2} />
           Novo plano

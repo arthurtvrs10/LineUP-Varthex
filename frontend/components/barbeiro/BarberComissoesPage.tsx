@@ -43,9 +43,9 @@ export function BarberComissoesPage() {
             Consulte suas próprias comissões por período.
           </p>
         </div>
-        <div className="flex items-center gap-2 rounded-full bg-[#ede9fd] py-3 pl-4 pr-[23px]">
-          <UserCheck className="h-4 w-4 text-[#7247f3]" />
-          <span className="text-xs font-bold text-[#7247f3]">Somente seus dados</span>
+        <div className="flex items-center gap-2 rounded-full bg-accent-subtle py-3 pl-4 pr-[23px]">
+          <UserCheck className="h-4 w-4 text-accent-strong" />
+          <span className="text-xs font-bold text-accent-strong">Somente seus dados</span>
         </div>
       </div>
 
@@ -60,7 +60,7 @@ export function BarberComissoesPage() {
                 onClick={() => setActiveFilter(filter)}
                 className={`rounded-[10px] px-4 py-2 text-xs font-bold transition ${
                   activeFilter === filter
-                    ? "bg-[#7247f3] text-white"
+                    ? "bg-accent text-on-accent"
                     : "bg-[#f7f6f2] text-[#5f6f87] hover:bg-[#eef0f3]"
                 }`}
               >
@@ -115,13 +115,13 @@ export function BarberComissoesPage() {
               key={period.label}
               className={`rounded-[12px] px-6 pb-8 pt-[19px] ${
                 period.highlight
-                  ? "bg-[#7247f3]"
+                  ? "bg-accent"
                   : "border border-[#e6e4df] bg-white"
               }`}
             >
               <p
                 className={`text-xs font-bold ${
-                  period.highlight ? "text-[#ede9fd]" : "text-[#98a2b3]"
+                  period.highlight ? "text-on-accent/70" : "text-[#98a2b3]"
                 }`}
               >
                 {period.label}
@@ -129,14 +129,14 @@ export function BarberComissoesPage() {
               <div className="mt-3.5 flex items-center justify-between">
                 <p
                   className={`text-2xl font-bold ${
-                    period.highlight ? "text-white" : "text-[#0d1831]"
+                    period.highlight ? "text-on-accent" : "text-[#0d1831]"
                   }`}
                 >
                   {period.value}
                 </p>
                 <p
                   className={`text-[11px] ${
-                    period.highlight ? "text-[#ede9fd]" : "text-[#98a2b3]"
+                    period.highlight ? "text-on-accent/70" : "text-[#98a2b3]"
                   }`}
                 >
                   {period.range}

@@ -27,8 +27,8 @@ const clients: Client[] = [
     registeredAt: "10/02/2026",
     status: "Ativo",
     initials: "CH",
-    avatarBg: "bg-[#ede9fd]",
-    avatarColor: "text-[#7247f3]",
+    avatarBg: "bg-accent-subtle",
+    avatarColor: "text-accent-strong",
   },
   {
     name: "Rafael Martins",
@@ -40,8 +40,8 @@ const clients: Client[] = [
     status: "Ativo",
     duplicate: true,
     initials: "RM",
-    avatarBg: "bg-[#ede9fd]",
-    avatarColor: "text-[#7247f3]",
+    avatarBg: "bg-accent-subtle",
+    avatarColor: "text-accent-strong",
   },
   {
     name: "André Lima",
@@ -52,8 +52,8 @@ const clients: Client[] = [
     registeredAt: "06/04/2026",
     status: "Ativo",
     initials: "AL",
-    avatarBg: "bg-[#ede9fd]",
-    avatarColor: "text-[#7247f3]",
+    avatarBg: "bg-accent-subtle",
+    avatarColor: "text-accent-strong",
   },
   {
     name: "Marcos Souza",
@@ -94,7 +94,7 @@ export function BarberClientesPage() {
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-[10px] bg-[#7247f3] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#5c2ee0]"
+          className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2.5} />
           Cadastrar cliente
@@ -113,7 +113,7 @@ export function BarberClientesPage() {
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               placeholder="Buscar clientes"
-              className="h-11 w-full rounded-[10px] border border-[#e6e4df] pl-10 pr-3.5 text-sm text-[#0d1831] outline-none focus:border-[#7247f3] focus:ring-3 focus:ring-[#7247f3]/10"
+              className="h-11 w-full rounded-[10px] border border-[#e6e4df] pl-10 pr-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
           </div>
         </div>
@@ -204,7 +204,7 @@ export function BarberClientesPage() {
                       {client.status}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-right text-[13px] font-bold text-[#7247f3]">
+                  <td className="px-6 py-4 text-right text-[13px] font-bold text-accent-strong">
                     <button type="button" className="hover:underline">
                       Ver histórico
                     </button>
@@ -235,7 +235,7 @@ export function BarberClientesPage() {
               <ChevronLeft size={14} strokeWidth={2} />
               Anterior
             </button>
-            <span className="grid size-10 place-items-center rounded-[10px] border border-[#7247f3] text-sm font-bold text-[#7247f3]">
+            <span className="grid size-10 place-items-center rounded-[10px] border border-accent text-sm font-bold text-accent-strong">
               1
             </span>
             <button
