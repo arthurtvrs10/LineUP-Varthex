@@ -5,7 +5,7 @@ import { useId, type ReactNode } from "react";
 /** Campos de formulário dos modais. Mesma anatomia em todos os painéis. */
 
 const baseInput =
-  "h-11 w-full rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831] outline-none transition placeholder:text-[#98a2b3] focus:border-[#7247f3]";
+  "h-11 w-full rounded-[10px] border border-fog bg-white px-3 text-sm text-ink outline-none transition placeholder:text-tertiary focus:border-accent";
 
 function Wrapper({
   id,
@@ -22,12 +22,12 @@ function Wrapper({
 }) {
   return (
     <div className="flex min-w-0 flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-[#0d1831]">
+      <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
-        {required && <span className="ml-0.5 text-[#c84a4a]">*</span>}
+        {required && <span className="ml-0.5 text-danger">*</span>}
       </label>
       {children}
-      {hint && <p className="text-xs text-[#686a73]">{hint}</p>}
+      {hint && <p className="text-xs text-secondary">{hint}</p>}
     </div>
   );
 }
@@ -133,18 +133,18 @@ export function RadioCards({
       {options.map((o) => (
         <label
           key={o.value}
-          className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-[#e6e4df] px-3.5 py-3 transition hover:bg-[#f7f6f2] has-[:checked]:border-[#7247f3] has-[:checked]:bg-[#ede9fd]"
+          className="flex cursor-pointer items-start gap-3 rounded-[10px] border border-fog px-3.5 py-3 transition hover:bg-surface-sunken has-[:checked]:border-accent has-[:checked]:bg-accent-subtle"
         >
           <input
             type="radio"
             name={name}
             value={o.value}
             defaultChecked={o.value === defaultValue}
-            className="mt-0.5 size-4 shrink-0 accent-[#7247f3]"
+            className="mt-0.5 size-4 shrink-0 accent-accent"
           />
           <span className="min-w-0">
-            <span className="block text-sm font-medium text-[#0d1831]">{o.label}</span>
-            {o.hint && <span className="block text-xs text-[#686a73]">{o.hint}</span>}
+            <span className="block text-sm font-medium text-ink">{o.label}</span>
+            {o.hint && <span className="block text-xs text-secondary">{o.hint}</span>}
           </span>
         </label>
       ))}

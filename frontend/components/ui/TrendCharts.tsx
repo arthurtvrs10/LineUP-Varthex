@@ -26,6 +26,9 @@ export type PontoTendencia = {
   detalhe?: string;
 };
 
+/* Cor de série provisória: aguarda a paleta categórica validada (spec §9).
+   Não trocar por Signal antes disso — dado e acento de marca não podem ser
+   a mesma cor. */
 const ACCENT = "#7247f3";
 
 /**
@@ -64,11 +67,11 @@ function tooltip(formatValue: (value: number) => string) {
       renderLabel={(_, row) => String(row.label ?? "")}
       renderBody={(row) => (
         <>
-          <p className="text-sm font-bold text-[#0d1831]">
+          <p className="text-sm font-bold text-ink">
             {formatValue(Number(row.value ?? 0))}
           </p>
           {row.detalhe ? (
-            <p className="mt-0.5 text-xs text-[#5f6f87]">{String(row.detalhe)}</p>
+            <p className="mt-0.5 text-xs text-secondary">{String(row.detalhe)}</p>
           ) : null}
         </>
       )}
@@ -150,7 +153,7 @@ export function BarTrendChart({
           tick={{ fill: CHART_AXIS, fontSize: 11 }}
           tickFormatter={(v: number) => formatValue(v)}
         />
-        <Tooltip cursor={{ fill: "#f7f6f2" }} offset={12} content={tooltip(formatValue)} />
+        <Tooltip cursor={{ fill: "var(--color-surface-sunken)" }} offset={12} content={tooltip(formatValue)} />
         <Bar
           dataKey="value"
           fill={ACCENT}

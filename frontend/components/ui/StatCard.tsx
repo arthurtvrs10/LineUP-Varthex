@@ -15,17 +15,17 @@ import type { LucideIcon } from "lucide-react";
 export type StatTone = "neutro" | "positivo" | "negativo" | "atencao";
 
 const toneText: Record<StatTone, string> = {
-  neutro: "text-[#98a2b3]",
-  positivo: "text-[#27865b]",
-  negativo: "text-[#c84a4a]",
-  atencao: "text-[#d28b27]",
+  neutro: "text-tertiary",
+  positivo: "text-success",
+  negativo: "text-danger",
+  atencao: "text-warning",
 };
 
 const toneIconBg: Record<StatTone, { bg: string; color: string }> = {
-  neutro: { bg: "#f7f6f2", color: "#5f6f87" },
-  positivo: { bg: "#e8f7f1", color: "#27865b" },
-  negativo: { bg: "#fdeaea", color: "#c84a4a" },
-  atencao: { bg: "#fdf3e3", color: "#d28b27" },
+  neutro: { bg: "var(--color-surface-sunken)", color: "var(--color-secondary)" },
+  positivo: { bg: "var(--color-success-subtle)", color: "var(--color-success)" },
+  negativo: { bg: "var(--color-danger-subtle)", color: "var(--color-danger)" },
+  atencao: { bg: "var(--color-warning-subtle)", color: "var(--color-warning)" },
 };
 
 export type StatCardProps = {
@@ -42,13 +42,13 @@ export function StatCard({ label, value, hint, tone = "neutro", icon: Icon }: St
   const paleta = toneIconBg[tone];
 
   return (
-    <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[#e6e4df] bg-white p-4">
+    <div className="flex items-start justify-between gap-3 rounded-[12px] border border-fog bg-white p-4">
       <div className="min-w-0">
-        <p className="truncate text-[11px] font-bold uppercase tracking-wide text-[#98a2b3]">
+        <p className="truncate text-caption uppercase text-tertiary">
           {label}
         </p>
-        <p className="mt-1.5 text-[22px] font-bold leading-none text-[#0d1831]">{value}</p>
-        {hint && <p className={`mt-1.5 text-[11px] ${toneText[tone]}`}>{hint}</p>}
+        <p className="mt-1.5 text-h3 font-display tabular-nums leading-none text-ink">{value}</p>
+        {hint && <p className={`mt-1.5 text-caption ${toneText[tone]}`}>{hint}</p>}
       </div>
 
       {Icon && (

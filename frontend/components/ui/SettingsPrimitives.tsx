@@ -25,7 +25,7 @@ export function Toggle({
       aria-label={label}
       onClick={() => setOn((v) => !v)}
       className={`relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
-        on ? "bg-[#7247f3]" : "bg-[#d4d2cc]"
+        on ? "bg-accent" : "bg-[#d4d2cc]"
       }`}
     >
       <span
@@ -51,16 +51,16 @@ export function FieldInput({
   const id = useId();
   return (
     <div className="flex flex-col gap-1.5">
-      <label htmlFor={id} className="text-sm font-medium text-[#0d1831]">
+      <label htmlFor={id} className="text-sm font-medium text-ink">
         {label}
       </label>
       <input
         id={id}
         type={type}
         defaultValue={defaultValue}
-        className="h-10 rounded-[10px] border border-[#e6e4df] bg-white px-3 text-sm text-[#0d1831] outline-none transition focus:border-[#7247f3]"
+        className="h-10 rounded-[10px] border border-fog bg-white px-3 text-sm text-ink outline-none transition focus:border-accent"
       />
-      {hint && <p className="text-xs text-[#686a73]">{hint}</p>}
+      {hint && <p className="text-xs text-secondary">{hint}</p>}
     </div>
   );
 }
@@ -77,10 +77,10 @@ export function ToggleRow({
   border?: boolean;
 }) {
   return (
-    <div className={`flex items-center gap-6 py-3 ${border ? "border-b border-[#e6e4df]" : ""}`}>
+    <div className={`flex items-center gap-6 py-3 ${border ? "border-b border-fog" : ""}`}>
       <div className="flex-1">
-        <p className="text-sm font-medium text-[#0d1831]">{title}</p>
-        <p className="pt-0.5 text-xs text-[#686a73]">{hint}</p>
+        <p className="text-sm font-medium text-ink">{title}</p>
+        <p className="pt-0.5 text-xs text-secondary">{hint}</p>
       </div>
       <Toggle defaultOn={defaultOn} label={title} />
     </div>
@@ -97,12 +97,12 @@ export function SectionCard({
   children: ReactNode;
 }) {
   return (
-    <section className="flex w-full flex-col rounded-[12px] border border-[#e6e4df] bg-white p-6">
-      <div className="flex items-center gap-3 border-b border-[#e6e4df] pb-3">
-        <span className="grid size-8 place-items-center rounded-[8px] bg-[#ede9fd]">
-          <Icon size={16} strokeWidth={1.8} className="text-[#7247f3]" />
+    <section className="flex w-full flex-col rounded-[12px] border border-fog bg-white p-6">
+      <div className="flex items-center gap-3 border-b border-fog pb-3">
+        <span className="grid size-8 place-items-center rounded-[8px] bg-accent-subtle">
+          <Icon size={16} strokeWidth={1.8} className="text-accent-strong" />
         </span>
-        <h2 className="text-sm font-bold tracking-[-0.28px] text-[#0d1831]">{title}</h2>
+        <h2 className="text-sm font-bold tracking-[-0.28px] text-ink">{title}</h2>
       </div>
       <div className="flex flex-col gap-4 pt-5">{children}</div>
     </section>
@@ -114,7 +114,7 @@ export function SaveBar() {
     <div className="flex justify-end">
       <button
         type="button"
-        className="flex h-10 items-center gap-2 rounded-[10px] bg-[#7247f3] px-4 text-sm font-medium text-white transition hover:bg-[#5c2ee0]"
+        className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
       >
         Salvar alterações
       </button>

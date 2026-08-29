@@ -84,23 +84,23 @@ export function Modal({
       onClick={(event) => {
         if (event.target === ref.current) onClose();
       }}
-      className={`m-0 w-full max-w-none bg-transparent p-0 backdrop:bg-[#0d1831]/40 sm:m-auto ${sizeClasses[size]}
+      className={`m-0 w-full max-w-none bg-transparent p-0 backdrop:bg-ink/40 sm:m-auto ${sizeClasses[size]}
         mt-auto sm:mt-auto`}
       style={{ maxHeight: "100dvh" }}
     >
       <div className="flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[16px] bg-white sm:rounded-[14px]">
-        <div className="flex items-start justify-between gap-4 border-b border-[#e6e4df] px-5 py-4">
+        <div className="flex items-start justify-between gap-4 border-b border-fog px-5 py-4">
           <div className="min-w-0">
-            <h2 id="modal-titulo" className="text-[17px] font-bold text-[#0d1831]">
+            <h2 id="modal-titulo" className="text-h3 text-ink">
               {title}
             </h2>
-            {description && <p className="mt-0.5 text-xs text-[#5f6f87]">{description}</p>}
+            {description && <p className="mt-0.5 text-xs text-secondary">{description}</p>}
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar"
-            className="grid size-11 shrink-0 place-items-center rounded-[8px] text-[#98a2b3] transition hover:bg-[#f7f6f2] hover:text-[#0d1831]"
+            className="grid size-11 shrink-0 place-items-center rounded-[8px] text-tertiary transition hover:bg-surface-sunken hover:text-ink"
           >
             <X size={18} strokeWidth={2} />
           </button>
@@ -109,7 +109,7 @@ export function Modal({
         <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">{children}</div>
 
         {footer && (
-          <div className="flex flex-wrap justify-end gap-2 border-t border-[#e6e4df] bg-[#f7f6f2] px-5 py-3">
+          <div className="flex flex-wrap justify-end gap-2 border-t border-fog bg-surface-sunken px-5 py-3">
             {footer}
           </div>
         )}
@@ -130,7 +130,7 @@ export function ModalCancelButton({
     <button
       type="button"
       onClick={onClick}
-      className="h-11 rounded-[10px] border border-[#e6e4df] bg-white px-4 text-sm font-medium text-[#5f6f87] transition hover:bg-white hover:text-[#0d1831]"
+      className="h-11 rounded-[10px] border border-fog bg-white px-4 text-sm font-medium text-secondary transition hover:bg-white hover:text-ink"
     >
       {children}
     </button>
@@ -153,15 +153,15 @@ export function ModalSubmitButton({
 }) {
   const cores =
     tone === "danger"
-      ? "bg-[#c84a4a] hover:bg-[#b13f3f]"
-      : "bg-[#7247f3] hover:bg-[#5c2ee0]";
+      ? "bg-danger text-white hover:opacity-90"
+      : "bg-accent text-on-accent hover:bg-accent-hover";
   return (
     <button
       type="submit"
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`h-11 rounded-[10px] px-4 text-sm font-bold text-white transition disabled:opacity-50 ${cores}`}
+      className={`h-11 rounded-[10px] px-4 text-sm font-bold transition disabled:opacity-50 ${cores}`}
     >
       {children}
     </button>

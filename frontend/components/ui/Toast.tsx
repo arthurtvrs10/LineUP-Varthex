@@ -52,22 +52,22 @@ export function Toast({
       className="pointer-events-none fixed inset-x-0 bottom-4 z-50 flex justify-center px-4"
     >
       {mensagem && (
-        <div className="pointer-events-auto flex items-center gap-3 rounded-[10px] border border-[#e6e4df] bg-white px-4 py-3 shadow-[0_12px_32px_rgba(13,24,49,0.14)]">
+        <div className="pointer-events-auto flex items-center gap-3 rounded-[10px] border border-fog bg-white px-4 py-3 shadow-popover">
           <span
             className="grid size-6 shrink-0 place-items-center rounded-full"
             style={{
-              backgroundColor: tone === "erro" ? "#fdeaea" : "#e8f7f1",
-              color: tone === "erro" ? "#c84a4a" : "#27865b",
+              backgroundColor: tone === "erro" ? "var(--color-danger-subtle)" : "var(--color-success-subtle)",
+              color: tone === "erro" ? "var(--color-danger)" : "var(--color-success)",
             }}
           >
             <Check size={13} strokeWidth={2.5} />
           </span>
-          <p className="text-sm text-[#0d1831]">{mensagem}</p>
+          <p className="text-sm text-ink">{mensagem}</p>
           <button
             type="button"
             onClick={onClose}
             aria-label="Fechar aviso"
-            className="grid size-7 shrink-0 place-items-center rounded-[6px] text-[#98a2b3] transition hover:bg-[#f7f6f2]"
+            className="grid size-7 shrink-0 place-items-center rounded-[6px] text-tertiary transition hover:bg-surface-sunken"
           >
             <X size={14} strokeWidth={2} />
           </button>

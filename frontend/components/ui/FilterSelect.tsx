@@ -36,7 +36,7 @@ export function FilterSelect({
         id={id}
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className={`h-10 w-full cursor-pointer appearance-none rounded-[10px] border bg-white py-0 pl-3.5 pr-9 text-sm outline-none transition focus:border-[#7247f3] ${
+        className={`h-10 w-full cursor-pointer appearance-none rounded-[10px] border bg-white py-0 pl-3.5 pr-9 text-sm outline-none transition focus:border-accent ${
           filtrando ? "font-medium" : ""
         }`}
         /* Cor via `style`: em <select> as utilities de cor do Tailwind não
@@ -44,8 +44,8 @@ export function FilterSelect({
            continuava neutra). Inline é determinístico e é o mesmo padrão
            que o StatCard usa para cor dinâmica. */
         style={{
-          borderColor: filtrando ? "#7247f3" : "#e6e4df",
-          color: filtrando ? "#7247f3" : "#0d1831",
+          borderColor: filtrando ? "var(--color-accent)" : "var(--color-fog)",
+          color: filtrando ? "var(--color-accent-strong)" : "var(--color-ink)",
         }}
       >
         {options.map((o) => (
@@ -59,7 +59,7 @@ export function FilterSelect({
         strokeWidth={2}
         aria-hidden="true"
         className={`pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 ${
-          filtrando ? "text-[#7247f3]" : "text-[#98a2b3]"
+          filtrando ? "text-accent-strong" : "text-tertiary"
         }`}
       />
     </div>

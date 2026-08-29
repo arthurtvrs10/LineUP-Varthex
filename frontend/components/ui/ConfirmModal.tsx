@@ -32,7 +32,9 @@ export function ConfirmModal({
   children?: ReactNode;
 }) {
   const cores =
-    tone === "danger" ? "bg-[#c84a4a] hover:bg-[#b13f3f]" : "bg-[#7247f3] hover:bg-[#5c2ee0]";
+    tone === "danger"
+      ? "bg-danger text-white hover:opacity-90"
+      : "bg-accent text-on-accent hover:bg-accent-hover";
 
   return (
     <Modal
@@ -46,7 +48,7 @@ export function ConfirmModal({
           <button
             type="button"
             onClick={onConfirm}
-            className={`h-11 rounded-[10px] px-4 text-sm font-bold text-white transition ${cores}`}
+            className={`h-11 rounded-[10px] px-4 text-sm font-bold transition ${cores}`}
           >
             {confirmLabel}
           </button>
@@ -55,12 +57,12 @@ export function ConfirmModal({
     >
       <div className="flex gap-3">
         {tone === "danger" && (
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[#fdeaea] text-[#c84a4a]">
+          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-danger-subtle text-danger">
             <AlertTriangle size={18} strokeWidth={2} />
           </span>
         )}
         <div className="min-w-0">
-          {description && <p className="text-sm text-[#5f6f87]">{description}</p>}
+          {description && <p className="text-sm text-secondary">{description}</p>}
           {children}
         </div>
       </div>
