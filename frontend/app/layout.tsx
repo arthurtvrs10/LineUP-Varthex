@@ -1,17 +1,17 @@
 import type { Metadata } from "next";
-import localFont from "next/font/local";
+import { Archivo, Work_Sans } from "next/font/google";
 import "./globals.css";
 
-const manrope = localFont({
-  src: "./fonts/a343f882a40d2cc9-s.p.1sj6eobyi31rd.woff2",
-  variable: "--font-manrope",
+// Self-hosted pelo next/font: sem chamada ao Google em runtime, sem layout shift.
+const archivo = Archivo({
+  subsets: ["latin"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
-const display = localFont({
-  src: "./fonts/0c8f209abc35ee02-s.p.0c0g8ifvh7k7-.woff2",
-  variable: "--font-display",
-  weight: "400",
+const workSans = Work_Sans({
+  subsets: ["latin"],
+  variable: "--font-work-sans",
   display: "swap",
 });
 
@@ -36,9 +36,9 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${manrope.variable} ${display.variable} scroll-smooth`}
+      className={`${archivo.variable} ${workSans.variable} scroll-smooth`}
     >
-      <body className="min-h-screen bg-[#fcfdff] font-[var(--font-manrope)] text-[#0d1831] antialiased selection:bg-[#7247f3]/20">
+      <body className="min-h-screen antialiased">
         {children}
       </body>
     </html>
