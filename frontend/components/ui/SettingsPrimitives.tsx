@@ -25,7 +25,7 @@ export function Toggle({
       aria-label={label}
       onClick={() => setOn((v) => !v)}
       className={`relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${
-        on ? "bg-accent" : "bg-[#d4d2cc]"
+        on ? "bg-accent" : "bg-fog"
       }`}
     >
       <span

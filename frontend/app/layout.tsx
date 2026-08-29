@@ -38,7 +38,7 @@ export default function RootLayout({
       lang="pt-BR"
       className={`${archivo.variable} ${workSans.variable} scroll-smooth`}
     >
-      <body className="min-h-screen antialiased">
+      <body className="min-h-screen antialiased selection:bg-accent/20">
         {children}
       </body>
     </html>

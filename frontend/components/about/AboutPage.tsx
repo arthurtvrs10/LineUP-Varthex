@@ -76,7 +76,7 @@ export function AboutPage() {
           <ConstellationBackground className="h-full w-full" />
         </div>
 
-        <SectionLabel>Sobre a LINEUP</SectionLabel>
+        <SectionLabel>Sobre o LINEUP</SectionLabel>
         <h1 className="mt-5 max-w-5xl font-[var(--font-display)] text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] font-normal tracking-[-0.045em]">
           Uma gestão mais simples para quem vive de{" "}
           <strong className="font-normal text-[#7247f3]">atender bem.</strong>

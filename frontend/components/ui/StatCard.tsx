@@ -7,9 +7,10 @@ import type { LucideIcon } from "lucide-react";
  * server (barbeiro) quanto client (admin, superadmin, cliente), entrando
  * no grafo de quem importar.
  *
- * Densidade: p-4, rótulo 11px, valor 22px. O valor usa algarismos
- * proporcionais (sem tabular-nums) — números grandes isolados ficam
- * frouxos com largura fixa; tabular só onde alinha em coluna.
+ * Densidade: p-4, rótulo 11px, valor 22px. O valor usa tabular-nums:
+ * o spec do rebrand exige Archivo + tabular-nums em todo número da
+ * interface, constraint global que sobrepõe a preferência local por
+ * algarismos proporcionais que este comentário documentava antes.
  */
 
 export type StatTone = "neutro" | "positivo" | "negativo" | "atencao";
@@ -21,11 +22,11 @@ const toneText: Record<StatTone, string> = {
   atencao: "text-warning",
 };
 
-const toneIconBg: Record<StatTone, { bg: string; color: string }> = {
-  neutro: { bg: "var(--color-surface-sunken)", color: "var(--color-secondary)" },
-  positivo: { bg: "var(--color-success-subtle)", color: "var(--color-success)" },
-  negativo: { bg: "var(--color-danger-subtle)", color: "var(--color-danger)" },
-  atencao: { bg: "var(--color-warning-subtle)", color: "var(--color-warning)" },
+const toneIcon: Record<StatTone, { bg: string; color: string }> = {
+  neutro: { bg: "bg-surface-sunken", color: "text-secondary" },
+  positivo: { bg: "bg-success-subtle", color: "text-success" },
+  negativo: { bg: "bg-danger-subtle", color: "text-danger" },
+  atencao: { bg: "bg-warning-subtle", color: "text-warning" },
 };
 
 export type StatCardProps = {
@@ -39,7 +40,7 @@ export type StatCardProps = {
 };
 
 export function StatCard({ label, value, hint, tone = "neutro", icon: Icon }: StatCardProps) {
-  const paleta = toneIconBg[tone];
+  const paleta = toneIcon[tone];
 
   return (
     <div className="flex items-start justify-between gap-3 rounded-[12px] border border-fog bg-white p-4">
@@ -52,11 +53,8 @@ export function StatCard({ label, value, hint, tone = "neutro", icon: Icon }: St
       </div>
 
       {Icon && (
-        <span
-          className="grid size-8 shrink-0 place-items-center rounded-[8px]"
-          style={{ backgroundColor: paleta.bg }}
-        >
-          <Icon size={16} strokeWidth={1.8} style={{ color: paleta.color }} />
+        <span className={`grid size-8 shrink-0 place-items-center rounded-[8px] ${paleta.bg}`}>
+          <Icon size={16} strokeWidth={1.8} className={paleta.color} />
         </span>
       )}
     </div>

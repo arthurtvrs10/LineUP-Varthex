@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 
@@ -10,13 +9,7 @@ function MadeByLineup() {
   return (
     <span className="flex items-center gap-1.5 whitespace-nowrap">
       Desenvolvido pela
-      <Image
-        src="/brand/varthex-b-brandmark-color.svg"
-        alt=""
-        width={14}
-        height={14}
-        aria-hidden="true"
-      />
+      <Logo variant="symbol" height={14} className="text-ink" />
       <strong className="font-semibold text-[#4e5d73]">LINEUP</strong>
     </span>
   );
@@ -47,7 +40,7 @@ export function SiteFooter({ simple = false }: SiteFooterProps) {
       </div>
       <div className="grid content-start gap-3 text-[11px] text-[#647186]">
         <strong className="mb-1 text-[13px] font-bold text-[#0d1831]">Empresa</strong>
-        <Link href="/sobre-nos">Sobre a LINEUP</Link>
+        <Link href="/sobre-nos">Sobre o LINEUP</Link>
         <Link href="/#contato">Contato</Link>
         <Link href="/#faq">Ajuda</Link>
       </div>

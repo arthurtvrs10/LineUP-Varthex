@@ -4,7 +4,7 @@ import { LegalPage } from "@/components/legal/LegalPage";
 export const metadata: Metadata = {
   title: "Política de privacidade",
   description:
-    "Saiba como a LINEUP coleta, usa e protege os dados de gestores, barbeiros e clientes.",
+    "Saiba como o LINEUP coleta, usa e protege os dados de gestores, barbeiros e clientes.",
 };
 
 const sections = [
@@ -66,7 +66,7 @@ export default function PrivacidadePage() {
       eyebrow="Privacidade"
       title="Política de privacidade"
       updatedAt="21 de agosto de 2026"
-      intro="Esta política explica como a LINEUP coleta, usa, armazena e protege as informações de gestores, barbeiros e clientes que utilizam a nossa plataforma."
+      intro="Esta política explica como o LINEUP coleta, usa, armazena e protege as informações de gestores, barbeiros e clientes que utilizam a nossa plataforma."
       sections={sections}
     />
   );

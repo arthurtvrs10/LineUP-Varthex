@@ -11,11 +11,11 @@ const sections = [
   {
     title: "Aceitação dos termos",
     paragraphs: [
-      "Ao criar uma conta ou utilizar a LINEUP, você concorda com estes termos de uso e com a nossa política de privacidade. Se não concordar, não utilize a plataforma.",
+      "Ao criar uma conta ou utilizar o LINEUP, você concorda com estes termos de uso e com a nossa política de privacidade. Se não concordar, não utilize a plataforma.",
     ],
   },
   {
-    title: "Quem pode usar a LINEUP",
+    title: "Quem pode usar o LINEUP",
     paragraphs: [
       "A plataforma é destinada a gestores e profissionais de barbearias maiores de 18 anos, responsáveis pelas informações inseridas em nome do seu estabelecimento.",
     ],
@@ -37,13 +37,13 @@ const sections = [
   {
     title: "Uso aceitável da plataforma",
     paragraphs: [
-      "Não é permitido usar a LINEUP para fins ilícitos, tentar acessar dados de outras contas sem autorização, ou comprometer a segurança e o funcionamento do sistema.",
+      "Não é permitido usar o LINEUP para fins ilícitos, tentar acessar dados de outras contas sem autorização, ou comprometer a segurança e o funcionamento do sistema.",
     ],
   },
   {
     title: "Propriedade intelectual",
     paragraphs: [
-      "A marca, o layout, o código e as funcionalidades da LINEUP são de propriedade da empresa e protegidos por lei. Os dados inseridos pelo usuário na plataforma continuam sendo de propriedade do usuário.",
+      "A marca, o layout, o código e as funcionalidades do LINEUP são de propriedade da empresa e protegidos por lei. Os dados inseridos pelo usuário na plataforma continuam sendo de propriedade do usuário.",
     ],
   },
   {

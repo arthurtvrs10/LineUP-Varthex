@@ -37,7 +37,7 @@ export function ProductFrame({
 }: ProductFrameProps) {
   return (
     <div
-      className={`relative grid min-h-[540px] w-full overflow-hidden rounded-2xl border border-[#cfd5e2] bg-white font-[var(--font-manrope)] shadow-[0_30px_80px_rgba(34,34,72,0.14),0_4px_12px_rgba(34,34,72,0.06)] md:grid-cols-[180px_1fr] ${className}`}
+      className={`relative grid min-h-[540px] w-full overflow-hidden rounded-2xl border border-[#cfd5e2] bg-white shadow-[0_30px_80px_rgba(34,34,72,0.14),0_4px_12px_rgba(34,34,72,0.06)] md:grid-cols-[180px_1fr] ${className}`}
     >
       <aside className="hidden min-w-0 flex-col border-r border-[#e9ecf2] bg-[#fbfbfd] p-4 text-[#606b7f] md:flex">
         <div className="flex items-center gap-2 text-[13px] text-[#0d1831]">

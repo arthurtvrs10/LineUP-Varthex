@@ -88,7 +88,7 @@ export function Modal({
         mt-auto sm:mt-auto`}
       style={{ maxHeight: "100dvh" }}
     >
-      <div className="flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[16px] bg-white sm:rounded-[14px]">
+      <div className="flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[16px] bg-white shadow-modal sm:rounded-[14px]">
         <div className="flex items-start justify-between gap-4 border-b border-fog px-5 py-4">
           <div className="min-w-0">
             <h2 id="modal-titulo" className="text-h3 text-ink">
