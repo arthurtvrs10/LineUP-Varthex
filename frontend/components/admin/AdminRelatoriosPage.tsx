@@ -106,10 +106,12 @@ const servicosMaisExecutados = [
   { label: "Corte + Sobrancelha", value: 33 },
 ];
 
+// Mesma paleta categórica de dashboardData.ts (spec §9): Corte/Cabelo=Signal,
+// Barba=azul, Combo=aqua. Consistente em todo o app, não uma rampa monocromática.
 const categorias = [
-  { label: "Corte", percent: 45, color: "#7247f3" },
-  { label: "Combo", percent: 25, color: "#8f7bf5" },
-  { label: "Barba", percent: 15, color: "#c8bffa" },
+  { label: "Corte", percent: 45, color: "#ff4a17" },
+  { label: "Combo", percent: 25, color: "#1baf7a" },
+  { label: "Barba", percent: 15, color: "#2a78d6" },
   { label: "Outros", percent: 15, color: "#e6e4df" },
 ];
 
@@ -204,8 +206,8 @@ export function AdminRelatoriosPage() {
           <p className="text-sm text-[#686a73]">Últimos 6 meses</p>
           <div className="pt-4">
             <svg viewBox={`0 0 ${areaWidth} ${areaHeight}`} className="h-[180px] w-full" preserveAspectRatio="none">
-              <path d={area} fill="#ede9fd" />
-              <path d={line} fill="none" stroke="#7247f3" strokeWidth={3} />
+              <path d={area} fill="#fff1ec" />
+              <path d={line} fill="none" stroke="#ff4a17" strokeWidth={3} />
             </svg>
             <div className="flex justify-between pt-2 text-xs text-[#686a73]">
               {faturamentoMonths.map((m) => (
@@ -429,7 +431,7 @@ export function AdminRelatoriosPage() {
                     style={{ height: `${(d.entrada / estoqueMax) * 160}px` }}
                   />
                   <div
-                    className="w-5 rounded-t-[4px] bg-[#c8bffa]"
+                    className="w-5 rounded-t-[4px] bg-[#2a78d6]"
                     style={{ height: `${(d.saida / estoqueMax) * 160}px` }}
                   />
                 </div>
@@ -443,7 +445,7 @@ export function AdminRelatoriosPage() {
               Entrada
             </span>
             <span className="flex items-center gap-1.5 text-xs text-[#686a73]">
-              <span className="size-2.5 rounded-full bg-[#c8bffa]" />
+              <span className="size-2.5 rounded-full bg-[#2a78d6]" />
               Saída
             </span>
           </div>

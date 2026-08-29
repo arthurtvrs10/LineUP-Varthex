@@ -34,7 +34,7 @@ export function AgendaPreview() {
                 const booked = index !== 1;
                 const tone =
                   index === 0
-                    ? "border-[#7247f3]/15 bg-[#f1ecff] text-[#5d39bf]"
+                    ? "border-accent/15 bg-accent-subtle text-accent-strong"
                     : index === 1
                       ? "border-[#d6a34a]/20 bg-[#fff2da] text-[#925e0c]"
                       : "border-[#1fa87a]/15 bg-[#e8f8f4] text-[#19785e]";

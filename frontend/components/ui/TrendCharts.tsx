@@ -26,10 +26,8 @@ export type PontoTendencia = {
   detalhe?: string;
 };
 
-/* Cor de série provisória: aguarda a paleta categórica validada (spec §9).
-   Não trocar por Signal antes disso — dado e acento de marca não podem ser
-   a mesma cor. */
-const ACCENT = "#7247f3";
+/* Slot 1 da paleta categórica validada (spec §9, validate_palette.js). */
+const ACCENT = "#ff4a17";
 
 /**
  * O formato é um valor serializável, não uma função: props de client

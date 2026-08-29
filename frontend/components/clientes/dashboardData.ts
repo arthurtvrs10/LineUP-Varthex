@@ -22,12 +22,14 @@ export type ServicoMeta = {
   color: string;
 };
 
-// Paleta categórica validada em all-pairs sobre superfície branca:
-// CVD ΔE 9.2 · visão normal ΔE 27.6 · banda de luminosidade e croma OK.
-// (violeta da marca / laranja / aqua — azul foi descartado: ΔE 5.4 contra o violeta.)
+// Paleta categórica LINEUP, revalidada (rebrand §9) via validate_palette.js
+// em all-pairs sobre superfície branca: CVD ΔE 9.1 (protan) · visão normal
+// ΔE 17.6 · banda de luminosidade e croma OK. Slot 1 é o Signal da marca —
+// o violeta antigo saiu inteiro (inclusive o laranja #eb6834, que colidiria
+// com o Signal) para não repetir hue com o acento de UI.
 export const servicosMeta: ServicoMeta[] = [
-  { key: "cabelo", name: "Cabelo", subtitle: "Serviço individual", color: "#7247f3" },
-  { key: "barba", name: "Barba", subtitle: "Serviço individual", color: "#eb6834" },
+  { key: "cabelo", name: "Cabelo", subtitle: "Serviço individual", color: "#ff4a17" },
+  { key: "barba", name: "Barba", subtitle: "Serviço individual", color: "#2a78d6" },
   { key: "combo", name: "Cabelo + barba", subtitle: "Serviço combinado", color: "#1baf7a" },
 ];
 

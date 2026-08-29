@@ -40,7 +40,7 @@ const appointments: Appointment[] = [
     client: "João Silva",
     service: "Corte + barba",
     cardBg: "bg-accent-subtle",
-    cardBorder: "border-[rgba(108,76,241,0.2)]",
+    cardBorder: "border-accent/20",
   },
   {
     time: "11:00",

@@ -27,12 +27,12 @@ function PerformanceChart() {
       >
         <path
           d="M0 164 C55 150 73 105 126 122 S210 154 265 106 S356 35 406 75 S502 116 620 42 L620 190 L0 190 Z"
-          fill="rgba(114, 71, 243, 0.12)"
+          fill="rgba(255, 74, 23, 0.12)"
         />
         <path
           d="M0 164 C55 150 73 105 126 122 S210 154 265 106 S356 35 406 75 S502 116 620 42"
           fill="none"
-          stroke="#7247f3"
+          stroke="#ff4a17"
           strokeWidth="3"
           strokeLinecap="round"
         />
@@ -49,7 +49,7 @@ function PerformanceChart() {
             cy={y}
             r="5"
             fill="white"
-            stroke="#7247f3"
+            stroke="#ff4a17"
             strokeWidth="3"
           />
         ))}
