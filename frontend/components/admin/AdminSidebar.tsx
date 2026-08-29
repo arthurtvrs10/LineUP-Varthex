@@ -62,7 +62,7 @@ export function AdminSidebar() {
       subtitleLine2="Unidade"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: "RM", name: "Rafael Mendes", email: "admin@varthex.com" }}
+      user={{ initials: "RM", name: "Rafael Mendes", email: "admin@lineup.com" }}
       activeColor="#7247f3"
       theme="light"
       profileHref="/admin/configuracoes"

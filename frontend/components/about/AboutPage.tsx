@@ -76,13 +76,13 @@ export function AboutPage() {
           <ConstellationBackground className="h-full w-full" />
         </div>
 
-        <SectionLabel>Sobre a Varthex</SectionLabel>
+        <SectionLabel>Sobre a LINEUP</SectionLabel>
         <h1 className="mt-5 max-w-5xl font-[var(--font-display)] text-[clamp(3rem,7vw,5.5rem)] leading-[1.05] font-normal tracking-[-0.045em]">
           Uma gestão mais simples para quem vive de{" "}
           <strong className="font-normal text-[#7247f3]">atender bem.</strong>
         </h1>
         <p className="mt-6 max-w-2xl text-[15px] leading-8 text-[#667085]">
-          O Varthex Barber é um sistema SaaS para administrar a rotina da
+          O LINEUP é um sistema SaaS para administrar a rotina da
           barbearia e reunir as informações essenciais da operação em um só
           lugar.
         </p>
@@ -165,7 +165,7 @@ export function AboutPage() {
       <section className="mx-auto flex w-full max-w-[1216px] flex-col items-start justify-between gap-8 border-t border-[#eaecf0] px-5 py-16 sm:px-6 lg:flex-row lg:items-center">
         <div>
           <span className="text-[11px] font-semibold tracking-[0.1em] text-[#7247f3] uppercase">
-            Varthex Barber
+            LINEUP
           </span>
           <h2 className="mt-3 text-[38px] font-bold tracking-[-0.04em]">
             Pronto para organizar sua rotina?

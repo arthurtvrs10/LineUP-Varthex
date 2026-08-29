@@ -11,7 +11,7 @@ type Usuario = {
 };
 
 const usuarios: Usuario[] = [
-  { name: "Rafael Mendes", email: "admin@varthex.com", role: "Super Admin", barbearia: "—", status: "Ativo" },
+  { name: "Rafael Mendes", email: "admin@lineup.com", role: "Super Admin", barbearia: "—", status: "Ativo" },
   { name: "Camila Duarte", email: "camila@navalhadeouro.com", role: "Admin", barbearia: "Studio Navalha de Ouro", status: "Ativo" },
   { name: "Marcos Vieira", email: "marcos@corteearte.com", role: "Admin", barbearia: "Corte & Arte", status: "Ativo" },
   { name: "Lucas Oliveira", email: "lucas@estilounico.com", role: "Barbeiro", barbearia: "Barbearia Estilo Único", status: "Ativo" },

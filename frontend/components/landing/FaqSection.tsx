@@ -7,7 +7,7 @@ import { SectionLabel } from "@/components/ui/SectionLabel";
 
 const questions = [
   {
-    question: "A Varthex funciona para uma barbearia pequena?",
+    question: "A LINEUP funciona para uma barbearia pequena?",
     answer:
       "Sim. O plano Essencial foi pensado para barbearias com uma unidade, com o necessário para organizar agenda, equipe e comissões desde o primeiro dia.",
   },
@@ -24,7 +24,7 @@ const questions = [
   {
     question: "A plataforma tem programa de fidelidade?",
     answer:
-      "Está no roadmap. Hoje o Varthex já organiza histórico e recorrência de clientes; o programa de fidelidade entra como próxima evolução da plataforma.",
+      "Está no roadmap. Hoje o LINEUP já organiza histórico e recorrência de clientes; o programa de fidelidade entra como próxima evolução da plataforma.",
   },
   {
     question: "É possível administrar mais de uma unidade?",
@@ -53,7 +53,7 @@ export function FaqSection() {
             Tudo claro para <span className="text-[#7247f3]">começar.</span>
           </h2>
           <p className="mt-4 max-w-sm text-[15px] leading-7 text-[#5f6f87]">
-            Respostas diretas sobre como o Varthex Barber entra na rotina da
+            Respostas diretas sobre como o LINEUP entra na rotina da
             sua operação.
           </p>
         </Reveal>

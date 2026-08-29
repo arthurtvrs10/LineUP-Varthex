@@ -37,7 +37,7 @@ export function SuperAdminConfiguracoesPage() {
         <SectionCard icon={UserRound} title="Conta">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FieldInput label="Nome" defaultValue="Rafael Mendes" />
-            <FieldInput label="E-mail" defaultValue="admin@varthex.com" type="email" />
+            <FieldInput label="E-mail" defaultValue="admin@lineup.com" type="email" />
             <FieldInput label="Telefone" defaultValue="(11) 99999-0110" />
             <FieldInput label="Cargo" defaultValue="Super Admin da plataforma" />
           </div>
@@ -45,8 +45,8 @@ export function SuperAdminConfiguracoesPage() {
 
         <SectionCard icon={Settings} title="Geral">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Nome da plataforma" defaultValue="Varthex Barber" />
-            <FieldInput label="E-mail de suporte" defaultValue="suporte@varthex.com" />
+            <FieldInput label="Nome da plataforma" defaultValue="LINEUP" />
+            <FieldInput label="E-mail de suporte" defaultValue="suporte@lineup.com" />
             <FieldInput label="Fuso horário padrão" defaultValue="America/Sao_Paulo (BRT)" />
             <FieldInput
               label="Dias de trial para novos ADMINs"
@@ -168,10 +168,10 @@ export function SuperAdminConfiguracoesPage() {
 
         <SectionCard icon={Mail} title="E-mails transacionais">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Nome do remetente" defaultValue="Varthex Barber" />
-            <FieldInput label="E-mail de envio" defaultValue="noreply@varthex.com" />
-            <FieldInput label="E-mail de resposta (reply-to)" defaultValue="suporte@varthex.com" />
-            <FieldInput label="Domínio verificado" defaultValue="mail.varthex.com" hint="Verificado via DNS." />
+            <FieldInput label="Nome do remetente" defaultValue="LINEUP" />
+            <FieldInput label="E-mail de envio" defaultValue="noreply@lineup.com" />
+            <FieldInput label="E-mail de resposta (reply-to)" defaultValue="suporte@lineup.com" />
+            <FieldInput label="Domínio verificado" defaultValue="mail.lineup.com" hint="Verificado via DNS." />
           </div>
         </SectionCard>
       </div>

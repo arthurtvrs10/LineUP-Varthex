@@ -14,7 +14,7 @@ export function ClientConfiguracoesPage() {
       <SectionCard icon={UserRound} title="Conta">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput label="Nome" defaultValue="Rafael Mendes" />
-          <FieldInput label="E-mail" defaultValue="admin@varthex.com" type="email" />
+          <FieldInput label="E-mail" defaultValue="admin@lineup.com" type="email" />
           <FieldInput label="Telefone" defaultValue="(11) 96666-7080" />
           <FieldInput
             label="Data de nascimento"

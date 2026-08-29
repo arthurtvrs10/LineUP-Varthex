@@ -2,7 +2,7 @@
 
 import { Bell, Check, TrendingUp } from "lucide-react";
 import { useState } from "react";
-import { Brand } from "@/components/brand/Brand";
+import { Logo } from "@/components/brand/Logo";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
@@ -137,7 +137,7 @@ export function AudienceSection() {
 
         <div className="relative min-h-[390px] overflow-hidden rounded-xl border border-[#e2e7f0] bg-[#fafbfc] p-5 sm:p-6">
           <div className="flex items-center justify-between">
-            <Brand compact />
+            <Logo variant="symbol" height={24} className="text-ink" />
             <span className="grid size-8 place-items-center rounded-lg border border-[#e5e9f0] bg-white text-[#718096]">
               <Bell size={14} />
             </span>

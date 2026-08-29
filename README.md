@@ -1,4 +1,4 @@
-# 💈 Varthex Barber - Gestão SaaS de Barbearias
+# 💈 LINEUP - Gestão SaaS de Barbearias
 
 <p align="center">
   <img src="https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white" alt="Java 21" />

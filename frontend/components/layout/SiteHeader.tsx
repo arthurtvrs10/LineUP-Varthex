@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
 import { useState } from "react";
-import { Brand } from "@/components/brand/Brand";
+import { Logo } from "@/components/brand/Logo";
 import { ActionLink } from "@/components/ui/ActionLink";
 
 const navLinks = [
@@ -20,8 +20,8 @@ export function SiteHeader() {
   return (
     <header className="sticky top-0 z-50 border-b border-[#e2e7f0] bg-white">
       <div className="relative mx-auto flex h-[76px] w-full max-w-[1216px] items-center gap-10 px-5 sm:px-6">
-        <Link href="/" aria-label="Varthex Barber - Página inicial">
-          <Brand />
+        <Link href="/" aria-label="LINEUP - Página inicial">
+          <Logo variant="horizontal" height={28} className="text-ink" />
         </Link>
 
         <nav

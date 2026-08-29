@@ -14,7 +14,7 @@ export function BarberConfiguracoesPage() {
       <SectionCard icon={UserRound} title="Conta">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput label="Nome" defaultValue="Paulo Roberto" />
-          <FieldInput label="E-mail" defaultValue="barber@varthex.com" type="email" />
+          <FieldInput label="E-mail" defaultValue="barber@lineup.com" type="email" />
           <FieldInput label="Telefone" defaultValue="(11) 97777-3040" />
           <FieldInput label="Unidade" defaultValue="Barbearia Estilo Único — Centro" />
         </div>

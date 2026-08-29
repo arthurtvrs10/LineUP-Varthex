@@ -17,8 +17,8 @@ const workSans = Work_Sans({
 
 export const metadata: Metadata = {
   title: {
-    default: "Varthex Barber | Gestão sob controle",
-    template: "%s | Varthex Barber",
+    default: "LINEUP | Gestão de barbearia",
+    template: "%s | LINEUP",
   },
   description:
     "Agenda, equipe, clientes, comissões e indicadores em uma única plataforma para barbearias.",

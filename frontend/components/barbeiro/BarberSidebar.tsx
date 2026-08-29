@@ -44,7 +44,7 @@ export function BarberSidebar() {
       subtitleLine2="Unidade"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: "PR", name: "Paulo Roberto", email: "barber@varthex.com" }}
+      user={{ initials: "PR", name: "Paulo Roberto", email: "barber@lineup.com" }}
       activeColor="#7247f3"
       theme="light"
       profileHref="/barbeiro/configuracoes"

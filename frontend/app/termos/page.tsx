@@ -4,18 +4,18 @@ import { LegalPage } from "@/components/legal/LegalPage";
 export const metadata: Metadata = {
   title: "Termos de uso",
   description:
-    "Conheça as regras de uso da plataforma Varthex Barber para gestores, barbeiros e clientes.",
+    "Conheça as regras de uso da plataforma LINEUP para gestores, barbeiros e clientes.",
 };
 
 const sections = [
   {
     title: "Aceitação dos termos",
     paragraphs: [
-      "Ao criar uma conta ou utilizar a Varthex Barber, você concorda com estes termos de uso e com a nossa política de privacidade. Se não concordar, não utilize a plataforma.",
+      "Ao criar uma conta ou utilizar a LINEUP, você concorda com estes termos de uso e com a nossa política de privacidade. Se não concordar, não utilize a plataforma.",
     ],
   },
   {
-    title: "Quem pode usar a Varthex Barber",
+    title: "Quem pode usar a LINEUP",
     paragraphs: [
       "A plataforma é destinada a gestores e profissionais de barbearias maiores de 18 anos, responsáveis pelas informações inseridas em nome do seu estabelecimento.",
     ],
@@ -37,19 +37,19 @@ const sections = [
   {
     title: "Uso aceitável da plataforma",
     paragraphs: [
-      "Não é permitido usar a Varthex Barber para fins ilícitos, tentar acessar dados de outras contas sem autorização, ou comprometer a segurança e o funcionamento do sistema.",
+      "Não é permitido usar a LINEUP para fins ilícitos, tentar acessar dados de outras contas sem autorização, ou comprometer a segurança e o funcionamento do sistema.",
     ],
   },
   {
     title: "Propriedade intelectual",
     paragraphs: [
-      "A marca, o layout, o código e as funcionalidades da Varthex Barber são de propriedade da empresa e protegidos por lei. Os dados inseridos pelo usuário na plataforma continuam sendo de propriedade do usuário.",
+      "A marca, o layout, o código e as funcionalidades da LINEUP são de propriedade da empresa e protegidos por lei. Os dados inseridos pelo usuário na plataforma continuam sendo de propriedade do usuário.",
     ],
   },
   {
     title: "Limitação de responsabilidade",
     paragraphs: [
-      "A Varthex Barber busca manter a plataforma disponível e funcionando corretamente, mas não garante operação ininterrupta e não se responsabiliza por decisões de negócio tomadas com base nos dados apresentados.",
+      "A LINEUP busca manter a plataforma disponível e funcionando corretamente, mas não garante operação ininterrupta e não se responsabiliza por decisões de negócio tomadas com base nos dados apresentados.",
     ],
   },
   {
@@ -72,7 +72,7 @@ export default function TermosPage() {
       eyebrow="Termos"
       title="Termos de uso"
       updatedAt="21 de agosto de 2026"
-      intro="Estes termos definem as regras para uso da plataforma Varthex Barber por gestores, barbeiros e demais usuários autorizados."
+      intro="Estes termos definem as regras para uso da plataforma LINEUP por gestores, barbeiros e demais usuários autorizados."
       sections={sections}
     />
   );

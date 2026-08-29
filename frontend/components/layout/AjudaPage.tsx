@@ -54,7 +54,7 @@ export function AjudaPage({
   descricao,
   faq,
   atalhos = [],
-  emailSuporte = "suporte@varthex.com",
+  emailSuporte = "suporte@lineup.com",
 }: AjudaPageProps) {
   return (
     <div className="flex w-full flex-col gap-5">

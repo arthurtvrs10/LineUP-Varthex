@@ -51,7 +51,7 @@ export function FinalSection() {
             Proteja sua margem. Reduza o caos.
           </h2>
           <p className="mt-4 max-w-xl text-[15px] leading-7 text-[#5f6f87]">
-            O Varthex Barber mantém sua operação organizada hoje e preparada
+            O LINEUP mantém sua operação organizada hoje e preparada
             para os próximos passos.
           </p>
 

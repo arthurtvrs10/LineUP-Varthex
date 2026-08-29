@@ -16,7 +16,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { Brand } from "@/components/brand/Brand";
+import { Logo } from "@/components/brand/Logo";
 
 type AuthPageProps = {
   mode: "login" | "register";
@@ -212,7 +212,7 @@ export function AuthPage({ mode }: AuthPageProps) {
     <main className="flex min-h-screen flex-col bg-white">
       <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center px-6 py-16">
         <Link href="/" className="mb-9 inline-flex self-start">
-          <Brand />
+          <Logo variant="horizontal" height={28} className="text-ink" />
         </Link>
 
         {status === "success" ? (
@@ -426,7 +426,7 @@ export function AuthPage({ mode }: AuthPageProps) {
       </div>
 
       <footer className="mx-auto flex w-full max-w-[1216px] flex-col items-center gap-3 border-t border-[#eaecf0] px-5 py-7 text-[11px] text-[#8d97a7] sm:flex-row sm:justify-between sm:px-6">
-        <p>© {new Date().getFullYear()} Varthex Barber</p>
+        <p>© {new Date().getFullYear()} LINEUP</p>
         <div className="flex gap-6">
           <Link className="transition hover:text-[#4b5468]" href="/sobre-nos">
             Sobre nós

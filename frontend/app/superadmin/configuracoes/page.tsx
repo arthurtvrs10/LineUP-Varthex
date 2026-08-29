@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 
 export default function SuperAdminConfiguracoesRoute() {
   return (
-    <SuperAdminShell title="Parâmetros globais e integrações do SaaS Varthex Barber" breadcrumb="Configurações">
+    <SuperAdminShell title="Parâmetros globais e integrações do SaaS LINEUP" breadcrumb="Configurações">
       <SuperAdminConfiguracoesPage />
     </SuperAdminShell>
   );

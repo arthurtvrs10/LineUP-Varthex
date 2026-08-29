@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown, LogOut, Menu, UserRound, X, type LucideIcon } from "lucide-react";
-import { Brand } from "@/components/brand/Brand";
+import { Logo } from "@/components/brand/Logo";
 
 export type PortalNavItem = {
   href: string;
@@ -249,7 +249,11 @@ export function PortalSidebar({
           }`}
         >
           <Link href={homeHref} onClick={close}>
-            <Brand light={theme === "dark"} align="start" />
+            <Logo
+              variant="horizontal"
+              height={24}
+              className={theme === "dark" ? "text-white" : "text-ink"}
+            />
           </Link>
         </div>
 

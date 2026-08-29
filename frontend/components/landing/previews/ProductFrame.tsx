@@ -8,7 +8,7 @@ import {
   WalletCards,
 } from "lucide-react";
 import type { ReactNode } from "react";
-import { Brand } from "@/components/brand/Brand";
+import { Logo } from "@/components/brand/Logo";
 
 type ProductFrameProps = {
   active?: "Visão geral" | "Agenda" | "Clientes" | "Equipe" | "Comissões";
@@ -42,9 +42,9 @@ export function ProductFrame({
       <aside className="hidden min-w-0 flex-col border-r border-[#e9ecf2] bg-[#fbfbfd] p-4 text-[#606b7f] md:flex">
         <div className="flex items-center gap-2 text-[13px] text-[#0d1831]">
           <span className="scale-75">
-            <Brand compact />
+            <Logo variant="symbol" height={24} className="text-ink" />
           </span>
-          <strong>Varthex</strong>
+          <strong>LINEUP</strong>
         </div>
 
         <div className="my-5 flex h-9 items-center gap-2 rounded-lg border border-[#e7eaf0] bg-white px-2.5 text-[10px]">
