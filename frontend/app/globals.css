@@ -1,1 +1,187 @@
 @import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+ * LINEUP — camada de tokens.
+ *
+ * Duas camadas, de propósito:
+ *   --brand-*  a paleta, exatamente como o manual especifica. Componente
+ *              NUNCA referencia estas.
+ *   as demais  tokens semânticos. Componentes usam só estes, para que uma
+ *              repintura seja um arquivo e não um refactor.
+ *
+ * Contrastes abaixo foram medidos, não estimados.
+ * ------------------------------------------------------------------------- */
+
+@layer theme {
+  @theme inline {
+  /* --- paleta da marca (não usar direto em componente) --- */
+  --color-brand-ink: #0e1012;
+  --color-brand-graphite: #3a3f44;
+  --color-brand-steel: #7a8288;
+  --color-brand-fog: #e4e7e9;
+  --color-brand-paper: #ffffff;
+  --color-brand-signal: #ff4a17;
+
+  /* --- semânticos: texto --- */
+  --color-ink: #0e1012;          /* 19.06:1 em branco */
+  --color-secondary: #3a3f44;    /* 10.64:1 */
+  --color-tertiary: #7a8288;     /*  3.91:1 — texto grande e UI apenas */
+
+  /* --- semânticos: superfície --- */
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f5f6f7; /* spec §4.1 — fora da paleta da marca */
+  --color-fog: #e4e7e9;
+
+  /* --- acento: três tokens, não um ---
+   * Branco sobre #FF4A17 é 3.36:1 e REPROVA. Por isso o botão primário
+   * é Ink sobre Signal (5.67:1), e laranja como texto em branco usa
+   * accent-strong (5.19:1). */
+  --color-accent: #ff4a17;
+  --color-on-accent: #0e1012;
+  --color-accent-strong: #c73a12;
+  --color-accent-hover: #e63f0f;  /* spec §4.4 */
+  --color-accent-subtle: #fff1ec;
+
+  /* --- semânticos de estado --- */
+  --color-success: #1e7a4c;
+  --color-warning: #8a5a00;
+  --color-danger: #8c1d18;
+  /* variantes suaves: candidatas, contraste medido na Task 3 */
+  --color-success-subtle: #eaf5ef;
+  --color-warning-subtle: #faf3e6;
+  --color-danger-subtle: #f9edec;
+
+  /* --- tipografia --- */
+  --font-display: var(--font-archivo), system-ui, sans-serif;
+  --font-body: var(--font-work-sans), system-ui, sans-serif;
+
+  --text-display: 2.4375rem;      /* 39px */
+  --text-display--line-height: 0.95;
+  --text-display--letter-spacing: -0.02em;
+  --text-display--font-weight: 700;
+
+  --text-h1: 1.9375rem;           /* 31px */
+  --text-h1--line-height: 1.1;
+  --text-h1--letter-spacing: -0.015em;
+  --text-h1--font-weight: 700;
+
+  --text-h2: 1.5625rem;           /* 25px */
+  --text-h2--line-height: 1.15;
+  --text-h2--letter-spacing: -0.01em;
+  --text-h2--font-weight: 600;
+
+  --text-h3: 1.25rem;             /* 20px */
+  --text-h3--line-height: 1.2;
+  --text-h3--letter-spacing: -0.005em;
+  --text-h3--font-weight: 600;
+
+  --text-body-lg: 1.125rem;       /* 18px */
+  --text-body-lg--line-height: 1.55;
+
+  --text-body: 1rem;              /* 16px */
+  --text-body--line-height: 1.6;
+
+  --text-small: 0.8125rem;        /* 13px */
+  --text-small--line-height: 1.5;
+
+  --text-caption: 0.6875rem;      /* 11px */
+  --text-caption--line-height: 1.4;
+  --text-caption--letter-spacing: 0.02em;
+  --text-caption--font-weight: 500;
+
+  /* --- espaçamento: 4px base --- */
+  --spacing: 0.25rem;
+
+  /* --- elevação: só o que de fato flutua --- */
+  --shadow-popover: 0 4px 16px rgb(14 16 18 / 0.1);
+  --shadow-modal: 0 16px 48px rgb(14 16 18 / 0.18);
+
+  /* --- raio zero em toda a escala do tema --- */
+  --radius-xs: 0;
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+  --radius-2xl: 0;
+  --radius-3xl: 0;
+  --radius-4xl: 0;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * RESET TRANSITÓRIO DE RAIO — remover na Fase 3.
+ *
+ * Zerar --radius-* acima NÃO neutraliza `rounded-[12px]`: em Tailwind v4
+ * valor arbitrário passa por fora do tema e continua produzindo 12px.
+ * São 258 dos 459 usos no código hoje.
+ *
+ * Este bloco força o raio a 0 durante a migração, para que a Fase 0 já
+ * mostre a aparência final. Precisa de !important justamente porque
+ * compete com utilities.
+ *
+ * Ao final da Fase 3, quando os `rounded-*` tiverem sido removidos do
+ * código, APAGUE este bloco e confirme que nada arredondou de volta.
+ * ------------------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  border-radius: 0 !important;
+}
+
+body {
+  background-color: var(--color-surface-sunken);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+/* Números alinham em coluna: tabular em toda célula de tabela. */
+th,
+td {
+  font-variant-numeric: tabular-nums;
+}
+
+@layer utilities {
+  /* Utilities de cor de acento */
+  .bg-accent { @apply bg-[var(--color-accent)]; }
+  .bg-accent-hover { @apply bg-[var(--color-accent-hover)]; }
+  .text-on-accent { @apply text-[var(--color-on-accent)]; }
+  .text-accent-strong { @apply text-[var(--color-accent-strong)]; }
+  .bg-accent-subtle { @apply bg-[var(--color-accent-subtle)]; }
+
+  /* Utilities de cor de texto */
+  .text-ink { @apply text-[var(--color-ink)]; }
+  .text-secondary { @apply text-[var(--color-secondary)]; }
+  .text-tertiary { @apply text-[var(--color-tertiary)]; }
+
+  /* Utilities de cor de superfície */
+  .bg-surface { @apply bg-[var(--color-surface)]; }
+  .bg-surface-sunken { @apply bg-[var(--color-surface-sunken)]; }
+  .border-fog { @apply border-[var(--color-fog)]; }
+
+  /* Utilities de cor de estado */
+  .text-success { @apply text-[var(--color-success)]; }
+  .bg-success-subtle { @apply bg-[var(--color-success-subtle)]; }
+  .text-warning { @apply text-[var(--color-warning)]; }
+  .bg-warning-subtle { @apply bg-[var(--color-warning-subtle)]; }
+  .text-danger { @apply text-[var(--color-danger)]; }
+  .bg-danger { @apply bg-[var(--color-danger)]; }
+  .bg-danger-subtle { @apply bg-[var(--color-danger-subtle)]; }
+
+  /* Utilities de sombra */
+  .shadow-popover { @apply shadow-[var(--shadow-popover)]; }
+  .shadow-modal { @apply shadow-[var(--shadow-modal)]; }
+
+  /* Utilities de tipografia */
+  .font-display { @apply font-[var(--font-display)]; }
+  .font-body { @apply font-[var(--font-body)]; }
+
+  /* Utilities de tamanho de texto */
+  .text-display { @apply text-[var(--text-display)]; }
+  .text-h1 { @apply text-[var(--text-h1)]; }
+  .text-h2 { @apply text-[var(--text-h2)]; }
+  .text-h3 { @apply text-[var(--text-h3)]; }
+  .text-body-lg { @apply text-[var(--text-body-lg)]; }
+  .text-body { @apply text-[var(--text-body)]; }
+  .text-small { @apply text-[var(--text-small)]; }
+  .text-caption { @apply text-[var(--text-caption)]; }
+}
