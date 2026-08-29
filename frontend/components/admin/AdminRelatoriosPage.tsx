@@ -107,11 +107,11 @@ const servicosMaisExecutados = [
 ];
 
 // Mesma paleta categórica de dashboardData.ts (spec §9): Corte/Cabelo=Signal,
-// Barba=azul, Combo=aqua. Consistente em todo o app, não uma rampa monocromática.
+// Barba=accent-strong, Combo=aqua. Consistente em todo o app.
 const categorias = [
   { label: "Corte", percent: 45, color: "#ff4a17" },
   { label: "Combo", percent: 25, color: "#1baf7a" },
-  { label: "Barba", percent: 15, color: "#2a78d6" },
+  { label: "Barba", percent: 15, color: "#c73a12" },
   { label: "Outros", percent: 15, color: "#e6e4df" },
 ];
 
@@ -431,7 +431,7 @@ export function AdminRelatoriosPage() {
                     style={{ height: `${(d.entrada / estoqueMax) * 160}px` }}
                   />
                   <div
-                    className="w-5 rounded-t-[4px] bg-[#2a78d6]"
+                    className="w-5 rounded-t-[4px] bg-[#c73a12]"
                     style={{ height: `${(d.saida / estoqueMax) * 160}px` }}
                   />
                 </div>
@@ -445,7 +445,7 @@ export function AdminRelatoriosPage() {
               Entrada
             </span>
             <span className="flex items-center gap-1.5 text-xs text-[#686a73]">
-              <span className="size-2.5 rounded-full bg-[#2a78d6]" />
+              <span className="size-2.5 rounded-full bg-[#c73a12]" />
               Saída
             </span>
           </div>
