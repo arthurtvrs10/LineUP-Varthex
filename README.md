@@ -6,7 +6,6 @@
   <img src="https://img.shields.io/badge/Next.js-14+-000000?style=for-the-badge&logo=nextdotjs&logoColor=white" alt="Next.js" />
   <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=for-the-badge&logo=postgresql&logoColor=white" alt="PostgreSQL" />
   <img src="https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white" alt="Docker" />
-  <img src="https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge" alt="License MIT" />
 </p>
 
 Sistema SaaS multi-tenant completo para **agendamento, gestão operacional e financeira de barbearias e profissionais autônomos**, integrando backend corporativo em **Spring Boot** com frontend dinâmico em **Next.js**.
@@ -53,10 +52,8 @@ docker-compose up --build
 
 ## 📄 Licença
 
-Este projeto está sob a licença [MIT](LICENSE).
+Software proprietário. Todos os direitos reservados — distribuição não autorizada.
 
 ---
 
 <p align="center">Desenvolvido por <a href="https://github.com/arthurtvrs10">Arthur Tavares</a></p>
-
-https://www.figma.com/design/Z1CjiLXOT9ok4ByqpWcgKV?node-id=
