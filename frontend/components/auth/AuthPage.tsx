@@ -210,8 +210,8 @@ export function AuthPage({ mode }: AuthPageProps) {
 
   return (
     <main className="flex min-h-screen flex-col bg-white">
-      <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center px-6 py-16">
-        <Link href="/" className="mb-9 inline-flex self-start">
+      <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center px-6 py-6">
+        <Link href="/" className="mb-5 inline-flex self-start">
           <Logo variant="horizontal" height={28} className="text-ink" />
         </Link>
 
@@ -241,12 +241,17 @@ export function AuthPage({ mode }: AuthPageProps) {
           </div>
         ) : (
           <>
-            <h1 className="mb-9 text-[28px] font-bold text-[#1c1c26]">
+            <h1 className="text-[28px] font-bold text-[#1c1c26]">
               {registering ? "Registre-se" : "Login"}
             </h1>
+            <p className="mb-4 mt-1.5 text-[13px] text-[#667085]">
+              {registering
+                ? "Preencha os dados abaixo para criar sua conta."
+                : "Digite seu e-mail e senha para entrar."}
+            </p>
 
             <form
-              className="flex flex-col gap-3.5"
+              className="flex flex-col gap-2.5"
               noValidate
               onSubmit={handleSubmit}
             >
@@ -387,7 +392,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 )}
               </button>
 
-              <div className="my-3 flex items-center gap-3.5 text-[10px] text-[#9298ad]">
+              <div className="my-2 flex items-center gap-3.5 text-[10px] text-[#9298ad]">
                 <span className="h-px flex-1 bg-[#e3e5eb]" />
                 ou
                 <span className="h-px flex-1 bg-[#e3e5eb]" />
@@ -409,7 +414,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 )}
               </button>
 
-              <p className="mt-3 text-[11px] text-[#9da3b8]">
+              <p className="mt-2 text-[11px] text-[#9da3b8]">
                 {registering
                   ? "Já tem uma conta? "
                   : "Ainda não tem uma conta? "}
