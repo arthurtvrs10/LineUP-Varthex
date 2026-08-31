@@ -234,9 +234,9 @@ export function AuthPage({ mode }: AuthPageProps) {
             </div>
             <Link
               className="mt-1 text-[11px] font-semibold text-accent-strong hover:underline"
-              href={registering ? "/login" : "/"}
+              href={registering ? "/login" : "/clientes/dashboard"}
             >
-              {registering ? "Ir para o login" : "Voltar para o início"}
+              {registering ? "Ir para o login" : "Ir para o dashboard"}
             </Link>
           </div>
         ) : (
