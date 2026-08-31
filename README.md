@@ -11,6 +11,8 @@
 Sistema SaaS multi-tenant completo para **agendamento, gestão operacional e financeira de barbearias e profissionais autônomos**, integrando backend corporativo em **Spring Boot** com frontend dinâmico em **Next.js**.
 
 ## DRIVE:  https://drive.google.com/drive/u/0/folders/1A0dUnrlsAg9sr15sGXIrUMwdVVaZ_QyZ
+
+## SLIDES: https://canva.link/i6oe8ur7mc9hkcr
 ---
 
 ## 🌟 Funcionalidades
