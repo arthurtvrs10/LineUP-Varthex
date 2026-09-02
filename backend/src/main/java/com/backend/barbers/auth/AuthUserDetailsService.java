@@ -1,4 +1,4 @@
-package com.backend.auth;
+package com.backend.barbers.auth;
 
 import com.backend.users.User;
 import com.backend.users.UserRepository;

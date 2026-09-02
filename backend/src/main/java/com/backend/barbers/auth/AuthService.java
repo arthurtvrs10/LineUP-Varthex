@@ -1,7 +1,7 @@
-package com.backend.auth;
+package com.backend.barbers.auth;
 
-import com.backend.auth.dto.LoginRequest;
-import com.backend.auth.dto.LoginResponse;
+import com.backend.barbers.auth.dto.LoginRequest;
+import com.backend.barbers.auth.dto.LoginResponse;
 import com.backend.auth.jwt.JwtService;
 import com.backend.users.User;
 import org.springframework.security.authentication.AuthenticationManager;

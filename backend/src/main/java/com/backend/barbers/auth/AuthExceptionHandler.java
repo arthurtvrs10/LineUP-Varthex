@@ -1,4 +1,4 @@
-package com.backend.auth;
+package com.backend.barbers.auth;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

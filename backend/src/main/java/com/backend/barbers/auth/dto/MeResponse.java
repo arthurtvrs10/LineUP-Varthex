@@ -1,4 +1,4 @@
-package com.backend.auth.dto;
+package com.backend.barbers.auth.dto;
 
 import com.backend.users.Role;
 import java.util.UUID;
