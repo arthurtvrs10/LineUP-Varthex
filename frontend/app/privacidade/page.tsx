@@ -41,9 +41,26 @@ const sections = [
     ],
   },
   {
+    title: "Base legal do tratamento",
+    paragraphs: [
+      "Tratamos seus dados pessoais com base em uma ou mais hipóteses legais previstas na Lei Geral de Proteção de Dados (LGPD), dependendo da finalidade: execução de contrato, para fornecer as funcionalidades da plataforma, como agenda e cobrança; cumprimento de obrigação legal ou regulatória, como emissão de documentos fiscais; legítimo interesse, para segurança, prevenção a fraudes e melhoria do produto; e consentimento, para comunicações de marketing e cookies não essenciais.",
+      "Quando o tratamento depende do seu consentimento, ele é sempre livre, informado e pode ser revogado a qualquer momento, sem prejuízo aos serviços essenciais da plataforma.",
+    ],
+  },
+  {
     title: "Seus direitos",
     paragraphs: [
-      "Em conformidade com a Lei Geral de Proteção de Dados (LGPD), você pode solicitar acesso, correção, portabilidade ou exclusão dos seus dados pessoais a qualquer momento pelos canais de suporte.",
+      "Como titular de dados pessoais, a LGPD garante a você os seguintes direitos, que podem ser exercidos a qualquer momento:",
+      "• Confirmação da existência de tratamento dos seus dados;",
+      "• Acesso aos dados pessoais tratados;",
+      "• Correção de dados incompletos, inexatos ou desatualizados;",
+      "• Anonimização, bloqueio ou eliminação de dados desnecessários, excessivos ou tratados em desconformidade com a lei;",
+      "• Portabilidade dos dados a outro fornecedor de serviço ou produto, mediante requisição expressa;",
+      "• Eliminação dos dados pessoais tratados com base no seu consentimento, exceto nas hipóteses de conservação previstas em lei;",
+      "• Informação sobre as entidades públicas e privadas com as quais compartilhamos seus dados;",
+      "• Informação sobre a possibilidade de não fornecer consentimento e sobre as consequências dessa negativa;",
+      "• Revogação do consentimento a qualquer momento.",
+      "Para exercer qualquer um desses direitos, entre em contato pela central de ajuda. Respondemos às solicitações dentro dos prazos estabelecidos pela LGPD, podendo solicitar informações adicionais para confirmar sua identidade antes de atender ao pedido.",
     ],
   },
   {
@@ -65,7 +82,7 @@ export default function PrivacidadePage() {
     <LegalPage
       eyebrow="Privacidade"
       title="Política de privacidade"
-      updatedAt="21 de agosto de 2026"
+      updatedAt="7 de setembro de 2026"
       intro="Esta política explica como o LINEUP coleta, usa, armazena e protege as informações de gestores, barbeiros e clientes que utilizam a nossa plataforma."
       sections={sections}
     />
