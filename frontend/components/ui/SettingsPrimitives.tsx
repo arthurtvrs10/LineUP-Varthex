@@ -1,6 +1,6 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import { useId, useState, type ChangeEvent, type ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 
 /**
@@ -40,13 +40,19 @@ export function Toggle({
 export function FieldInput({
   label,
   defaultValue,
+  value,
+  onChange,
   hint,
   type = "text",
+  disabled,
 }: {
   label: string;
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
+  onChange?: (value: string) => void;
   hint?: string;
   type?: string;
+  disabled?: boolean;
 }) {
   const id = useId();
   return (
@@ -57,8 +63,11 @@ export function FieldInput({
       <input
         id={id}
         type={type}
-        defaultValue={defaultValue}
-        className="h-10 rounded-[10px] border border-fog bg-white px-3 text-sm text-ink outline-none transition focus:border-accent"
+        disabled={disabled}
+        {...(onChange
+          ? { value: value ?? "", onChange: (e: ChangeEvent<HTMLInputElement>) => onChange(e.target.value) }
+          : { defaultValue })}
+        className="h-10 rounded-[10px] border border-fog bg-white px-3 text-sm text-ink outline-none transition focus:border-accent disabled:bg-[#f7f6f2] disabled:text-secondary"
       />
       {hint && <p className="text-xs text-secondary">{hint}</p>}
     </div>

@@ -1,16 +1,51 @@
 "use client";
 
+import { useState } from "react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
 import { FieldGrid, SelectField, TextAreaField, TextField } from "@/components/ui/FormFields";
+import { ApiError } from "@/lib/api";
 import type { ModalBaseProps } from "./AgendaModals";
 
 /** Modais de cadastro do admin: cliente, barbeiro, serviço, produto e despesa. */
 
-export function NovoClienteModal({ open, onClose, onConcluir }: ModalBaseProps) {
-  function submeter(event: React.FormEvent) {
+export type NovoClientePayload = {
+  fullName: string;
+  phone: string;
+  email: string;
+  birthDate: string;
+  notes: string;
+};
+
+type NovoClienteModalProps = ModalBaseProps & {
+  onCriar: (payload: NovoClientePayload) => Promise<void>;
+};
+
+export function NovoClienteModal({ open, onClose, onConcluir, onCriar }: NovoClienteModalProps) {
+  const [enviando, setEnviando] = useState(false);
+
+  async function submeter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onClose();
-    onConcluir("Cliente cadastrado.");
+    const dados = new FormData(event.currentTarget);
+
+    setEnviando(true);
+    try {
+      await onCriar({
+        fullName: String(dados.get("fullName") ?? ""),
+        phone: String(dados.get("phone") ?? ""),
+        email: String(dados.get("email") ?? ""),
+        birthDate: String(dados.get("birthDate") ?? ""),
+        notes: String(dados.get("notes") ?? ""),
+      });
+      onClose();
+      onConcluir("Cliente cadastrado.");
+    } catch (error) {
+      onConcluir(
+        error instanceof ApiError ? error.message : "Não foi possível cadastrar o cliente.",
+        "erro",
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -18,28 +53,32 @@ export function NovoClienteModal({ open, onClose, onConcluir }: ModalBaseProps) 
       open={open}
       onClose={onClose}
       title="Cadastrar cliente"
-      description="Só nome e telefone são obrigatórios — o resto pode vir depois."
+      description="Nome e (e-mail ou telefone) são obrigatórios — o resto pode vir depois."
       footer={
         <>
           <ModalCancelButton onClick={onClose} />
-          <ModalSubmitButton form="form-novo-cliente">Cadastrar</ModalSubmitButton>
+          <ModalSubmitButton form="form-novo-cliente" disabled={enviando}>
+            {enviando ? "Cadastrando…" : "Cadastrar"}
+          </ModalSubmitButton>
         </>
       }
     >
       <form id="form-novo-cliente" onSubmit={submeter} className="flex flex-col gap-4">
         <FieldGrid>
-          <TextField label="Nome completo" required placeholder="João Silva" />
-          <TextField label="Telefone" required placeholder="(11) 90000-0000" />
+          <TextField name="fullName" label="Nome completo" required placeholder="João Silva" />
+          <TextField name="phone" label="Telefone" placeholder="(11) 90000-0000" />
         </FieldGrid>
         <FieldGrid>
-          <TextField label="E-mail" type="email" placeholder="joao@email.com" />
+          <TextField name="email" label="E-mail" type="email" placeholder="joao@email.com" />
           <TextField
+            name="birthDate"
             label="Data de nascimento"
             type="date"
             hint="Usada para o brinde de aniversário."
           />
         </FieldGrid>
         <TextAreaField
+          name="notes"
           label="Observações"
           placeholder="Preferência de corte, alergias, histórico relevante…"
           rows={2}
@@ -49,11 +88,42 @@ export function NovoClienteModal({ open, onClose, onConcluir }: ModalBaseProps) 
   );
 }
 
-export function NovoBarbeiroModal({ open, onClose, onConcluir }: ModalBaseProps) {
-  function submeter(event: React.FormEvent) {
+export type NovoBarbeiroPayload = {
+  name: string;
+  email: string;
+  password: string;
+  commission: string;
+};
+
+type NovoBarbeiroModalProps = ModalBaseProps & {
+  onCriar: (payload: NovoBarbeiroPayload) => Promise<void>;
+};
+
+export function NovoBarbeiroModal({ open, onClose, onConcluir, onCriar }: NovoBarbeiroModalProps) {
+  const [enviando, setEnviando] = useState(false);
+
+  async function submeter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onClose();
-    onConcluir("Barbeiro adicionado. Um convite de acesso foi enviado.");
+    const dados = new FormData(event.currentTarget);
+
+    setEnviando(true);
+    try {
+      await onCriar({
+        name: String(dados.get("name") ?? ""),
+        email: String(dados.get("email") ?? ""),
+        password: String(dados.get("password") ?? ""),
+        commission: String(dados.get("commission") ?? "0"),
+      });
+      onClose();
+      onConcluir("Barbeiro adicionado.");
+    } catch (error) {
+      onConcluir(
+        error instanceof ApiError ? error.message : "Não foi possível adicionar o barbeiro.",
+        "erro",
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -61,43 +131,95 @@ export function NovoBarbeiroModal({ open, onClose, onConcluir }: ModalBaseProps)
       open={open}
       onClose={onClose}
       title="Adicionar barbeiro"
-      description="O profissional recebe um convite para acessar o painel dele."
+      description="Ainda não existe convite por e-mail — defina uma senha inicial e repasse pro profissional."
       footer={
         <>
           <ModalCancelButton onClick={onClose} />
-          <ModalSubmitButton form="form-novo-barbeiro">Adicionar</ModalSubmitButton>
+          <ModalSubmitButton form="form-novo-barbeiro" disabled={enviando}>
+            {enviando ? "Adicionando…" : "Adicionar"}
+          </ModalSubmitButton>
         </>
       }
     >
       <form id="form-novo-barbeiro" onSubmit={submeter} className="flex flex-col gap-4">
         <FieldGrid>
-          <TextField label="Nome completo" required placeholder="Lucas Oliveira" />
-          <TextField label="E-mail" type="email" required placeholder="lucas@barbearia.com" />
+          <TextField name="name" label="Nome completo" required placeholder="Lucas Oliveira" />
+          <TextField
+            name="email"
+            label="E-mail"
+            type="email"
+            required
+            placeholder="lucas@barbearia.com"
+          />
         </FieldGrid>
         <FieldGrid>
-          <TextField label="Telefone" placeholder="(11) 90000-0000" />
           <TextField
+            name="password"
+            label="Senha inicial"
+            type="password"
+            required
+            hint="Repasse pro profissional trocar depois."
+          />
+          <TextField
+            name="commission"
             label="Comissão (%)"
             type="number"
             defaultValue="40"
             hint="Percentual sobre serviços concluídos."
           />
         </FieldGrid>
-        <TextField
-          label="Especialidades"
-          placeholder="Corte degradê, barba, navalhado"
-          hint="Aparecem para o cliente na hora de escolher o profissional."
-        />
       </form>
     </Modal>
   );
 }
 
-export function NovoServicoModal({ open, onClose, onConcluir }: ModalBaseProps) {
-  function submeter(event: React.FormEvent) {
+export type NovoServicoPayload = {
+  name: string;
+  categoryId: string;
+  serviceType: string;
+  price: string;
+  durationMinutes: string;
+  description: string;
+};
+
+type NovoServicoModalProps = ModalBaseProps & {
+  categorias: { id: string; name: string }[];
+  onCriar: (payload: NovoServicoPayload) => Promise<void>;
+};
+
+export function NovoServicoModal({
+  open,
+  onClose,
+  onConcluir,
+  categorias,
+  onCriar,
+}: NovoServicoModalProps) {
+  const [enviando, setEnviando] = useState(false);
+
+  async function submeter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    onClose();
-    onConcluir("Serviço criado e disponível para agendamento.");
+    const dados = new FormData(event.currentTarget);
+
+    setEnviando(true);
+    try {
+      await onCriar({
+        name: String(dados.get("name") ?? ""),
+        categoryId: String(dados.get("categoryId") ?? ""),
+        serviceType: String(dados.get("serviceType") ?? "SERVICE"),
+        price: String(dados.get("price") ?? ""),
+        durationMinutes: String(dados.get("durationMinutes") ?? ""),
+        description: String(dados.get("description") ?? ""),
+      });
+      onClose();
+      onConcluir("Serviço criado e disponível para agendamento.");
+    } catch (error) {
+      onConcluir(
+        error instanceof ApiError ? error.message : "Não foi possível criar o serviço.",
+        "erro",
+      );
+    } finally {
+      setEnviando(false);
+    }
   }
 
   return (
@@ -109,23 +231,52 @@ export function NovoServicoModal({ open, onClose, onConcluir }: ModalBaseProps) 
       footer={
         <>
           <ModalCancelButton onClick={onClose} />
-          <ModalSubmitButton form="form-novo-servico">Criar serviço</ModalSubmitButton>
+          <ModalSubmitButton form="form-novo-servico" disabled={enviando}>
+            {enviando ? "Criando…" : "Criar serviço"}
+          </ModalSubmitButton>
         </>
       }
     >
       <form id="form-novo-servico" onSubmit={submeter} className="flex flex-col gap-4">
         <FieldGrid>
-          <TextField label="Nome do serviço" required placeholder="Corte degradê" />
+          <TextField name="name" label="Nome do serviço" required placeholder="Corte degradê" />
           <SelectField
-            label="Categoria"
-            options={["Cabelo", "Barba", "Combo", "Finalização", "Outros"]}
+            name="serviceType"
+            label="Tipo"
+            required
+            defaultValue="SERVICE"
+            options={[
+              { value: "SERVICE", label: "Serviço" },
+              { value: "COMBO", label: "Combo" },
+              { value: "ADDON", label: "Adicional" },
+            ]}
           />
         </FieldGrid>
         <FieldGrid>
-          <TextField label="Preço (R$)" type="number" required placeholder="45" />
-          <TextField label="Duração (min)" type="number" required defaultValue="45" />
+          <SelectField
+            name="categoryId"
+            label="Categoria"
+            hint={categorias.length === 0 ? "Nenhuma categoria cadastrada ainda." : undefined}
+            options={[
+              { value: "", label: "Sem categoria" },
+              ...categorias.map((c) => ({ value: c.id, label: c.name })),
+            ]}
+          />
+          <TextField
+            name="durationMinutes"
+            label="Duração (min)"
+            type="number"
+            required
+            defaultValue="45"
+          />
         </FieldGrid>
-        <TextAreaField label="Descrição" placeholder="O que está incluso no serviço." rows={2} />
+        <TextField name="price" label="Preço (R$)" type="number" required placeholder="45.00" />
+        <TextAreaField
+          name="description"
+          label="Descrição"
+          placeholder="O que está incluso no serviço."
+          rows={2}
+        />
       </form>
     </Modal>
   );

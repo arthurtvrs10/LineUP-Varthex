@@ -14,7 +14,7 @@ export type ModalBaseProps = {
   open: boolean;
   onClose: () => void;
   /** Chamado no submit, com a mensagem para o toast da página. */
-  onConcluir: (mensagem: string) => void;
+  onConcluir: (mensagem: string, tom?: "sucesso" | "erro") => void;
 };
 
 const profissionais = ["Lucas Oliveira", "Gabriel Santos", "Felipe Cardoso"];

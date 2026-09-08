@@ -39,6 +39,7 @@ export function TextField({
   type = "text",
   placeholder,
   defaultValue,
+  name,
 }: {
   label: string;
   hint?: string;
@@ -46,12 +47,14 @@ export function TextField({
   type?: string;
   placeholder?: string;
   defaultValue?: string;
+  name?: string;
 }) {
   const id = useId();
   return (
     <Wrapper id={id} label={label} hint={hint} required={required}>
       <input
         id={id}
+        name={name}
         type={type}
         required={required}
         placeholder={placeholder}
@@ -62,28 +65,36 @@ export function TextField({
   );
 }
 
+type SelectOption = string | { value: string; label: string };
+
 export function SelectField({
   label,
   options,
   hint,
   required,
   defaultValue,
+  name,
 }: {
   label: string;
-  options: string[];
+  options: SelectOption[];
   hint?: string;
   required?: boolean;
   defaultValue?: string;
+  name?: string;
 }) {
   const id = useId();
   return (
     <Wrapper id={id} label={label} hint={hint} required={required}>
-      <select id={id} required={required} defaultValue={defaultValue} className={baseInput}>
-        {options.map((o) => (
-          <option key={o} value={o}>
-            {o}
-          </option>
-        ))}
+      <select id={id} name={name} required={required} defaultValue={defaultValue} className={baseInput}>
+        {options.map((o) => {
+          const value = typeof o === "string" ? o : o.value;
+          const label = typeof o === "string" ? o : o.label;
+          return (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          );
+        })}
       </select>
     </Wrapper>
   );
@@ -94,17 +105,20 @@ export function TextAreaField({
   hint,
   placeholder,
   rows = 3,
+  name,
 }: {
   label: string;
   hint?: string;
   placeholder?: string;
   rows?: number;
+  name?: string;
 }) {
   const id = useId();
   return (
     <Wrapper id={id} label={label} hint={hint}>
       <textarea
         id={id}
+        name={name}
         rows={rows}
         placeholder={placeholder}
         className={`${baseInput} h-auto py-2.5`}

@@ -1,78 +1,125 @@
 "use client";
 
-import { useState } from "react";
-import { Plus, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Plus } from "lucide-react";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { NovoBarbeiroModal } from "./modals/CadastroModals";
+import { NovoBarbeiroModal, type NovoBarbeiroPayload } from "./modals/CadastroModals";
+import { apiFetch, ApiError } from "@/lib/api";
 
-type Barbeiro = {
-  initials: string;
-  avatarBg: string;
-  avatarText: string;
-  name: string;
-  email: string;
-  rating: string;
-  appointments: string;
-  specialties: string[];
-  revenue: string;
-  commission: string;
-  activeDays: boolean[];
+type BarberResponse = {
+  id: string;
+  userId: string;
+  unitId: string;
+  displayName: string;
+  bio: string | null;
+  defaultCommissionPercent: number;
+  status: "ACTIVE" | "INACTIVE" | "VACATION" | "BLOCKED";
+  createdAt: string;
+  updatedAt: string;
 };
 
-const metrics = [
-  { label: "Total de profissionais", value: "3" },
-  { label: "Faturamento médio", value: "R$ 9.800,00" },
-  { label: "Avaliação média", value: "4.7 ★" },
-  { label: "Atendimentos", value: "588" },
+type UserSummaryResponse = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+};
+
+const statusLabel: Record<BarberResponse["status"], string> = {
+  ACTIVE: "Ativo",
+  INACTIVE: "Inativo",
+  VACATION: "Férias",
+  BLOCKED: "Bloqueado",
+};
+
+const avatarPalette = [
+  { bg: "bg-[#e8f7f1]", text: "text-[#27865b]" },
+  { bg: "bg-accent-subtle", text: "text-accent-strong" },
+  { bg: "bg-[#eaf2fb]", text: "text-[#3478c9]" },
 ];
 
-const weekDays = ["S", "T", "Q", "Q", "S", "S", "D"];
+function avatarFor(id: string) {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) % avatarPalette.length;
+  return avatarPalette[hash];
+}
 
-const barbeiros: Barbeiro[] = [
-  {
-    initials: "LO",
-    avatarBg: "bg-[#e8f7f1]",
-    avatarText: "text-[#27865b]",
-    name: "Lucas Oliveira",
-    email: "lucas@estilounico.com.br",
-    rating: "4.9",
-    appointments: "248",
-    specialties: ["Corte degradê", "Barba modelada", "Sobrancelha"],
-    revenue: "R$ 12.400,00",
-    commission: "40%",
-    activeDays: [true, true, true, true, true, true, false],
-  },
-  {
-    initials: "GS",
-    avatarBg: "bg-[#e8f7f1]",
-    avatarText: "text-[#27865b]",
-    name: "Gabriel Santos",
-    email: "gabriel@estilounico.com.br",
-    rating: "4.7",
-    appointments: "196",
-    specialties: ["Corte social", "Pigmentação", "Progressiva"],
-    revenue: "R$ 9.800,00",
-    commission: "35%",
-    activeDays: [true, true, true, true, true, true, false],
-  },
-  {
-    initials: "FC",
-    avatarBg: "bg-accent-subtle",
-    avatarText: "text-accent-strong",
-    name: "Felipe Cardoso",
-    email: "felipe@estilounico.com.br",
-    rating: "4.6",
-    appointments: "144",
-    specialties: ["Corte infantil", "Corte clássico", "Barba"],
-    revenue: "R$ 7.200,00",
-    commission: "35%",
-    activeDays: [true, true, true, true, true, false, false],
-  },
-];
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
 
 export function AdminEquipePage() {
+  const [barbers, setBarbers] = useState<BarberResponse[]>([]);
+  const [usersById, setUsersById] = useState<Record<string, UserSummaryResponse>>({});
+  const [unitId, setUnitId] = useState<string>();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
   const [novoAberto, setNovoAberto] = useState(false);
   const toast = useToast();
+
+  async function carregar() {
+    try {
+      const unidade = await apiFetch<{ id: string }>("/unit");
+      setUnitId(unidade.id);
+
+      const [listaBarbeiros, listaUsuarios] = await Promise.all([
+        apiFetch<BarberResponse[]>(`/barbers?unitId=${unidade.id}`),
+        apiFetch<UserSummaryResponse[]>("/users"),
+      ]);
+
+      setBarbers(listaBarbeiros);
+      setUsersById(Object.fromEntries(listaUsuarios.map((u) => [u.id, u])));
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar a equipe.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  async function criarBarbeiro(payload: NovoBarbeiroPayload) {
+    if (!unitId) {
+      throw new ApiError(0, "Unidade ainda não carregou — tente novamente em instantes.");
+    }
+
+    const usuario = await apiFetch<{ id: string }>("/users", {
+      method: "POST",
+      body: {
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        role: "BARBER",
+      },
+    });
+
+    await apiFetch("/barbers", {
+      method: "POST",
+      body: {
+        userId: usuario.id,
+        unitId,
+        displayName: payload.name,
+        bio: "",
+        defaultCommissionPercent: Number(payload.commission) || 0,
+      },
+    });
+
+    await carregar();
+  }
+
+  const metrics = [
+    { label: "Total de profissionais", value: loading ? "…" : String(barbers.length) },
+    // Faturamento/avaliação/atendimentos dependem de Scheduling e
+    // Commissions, que ainda não existem — sem dado real pra mostrar.
+    { label: "Faturamento médio", value: "—" },
+    { label: "Avaliação média", value: "—" },
+    { label: "Atendimentos", value: "—" },
+  ];
 
   return (
     <div className="flex w-full flex-col items-start">
@@ -81,7 +128,9 @@ export function AdminEquipePage() {
           <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Equipe
           </h1>
-          <p className="pt-0.5 text-sm text-[#686a73]">{barbeiros.length} profissionais cadastrados</p>
+          <p className="pt-0.5 text-sm text-[#686a73]">
+            {loading ? "Carregando…" : `${barbers.length} profissionais cadastrados`}
+          </p>
         </div>
         <button
           type="button"
@@ -93,6 +142,12 @@ export function AdminEquipePage() {
         </button>
       </div>
 
+      {error && (
+        <p className="mt-4 w-full rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">
+          {error}
+        </p>
+      )}
+
       <div className="grid w-full grid-cols-2 lg:grid-cols-4 gap-4 pt-6">
         {metrics.map((metric) => (
           <div key={metric.label} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
@@ -103,79 +158,69 @@ export function AdminEquipePage() {
       </div>
 
       <div className="grid w-full grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 pt-6">
-        {barbeiros.map((barbeiro) => (
-          <div key={barbeiro.email} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
-            <div className="flex items-start gap-4">
-              <span
-                className={`grid size-12 shrink-0 place-items-center rounded-full ${barbeiro.avatarBg} text-base font-semibold ${barbeiro.avatarText}`}
-              >
-                {barbeiro.initials}
-              </span>
-              <div className="min-w-0 flex-1">
-                <div className="flex items-center justify-between">
-                  <p className="truncate text-base font-semibold text-[#0d1831]">{barbeiro.name}</p>
-                  <span className="shrink-0 rounded-full bg-[#e8f7f1] px-2 py-0.5 text-xs font-medium text-[#27865b]">
-                    Ativo
-                  </span>
+        {barbers.map((barbeiro) => {
+          const usuario = usersById[barbeiro.userId];
+          const avatar = avatarFor(barbeiro.id);
+          return (
+            <div key={barbeiro.id} className="rounded-[12px] border border-[#e6e4df] bg-white p-5">
+              <div className="flex items-start gap-4">
+                <span
+                  className={`grid size-12 shrink-0 place-items-center rounded-full ${avatar.bg} text-base font-semibold ${avatar.text}`}
+                >
+                  {initialsFor(barbeiro.displayName)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between">
+                    <p className="truncate text-base font-semibold text-[#0d1831]">
+                      {barbeiro.displayName}
+                    </p>
+                    <span
+                      className={`shrink-0 rounded-full px-2 py-0.5 text-xs font-medium ${
+                        barbeiro.status === "ACTIVE"
+                          ? "bg-[#e8f7f1] text-[#27865b]"
+                          : "bg-[#f0efea] text-[#686a73]"
+                      }`}
+                    >
+                      {statusLabel[barbeiro.status]}
+                    </span>
+                  </div>
+                  <p className="truncate pt-1 text-sm text-[#686a73]">{usuario?.email ?? "—"}</p>
+                  {/* Avaliação/atendimentos dependem de Scheduling — sem dado ainda */}
                 </div>
-                <p className="truncate pt-1 text-sm text-[#686a73]">{barbeiro.email}</p>
-                <div className="flex items-center gap-1 pt-1">
-                  <Star size={12} className="fill-[#686a73] text-[#686a73]" />
-                  <p className="text-xs text-[#686a73]">
-                    {barbeiro.rating} · {barbeiro.appointments} atendimentos
+              </div>
+
+              {/* Especialidades dependem do vínculo barbeiro↔serviço
+                  (PUT /barbers/{id}/services), ainda não construído. */}
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-[#e6e4df] pt-4 mt-4">
+                <div>
+                  <p className="text-xs text-[#686a73]">Faturamento</p>
+                  <p className="font-['Manrope',sans-serif] text-base font-bold text-[#0d1831]">—</p>
+                </div>
+                <div>
+                  <p className="text-xs text-[#686a73]">Comissão</p>
+                  <p className="font-['Manrope',sans-serif] text-base font-bold text-[#27865b]">
+                    {barbeiro.defaultCommissionPercent}%
                   </p>
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-wrap gap-1 pt-3">
-              {barbeiro.specialties.map((specialty) => (
-                <span
-                  key={specialty}
-                  className="rounded-full bg-accent-subtle px-2 py-0.5 text-xs font-medium text-accent-strong"
-                >
-                  {specialty}
-                </span>
-              ))}
+              {/* Jornada semanal (work-schedules) ainda não existe no backend */}
             </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-[#e6e4df] pt-4 mt-4">
-              <div>
-                <p className="text-xs text-[#686a73]">Faturamento</p>
-                <p className="font-['Manrope',sans-serif] text-base font-bold text-[#0d1831]">
-                  {barbeiro.revenue}
-                </p>
-              </div>
-              <div>
-                <p className="text-xs text-[#686a73]">Comissão</p>
-                <p className="font-['Manrope',sans-serif] text-base font-bold text-[#27865b]">
-                  {barbeiro.commission}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex gap-1 pt-3">
-              {weekDays.map((day, index) => (
-                <span
-                  key={index}
-                  className={`grid size-6 place-items-center rounded-[4px] text-[9px] font-medium ${
-                    barbeiro.activeDays[index]
-                      ? "bg-accent-subtle text-accent-strong"
-                      : "bg-[#f0efea] text-[#b0afa8]"
-                  }`}
-                >
-                  {day}
-                </span>
-              ))}
-            </div>
-          </div>
-        ))}
+          );
+        })}
+        {!loading && barbers.length === 0 && (
+          <p className="col-span-full py-6 text-center text-sm text-[#686a73]">
+            Nenhum profissional cadastrado.
+          </p>
+        )}
       </div>
 
       <NovoBarbeiroModal
         open={novoAberto}
         onClose={() => setNovoAberto(false)}
         onConcluir={toast.mostrar}
+        onCriar={criarBarbeiro}
       />
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>

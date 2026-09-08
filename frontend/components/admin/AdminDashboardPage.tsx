@@ -11,7 +11,10 @@ import {
   NovoBarbeiroModal,
   NovoClienteModal,
   RegistrarDespesaModal,
+  type NovoBarbeiroPayload,
+  type NovoClientePayload,
 } from "./modals/CadastroModals";
+import { apiFetch } from "@/lib/api";
 import {
   ChevronRight,
   Star,
@@ -188,6 +191,45 @@ export function AdminDashboardPage() {
   const toast = useToast();
 
   const fechar = () => setModalAberto(null);
+
+  async function criarCliente(payload: NovoClientePayload) {
+    await apiFetch("/customers", {
+      method: "POST",
+      body: {
+        fullName: payload.fullName,
+        email: payload.email || null,
+        phone: payload.phone || null,
+        birthDate: payload.birthDate || null,
+        notes: payload.notes || null,
+        version: 0,
+      },
+    });
+  }
+
+  async function criarBarbeiro(payload: NovoBarbeiroPayload) {
+    const unidade = await apiFetch<{ id: string }>("/unit");
+
+    const usuario = await apiFetch<{ id: string }>("/users", {
+      method: "POST",
+      body: {
+        name: payload.name,
+        email: payload.email,
+        password: payload.password,
+        role: "BARBER",
+      },
+    });
+
+    await apiFetch("/barbers", {
+      method: "POST",
+      body: {
+        userId: usuario.id,
+        unitId: unidade.id,
+        displayName: payload.name,
+        bio: "",
+        defaultCommissionPercent: Number(payload.commission) || 0,
+      },
+    });
+  }
 
   return (
     <div className="flex flex-col gap-5">
@@ -417,11 +459,13 @@ export function AdminDashboardPage() {
         open={modalAberto === "cliente"}
         onClose={fechar}
         onConcluir={toast.mostrar}
+        onCriar={criarCliente}
       />
       <NovoBarbeiroModal
         open={modalAberto === "barbeiro"}
         onClose={fechar}
         onConcluir={toast.mostrar}
+        onCriar={criarBarbeiro}
       />
       <RegistrarDespesaModal
         open={modalAberto === "despesa"}

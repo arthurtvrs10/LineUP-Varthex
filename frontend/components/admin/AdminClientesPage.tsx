@@ -1,119 +1,96 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { FilterSelect } from "@/components/ui/FilterSelect";
-import { NovoClienteModal } from "./modals/CadastroModals";
+import { NovoClienteModal, type NovoClientePayload } from "./modals/CadastroModals";
 import { Plus, Search, MoreVertical } from "lucide-react";
+import { apiFetch, ApiError } from "@/lib/api";
 
-type Cliente = {
-  initials: string;
-  avatarBg: string;
-  avatarText: string;
-  name: string;
-  email: string;
-  phone: string;
-  lastVisit: string;
-  nextAppointment: string;
-  totalSpent: string;
-  visits: string;
-  status: "Ativo" | "Inativo";
+type CustomerResponse = {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  notes: string | null;
+  version: number;
+  status: "ACTIVE" | "ARCHIVED";
+  createdAt: string;
 };
 
-const clientes: Cliente[] = [
-  {
-    initials: "JS",
-    avatarBg: "bg-[#fbf4e8]",
-    avatarText: "text-[#c8a86b]",
-    name: "João Silva",
-    email: "joao.silva@email.com",
-    phone: "(11) 96543-2109",
-    lastVisit: "05/08/2026",
-    nextAppointment: "15/08/2026",
-    totalSpent: "R$ 1.840,00",
-    visits: "46x",
-    status: "Ativo",
-  },
-  {
-    initials: "MR",
-    avatarBg: "bg-[#fdf3e3]",
-    avatarText: "text-[#d28b27]",
-    name: "Mateus Rodrigues",
-    email: "mateus.r@email.com",
-    phone: "(11) 95678-1234",
-    lastVisit: "20/07/2026",
-    nextAppointment: "—",
-    totalSpent: "R$ 640,00",
-    visits: "16x",
-    status: "Ativo",
-  },
-  {
-    initials: "TP",
-    avatarBg: "bg-[#fbf4e8]",
-    avatarText: "text-[#c8a86b]",
-    name: "Thiago Pereira",
-    email: "thiago.p@email.com",
-    phone: "(11) 94567-8901",
-    lastVisit: "10/06/2026",
-    nextAppointment: "—",
-    totalSpent: "R$ 2.200,00",
-    visits: "55x",
-    status: "Ativo",
-  },
-  {
-    initials: "BF",
-    avatarBg: "bg-[#e8f7f1]",
-    avatarText: "text-[#27865b]",
-    name: "Bruno Ferreira",
-    email: "bruno.f@email.com",
-    phone: "(11) 93456-7890",
-    lastVisit: "01/05/2026",
-    nextAppointment: "—",
-    totalSpent: "R$ 240,00",
-    visits: "6x",
-    status: "Inativo",
-  },
-  {
-    initials: "RC",
-    avatarBg: "bg-[#fdf3e3]",
-    avatarText: "text-[#d28b27]",
-    name: "Rafael Costa",
-    email: "rafael.c@email.com",
-    phone: "(11) 92345-6789",
-    lastVisit: "08/08/2026",
-    nextAppointment: "20/08/2026",
-    totalSpent: "R$ 960,00",
-    visits: "24x",
-    status: "Ativo",
-  },
-  {
-    initials: "DM",
-    avatarBg: "bg-[#eaf2fb]",
-    avatarText: "text-[#3478c9]",
-    name: "Diego Martins",
-    email: "diego.m@email.com",
-    phone: "(11) 91234-5678",
-    lastVisit: "10/08/2026",
-    nextAppointment: "—",
-    totalSpent: "R$ 580,00",
-    visits: "14x",
-    status: "Ativo",
-  },
+type CustomerPageResponse = {
+  items: CustomerResponse[];
+  page: { number: number; size: number; totalElements: number; totalPages: number };
+};
+
+const avatarPalette = [
+  { bg: "bg-[#fbf4e8]", text: "text-[#c8a86b]" },
+  { bg: "bg-[#fdf3e3]", text: "text-[#d28b27]" },
+  { bg: "bg-[#e8f7f1]", text: "text-[#27865b]" },
+  { bg: "bg-[#eaf2fb]", text: "text-[#3478c9]" },
 ];
 
+function avatarFor(id: string) {
+  let hash = 0;
+  for (const char of id) hash = (hash * 31 + char.charCodeAt(0)) % avatarPalette.length;
+  return avatarPalette[hash];
+}
+
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
 export function AdminClientesPage() {
+  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
   const [search, setSearch] = useState("");
   const [novoAberto, setNovoAberto] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState("Todos os status");
   const toast = useToast();
 
-  const filtered = clientes.filter(
-    (c) =>
-      (filtroStatus === "Todos os status" || c.status === filtroStatus) &&
-      [c.name, c.phone, c.email].some((field) =>
+  async function carregar() {
+    try {
+      const pagina = await apiFetch<CustomerPageResponse>("/customers?page=0&size=100");
+      setCustomers(pagina.items);
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar os clientes.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  async function criarCliente(payload: NovoClientePayload) {
+    await apiFetch("/customers", {
+      method: "POST",
+      body: {
+        fullName: payload.fullName,
+        email: payload.email || null,
+        phone: payload.phone || null,
+        birthDate: payload.birthDate || null,
+        notes: payload.notes || null,
+        version: 0,
+      },
+    });
+    await carregar();
+  }
+
+  const filtered = customers.filter((c) => {
+    const statusLabel = c.status === "ACTIVE" ? "Ativo" : "Inativo";
+    return (
+      (filtroStatus === "Todos os status" || statusLabel === filtroStatus) &&
+      [c.fullName, c.phone ?? "", c.email ?? ""].some((field) =>
         field.toLowerCase().includes(search.toLowerCase()),
-      ),
-  );
+      )
+    );
+  });
 
   return (
     <div className="flex w-full flex-col items-start">
@@ -122,7 +99,9 @@ export function AdminClientesPage() {
           <h1 className="font-['Manrope',sans-serif] text-2xl font-bold tracking-[-0.48px] text-[#0d1831]">
             Clientes
           </h1>
-          <p className="pt-0.5 text-sm text-[#686a73]">{clientes.length} clientes cadastrados</p>
+          <p className="pt-0.5 text-sm text-[#686a73]">
+            {loading ? "Carregando…" : `${customers.length} clientes cadastrados`}
+          </p>
         </div>
         <button
           type="button"
@@ -153,6 +132,12 @@ export function AdminClientesPage() {
         />
       </div>
 
+      {error && (
+        <p className="mt-4 w-full rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">
+          {error}
+        </p>
+      )}
+
       <div className="w-full pt-6">
         <div className="w-full overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">
           <table className="w-full min-w-[900px] border-collapse text-left">
@@ -169,50 +154,59 @@ export function AdminClientesPage() {
               </tr>
             </thead>
             <tbody>
-              {filtered.map((cliente) => (
-                <tr key={cliente.email} className="border-b border-[#e6e4df] last:border-b-0">
-                  <td className="sticky left-0 z-10 bg-white px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <span
-                        className={`grid size-8 shrink-0 place-items-center rounded-full ${cliente.avatarBg} text-xs font-semibold ${cliente.avatarText}`}
-                      >
-                        {cliente.initials}
-                      </span>
-                      <div>
-                        <p className="text-sm font-medium text-[#0d1831]">{cliente.name}</p>
-                        <p className="text-xs text-[#686a73]">{cliente.email}</p>
+              {filtered.map((cliente) => {
+                const avatar = avatarFor(cliente.id);
+                return (
+                  <tr key={cliente.id} className="border-b border-[#e6e4df] last:border-b-0">
+                    <td className="sticky left-0 z-10 bg-white px-4 py-3">
+                      <div className="flex items-center gap-3">
+                        <span
+                          className={`grid size-8 shrink-0 place-items-center rounded-full ${avatar.bg} text-xs font-semibold ${avatar.text}`}
+                        >
+                          {initialsFor(cliente.fullName)}
+                        </span>
+                        <div>
+                          <p className="text-sm font-medium text-[#0d1831]">{cliente.fullName}</p>
+                          <p className="text-xs text-[#686a73]">{cliente.email ?? "—"}</p>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.phone}</td>
-                  <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.lastVisit}</td>
-                  <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.nextAppointment}</td>
-                  <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">{cliente.totalSpent}</td>
-                  <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.visits}</td>
-                  <td className="px-4 py-3">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
-                        cliente.status === "Ativo"
-                          ? "bg-[#e8f7f1] text-[#27865b]"
-                          : "bg-[#f0efea] text-[#686a73]"
-                      }`}
-                    >
-                      {cliente.status}
-                    </span>
-                  </td>
-                  <td className="px-4 py-3 text-right">
-                    <button
-                      type="button"
-                      aria-label="Mais opções"
-                      className="text-[#b0afa8] transition hover:text-[#686a73]"
-                    >
-                      <MoreVertical size={16} />
-                    </button>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                    <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.phone ?? "—"}</td>
+                    {/* Sem dado de agendamento/pagamento ainda (Scheduling não existe) */}
+                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
+                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
+                    <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">—</td>
+                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
+                    <td className="px-4 py-3">
+                      <span
+                        className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
+                          cliente.status === "ACTIVE"
+                            ? "bg-[#e8f7f1] text-[#27865b]"
+                            : "bg-[#f0efea] text-[#686a73]"
+                        }`}
+                      >
+                        {cliente.status === "ACTIVE" ? "Ativo" : "Inativo"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-right">
+                      <button
+                        type="button"
+                        aria-label="Mais opções"
+                        className="text-[#b0afa8] transition hover:text-[#686a73]"
+                      >
+                        <MoreVertical size={16} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
+          {!loading && filtered.length === 0 && (
+            <p className="px-4 py-6 text-center text-sm text-[#686a73]">
+              Nenhum cliente encontrado.
+            </p>
+          )}
         </div>
       </div>
 
@@ -220,6 +214,7 @@ export function AdminClientesPage() {
         open={novoAberto}
         onClose={() => setNovoAberto(false)}
         onConcluir={toast.mostrar}
+        onCriar={criarCliente}
       />
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
