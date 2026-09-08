@@ -2,7 +2,9 @@ package com.backend.notifications;
 
 import com.backend.customers.Customer;
 import com.backend.email.EmailService;
+import com.backend.notifications.dto.NotificationPreferenceResponse;
 import com.backend.notifications.dto.NotificationResponse;
+import com.backend.notifications.dto.UpdateNotificationPreferenceRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -10,16 +12,36 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
 public class NotificationService {
 
+    // RF-NOT-004: confirmação/cancelamento nunca podem ser desligados por
+    // e-mail — são a única forma confiável do cliente saber do agendamento
+    // se ele não estiver de olho no app. Oferta de vaga fica livre pra
+    // desligar (quem confere o app com frequência pode preferir só in-app).
+    private static final Set<NotificationType> MANDATORY_EMAIL_TYPES = Set.of(
+            NotificationType.APPOINTMENT_CONFIRMED, NotificationType.APPOINTMENT_CANCELED
+    );
+
+    // Tipos que fazem sentido perguntar "quer e-mail disso?" — de proposito
+    // não inclui APPOINTMENT_CREATED, que hoje só notifica o barbeiro
+    // in-app, nunca por e-mail.
+    private static final List<NotificationType> CUSTOMER_EMAIL_TYPES = List.of(
+            NotificationType.APPOINTMENT_CONFIRMED, NotificationType.APPOINTMENT_CANCELED, NotificationType.WAITLIST_OFFER
+    );
+
     private final NotificationRepository notificationRepository;
+    private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final EmailService emailService;
 
-    public NotificationService(NotificationRepository notificationRepository, EmailService emailService) {
+    public NotificationService(NotificationRepository notificationRepository,
+                                NotificationPreferenceRepository notificationPreferenceRepository,
+                                EmailService emailService) {
         this.notificationRepository = notificationRepository;
+        this.notificationPreferenceRepository = notificationPreferenceRepository;
         this.emailService = emailService;
     }
 
@@ -50,7 +72,8 @@ public class NotificationService {
             notificationRepository.save(inApp);
         }
 
-        if (customer.getEmail() != null && !customer.getEmail().isBlank()) {
+        if (customer.getEmail() != null && !customer.getEmail().isBlank()
+                && isEmailEnabled(customer.getUserId(), type)) {
             boolean sent = emailService.sendNotificationEmail(customer.getEmail(), emailSubject, emailHtml);
             Notification email = new Notification(
                     tenantId, customer.getUserId(), customer.getId(), NotificationChannel.EMAIL, type,
@@ -87,6 +110,40 @@ public class NotificationService {
         LocalDateTime now = LocalDateTime.now();
         unread.forEach(n -> n.setReadAt(now));
         notificationRepository.saveAll(unread);
+    }
+
+    private boolean isEmailEnabled(UUID userId, NotificationType type) {
+        if (userId == null || MANDATORY_EMAIL_TYPES.contains(type)) {
+            return true;
+        }
+        return notificationPreferenceRepository.findByUserIdAndType(userId, type)
+                .map(NotificationPreference::isEmailEnabled)
+                .orElse(true);
+    }
+
+    public List<NotificationPreferenceResponse> listPreferences(UUID userId) {
+        return CUSTOMER_EMAIL_TYPES.stream()
+                .map(type -> new NotificationPreferenceResponse(type, isEmailEnabled(userId, type), MANDATORY_EMAIL_TYPES.contains(type)))
+                .toList();
+    }
+
+    // Ignora silenciosamente tentativas de desligar um tipo obrigatório —
+    // "respeitar preferências obrigatórias" (RF-NOT-004) sem precisar
+    // rejeitar a requisição inteira por causa de um item.
+    @Transactional
+    public void updatePreferences(UUID userId, List<UpdateNotificationPreferenceRequest> updates) {
+        for (UpdateNotificationPreferenceRequest update : updates) {
+            if (MANDATORY_EMAIL_TYPES.contains(update.type())) {
+                continue;
+            }
+
+            NotificationPreference preference = notificationPreferenceRepository
+                    .findByUserIdAndType(userId, update.type())
+                    .orElseGet(() -> new NotificationPreference(userId, update.type(), true));
+
+            preference.setEmailEnabled(update.emailEnabled());
+            notificationPreferenceRepository.save(preference);
+        }
     }
 
     private NotificationResponse toResponse(Notification n) {

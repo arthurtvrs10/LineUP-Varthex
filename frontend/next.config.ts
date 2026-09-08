@@ -35,6 +35,7 @@ const nextConfig: NextConfig = {
       { source: "/dashboard/:path*", destination: `${backendUrl}/dashboard/:path*` },
       { source: "/notifications", destination: `${backendUrl}/notifications` },
       { source: "/notifications/:path*", destination: `${backendUrl}/notifications/:path*` },
+      { source: "/notification-preferences", destination: `${backendUrl}/notification-preferences` },
       { source: "/waitlist-entries", destination: `${backendUrl}/waitlist-entries` },
       { source: "/waitlist-entries/:path*", destination: `${backendUrl}/waitlist-entries/:path*` },
       { source: "/waitlist-offers/:path*", destination: `${backendUrl}/waitlist-offers/:path*` },

@@ -1,6 +1,8 @@
 package com.backend.notifications;
 
+import com.backend.notifications.dto.NotificationPreferenceResponse;
 import com.backend.notifications.dto.NotificationResponse;
+import com.backend.notifications.dto.UpdateNotificationPreferenceRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,18 @@ public class NotificationController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void markAllRead(JwtAuthenticationToken authentication) {
         notificationService.markAllRead(currentTenantId(authentication), currentUserId(authentication));
+    }
+
+    @GetMapping("/notification-preferences")
+    public List<NotificationPreferenceResponse> listPreferences(JwtAuthenticationToken authentication) {
+        return notificationService.listPreferences(currentUserId(authentication));
+    }
+
+    @PutMapping("/notification-preferences")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updatePreferences(@RequestBody List<UpdateNotificationPreferenceRequest> updates,
+                                   JwtAuthenticationToken authentication) {
+        notificationService.updatePreferences(currentUserId(authentication), updates);
     }
 
     private UUID currentTenantId(JwtAuthenticationToken authentication) {

@@ -159,7 +159,8 @@ public class SecurityConfig {
                         // Notificações: qualquer role autenticada (inclusive CLIENT) —
                         // o escopo pelas próprias notificações é aplicado em
                         // NotificationController via o userId do JWT, não por role.
-                        .requestMatchers("/notifications", "/notifications/**")
+                        .requestMatchers("/notifications", "/notifications/**",
+                                "/notification-preferences")
                         .authenticated()
 
                         // Ofertar uma vaga (RN-FIL-003) é ação de staff, nunca do

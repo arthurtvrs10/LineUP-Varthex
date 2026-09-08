@@ -5,11 +5,37 @@ import { useSession, signOut } from "next-auth/react";
 import { KeyRound, Monitor, X } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
-import { EmBreve } from "@/components/ui/EmBreve";
 import { useMyCustomer } from "./MyCustomerContext";
 
 type MeResponse = { photoData: string | null };
 type SessionInfo = { id: string; createdAt: string; expiresAt: string; userAgent: string | null };
+type NotificationType = "APPOINTMENT_CONFIRMED" | "APPOINTMENT_CANCELED" | "WAITLIST_OFFER";
+type NotificationPreference = { type: NotificationType; emailEnabled: boolean; mandatory: boolean };
+
+const preferenceLabels: Record<NotificationType, string> = {
+  APPOINTMENT_CONFIRMED: "Confirmação de agendamento",
+  APPOINTMENT_CANCELED: "Cancelamento de agendamento",
+  WAITLIST_OFFER: "Vaga disponível na fila de espera",
+};
+
+function ToggleSwitch({ on, onToggle, disabled }: { on: boolean; onToggle: () => void; disabled?: boolean }) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={on}
+      disabled={disabled}
+      onClick={onToggle}
+      className={`relative h-6 w-11 shrink-0 rounded-full transition-colors ${
+        disabled ? "cursor-not-allowed opacity-50" : "cursor-pointer"
+      } ${on ? "bg-accent" : "bg-[#d9dce5]"}`}
+    >
+      <span
+        className={`absolute top-0.5 size-5 rounded-full bg-white shadow-sm transition-all ${on ? "left-[22px]" : "left-0.5"}`}
+      />
+    </button>
+  );
+}
 
 const sessionDateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
@@ -47,6 +73,27 @@ export function PerfilPage() {
 
   const [sessoes, setSessoes] = useState<SessionInfo[]>();
   const [encerrandoTudo, setEncerrandoTudo] = useState(false);
+
+  const [preferencias, setPreferencias] = useState<NotificationPreference[]>();
+
+  useEffect(() => {
+    apiFetch<NotificationPreference[]>("/notification-preferences")
+      .then(setPreferencias)
+      .catch(() => {});
+  }, []);
+
+  async function alternarPreferencia(pref: NotificationPreference) {
+    const novoValor = !pref.emailEnabled;
+    setPreferencias((prev) => prev?.map((p) => (p.type === pref.type ? { ...p, emailEnabled: novoValor } : p)));
+    try {
+      await apiFetch("/notification-preferences", {
+        method: "PUT",
+        body: [{ type: pref.type, emailEnabled: novoValor }],
+      });
+    } catch {
+      setPreferencias((prev) => prev?.map((p) => (p.type === pref.type ? { ...p, emailEnabled: pref.emailEnabled } : p)));
+    }
+  }
 
   function carregarSessoes() {
     apiFetch<SessionInfo[]>("/auth/sessions")
@@ -227,9 +274,27 @@ export function PerfilPage() {
 
       <section className="rounded-[12px] border border-[#e6e4df] bg-white p-6">
         <h2 className="text-xl font-bold text-[#0d1831]">Preferências de comunicação</h2>
-        <p className="mt-1 text-sm text-[#5f6f87]">Escolha como você prefere receber atualizações.</p>
-        <div className="mt-6 border-t border-[#e6e4df] pt-6">
-          <EmBreve text="Preferências de notificação ainda não estão disponíveis." />
+        <p className="mt-1 text-sm text-[#5f6f87]">Escolha quais atualizações você quer receber por e-mail.</p>
+        <div className="mt-6 flex flex-col divide-y divide-[#eef0f3] border-t border-[#e6e4df]">
+          {!preferencias ? (
+            <p className="py-4 text-sm text-[#98a2b3]">Carregando…</p>
+          ) : (
+            preferencias.map((pref) => (
+              <div key={pref.type} className="flex items-center justify-between gap-4 py-4">
+                <div>
+                  <p className="text-sm font-bold text-[#0d1831]">{preferenceLabels[pref.type]}</p>
+                  <p className="text-xs text-[#98a2b3]">
+                    {pref.mandatory ? "Sempre enviado por e-mail — não pode ser desligado." : "Notificação no app continua ativa de qualquer forma."}
+                  </p>
+                </div>
+                <ToggleSwitch
+                  on={pref.emailEnabled}
+                  disabled={pref.mandatory}
+                  onToggle={() => alternarPreferencia(pref)}
+                />
+              </div>
+            ))
+          )}
         </div>
       </section>
 
