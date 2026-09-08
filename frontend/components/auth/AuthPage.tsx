@@ -16,8 +16,16 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
-import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
+import { getSession, signIn } from "next-auth/react";
 import { Logo } from "@/components/brand/Logo";
+
+const roleRedirect: Record<string, string> = {
+  SUPER_ADMIN: "/superadmin/dashboard",
+  ADMIN: "/admin/dashboard",
+  BARBER: "/barbeiro/dashboard",
+  CLIENT: "/clientes/dashboard",
+};
 
 type AuthPageProps = {
   mode: "login" | "register";
@@ -172,12 +180,14 @@ function PasswordToggle({
 
 export function AuthPage({ mode }: AuthPageProps) {
   const registering = mode === "register";
+  const router = useRouter();
 
   const [values, setValues] = useState<FormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
   const [status, setStatus] = useState<"idle" | "submitting" | "success">(
     "idle",
   );
+  const [loginError, setLoginError] = useState<string>();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
@@ -197,9 +207,35 @@ export function AuthPage({ mode }: AuthPageProps) {
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    if (registering) {
+      // Cadastro de uma barbearia nova ainda não está integrado: o
+      // backend (POST /tenants) exige mais dados do que este formulário
+      // coleta hoje (nome da barbearia, fuso, unidade inicial). Fica
+      // simulado até esse formulário ser refeito.
+      setStatus("submitting");
+      await new Promise((resolve) => setTimeout(resolve, 900));
+      setStatus("success");
+      return;
+    }
+
     setStatus("submitting");
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setStatus("success");
+    setLoginError(undefined);
+
+    const result = await signIn("credentials", {
+      email: values.email,
+      password: values.password,
+      redirect: false,
+    });
+
+    if (!result || result.error) {
+      setStatus("idle");
+      setLoginError("E-mail ou senha inválidos.");
+      return;
+    }
+
+    const session = await getSession();
+    const destination = roleRedirect[session?.user?.role ?? ""] ?? "/clientes/dashboard";
+    router.push(destination);
   }
 
   async function handleGoogleAuth() {
@@ -207,7 +243,7 @@ export function AuthPage({ mode }: AuthPageProps) {
     // O NextAuth cuida do redirecionamento/popup do Google e da troca de
     // código; ao voltar, o backend já validou o ID token e emitiu o JWT
     // do LINEUP (ver app/api/auth/[...nextauth]/route.ts).
-    await signIn("google", { callbackUrl: "/clientes/dashboard" });
+    await signIn("google", { callbackUrl: "/auth/pos-login" });
   }
 
   return (
@@ -305,6 +341,12 @@ export function AuthPage({ mode }: AuthPageProps) {
                 type={showPassword ? "text" : "password"}
                 value={values.password}
               />
+
+              {!registering && loginError && (
+                <p className="rounded-lg bg-[#fdecee] px-3 py-2 text-[11px] font-medium text-[#e0333f]">
+                  {loginError}
+                </p>
+              )}
 
               {registering && (
                 <AuthField

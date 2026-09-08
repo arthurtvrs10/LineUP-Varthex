@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Archivo, Work_Sans } from "next/font/google";
+import { AuthSessionProvider } from "@/components/providers/AuthSessionProvider";
 import "./globals.css";
 
 // Self-hosted pelo next/font: sem chamada ao Google em runtime, sem layout shift.
@@ -39,7 +40,7 @@ export default function RootLayout({
       className={`${archivo.variable} ${workSans.variable} scroll-smooth`}
     >
       <body className="min-h-screen antialiased selection:bg-accent/20">
-        {children}
+        <AuthSessionProvider>{children}</AuthSessionProvider>
       </body>
     </html>
   );
