@@ -12,5 +12,7 @@ public interface BarberRepository extends JpaRepository<BarberProfile, UUID> {
 
     List<BarberProfile> findAllByUnit_Id(UUID unitId);
 
+    List<BarberProfile> findAllByUnit_Tenant_Id(UUID tenantId);
+
     Optional<BarberProfile> findByUser_Id(UUID userId);
 }

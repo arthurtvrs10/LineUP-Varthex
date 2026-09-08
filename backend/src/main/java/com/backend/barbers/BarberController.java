@@ -30,9 +30,22 @@ public class BarberController {
 
     @GetMapping
     public List<BarberResponse> getBarbers(
-            @RequestParam("unitId") UUID unitId
+            @RequestParam(value = "unitId", required = false) UUID unitId,
+            JwtAuthenticationToken authentication
     ) {
-        return barberService.listByUnit(unitId);
+        if (unitId != null) {
+            return barberService.listByUnit(unitId);
+        }
+
+        String tenantIdClaim = authentication.getToken().getClaimAsString("tenantId");
+        if (tenantIdClaim == null) {
+            throw new org.springframework.web.server.ResponseStatusException(
+                    org.springframework.http.HttpStatus.FORBIDDEN,
+                    "Usuário autenticado não está vinculado a nenhuma barbearia"
+            );
+        }
+
+        return barberService.listByTenant(UUID.fromString(tenantIdClaim));
     }
 
     @GetMapping("/me")

@@ -83,6 +83,45 @@ class BarberControllerTest {
     }
 
     @Test
+    void listaBarbeirosPorTenantQuandoUnitIdNaoInformado() throws Exception {
+        Tenant tenant = tenantRepository.save(new Tenant(
+                null, "Barbearia Tenant Wide", null, null,
+                "America/Sao_Paulo", "pt-BR", "BRL", null, null
+        ));
+        Unit unit = unitRepository.save(new Unit(
+                null, tenant, "Unidade Única", "America/Sao_Paulo", true
+        ));
+
+        User barberUser = userRepository.save(new User(
+                null, "Barbeiro Tenant", "barbeiro.tenant@barbers.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.BARBER, UserStatus.ACTIVE, tenant.getId(),
+                null, null, null
+        ));
+        BarberProfile barberProfile = new BarberProfile();
+        barberProfile.setUser(barberUser);
+        barberProfile.setUnit(unit);
+        barberProfile.setDisplayName("Barbeiro Tenant");
+        barberProfile.setDefaultCommissionPercent(30);
+        barberProfile.setStatus(BarberStatus.ACTIVE);
+        barberRepository.save(barberProfile);
+
+        User client = userRepository.save(new User(
+                null, "Cliente Tenant", "cliente.tenant@barbers.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, tenant.getId(),
+                null, null, null
+        ));
+        String clientToken = jwtService.generateTokemn(client);
+
+        mockMvc.perform(get("/barbers")
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].displayName").value("Barbeiro Tenant"));
+    }
+
+    @Test
     void usuarioSemPerfilDeBarbeiroRecebe404EmMe() throws Exception {
         User admin = userRepository.save(new User(
                 null, "Admin sem perfil", "admin.sem.perfil@barbers.dev",

@@ -82,6 +82,18 @@ public class BarberService {
                 .toList();
     }
 
+    // Usado quando quem pergunta (ex.: CLIENT montando a tela de
+    // agendamento) não tem como saber o unitId de antemão — Customer não
+    // tem unidade própria, só tenant. Lista todos os barbeiros do tenant,
+    // de qualquer unidade.
+    public List<BarberResponse> listByTenant(UUID tenantId) {
+        return barberRepository
+                .findAllByUnit_Tenant_Id(tenantId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
     public BarberResponse findById(UUID barberId) {
         return toResponse(findEntityById(barberId));
     }
