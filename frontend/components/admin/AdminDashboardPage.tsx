@@ -1,194 +1,175 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { AreaTrendChart } from "@/components/ui/TrendCharts";
 import { StatCard } from "@/components/ui/StatCard";
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
 import { Toast, useToast } from "@/components/ui/Toast";
-import { BloquearHorarioModal, NovoAgendamentoModal } from "./modals/AgendaModals";
+import { AdminBloquearHorarioModal, AdminNovoAgendamentoModal } from "./modals/AdminAgendaModals";
 import {
   NovoBarbeiroModal,
   NovoClienteModal,
-  RegistrarDespesaModal,
   type NovoBarbeiroPayload,
   type NovoClientePayload,
 } from "./modals/CadastroModals";
-import { apiFetch } from "@/lib/api";
-import {
-  ChevronRight,
-  Star,
-  Plus,
-  CalendarPlus,
-  UserPlus,
-  UserCog,
-  DollarSign,
-  Clock,
-  Package,
-} from "lucide-react";
+import { apiFetch, ApiError } from "@/lib/api";
+import { ChevronRight, Plus, CalendarPlus, UserPlus, UserCog, Clock } from "lucide-react";
 
-type Period = "Hoje" | "Semana" | "Mês";
+const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
+const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
+const weekdayShort = new Intl.DateTimeFormat("pt-BR", { weekday: "short" });
 
-type Metric = {
-  label: string;
-  value: string;
-  delta: string;
-  trend: "up" | "down" | "flat";
+type DashboardOverview = {
+  scheduled: number;
+  completed: number;
+  canceled: number;
+  noShow: number;
+  grossAmount: string;
+  commissionAmount: string;
 };
 
-const metrics: Metric[] = [
-  { label: "Faturamento hoje", value: "R$ 45,00", delta: "+12% vs ontem", trend: "up" },
-  { label: "Agendamentos", value: "5", delta: "+5% vs ontem", trend: "up" },
-  { label: "Ticket médio", value: "R$ 45,00", delta: "+3% vs ontem", trend: "up" },
-  { label: "Ocupação", value: "25%", delta: "-2% vs ontem", trend: "down" },
-  { label: "Cancelamentos", value: "0", delta: "0% vs ontem", trend: "flat" },
-  { label: "Clientes novos", value: "3", delta: "+50% vs ontem", trend: "up" },
-];
-
-type Appointment = {
-  initials: string;
-  avatarBg: string;
-  avatarColor: string;
-  name: string;
-  service: string;
-  time: string;
-  price: string;
-  status: string;
-  statusBg: string;
-  statusColor: string;
-  dotColor: string;
+type AppointmentStatus = "PENDING" | "CONFIRMED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED" | "CANCELED" | "NO_SHOW";
+type AppointmentResponse = {
+  id: string;
+  customerId: string;
+  barberId: string;
+  status: AppointmentStatus;
+  startAt: string;
+  endAt: string;
+  totalAmount: string;
+  items: { name: string }[];
 };
 
-const appointments: Appointment[] = [
-  {
-    initials: "JS",
-    avatarBg: "bg-[#fbf4e8]",
-    avatarColor: "text-[#c8a86b]",
-    name: "João Silva",
-    service: "Corte + barba · Lucas Oliveira",
-    time: "09:00 – 10:10",
-    price: "R$ 70,00",
-    status: "Confirmado",
-    statusBg: "bg-accent-subtle",
-    statusColor: "text-accent-strong",
-    dotColor: "bg-accent",
-  },
-  {
-    initials: "RC",
-    avatarBg: "bg-[#fdf3e3]",
-    avatarColor: "text-[#d28b27]",
-    name: "Rafael Costa",
-    service: "Corte degradê · Lucas Oliveira",
-    time: "10:30 – 11:15",
-    price: "R$ 45,00",
-    status: "Agendado",
-    statusBg: "bg-[#eaf2fb]",
-    statusColor: "text-[#3478c9]",
-    dotColor: "bg-[#3478c9]",
-  },
-  {
-    initials: "MR",
-    avatarBg: "bg-[#fdf3e3]",
-    avatarColor: "text-[#d28b27]",
-    name: "Mateus Rodrigues",
-    service: "Barba completa · Gabriel Santos",
-    time: "09:30 – 10:00",
-    price: "R$ 35,00",
-    status: "Em atendimento",
-    statusBg: "bg-[#fdf3e3]",
-    statusColor: "text-[#d28b27]",
-    dotColor: "bg-[#d28b27]",
-  },
-  {
-    initials: "TP",
-    avatarBg: "bg-[#fbf4e8]",
-    avatarColor: "text-[#c8a86b]",
-    name: "Thiago Pereira",
-    service: "Corte social · Gabriel Santos",
-    time: "11:00 – 11:40",
-    price: "R$ 40,00",
-    status: "Agendado",
-    statusBg: "bg-[#eaf2fb]",
-    statusColor: "text-[#3478c9]",
-    dotColor: "bg-[#3478c9]",
-  },
-  {
-    initials: "DM",
-    avatarBg: "bg-[#eaf2fb]",
-    avatarColor: "text-[#3478c9]",
-    name: "Diego Martins",
-    service: "Corte degradê · Felipe Cardoso",
-    time: "08:30 – 09:15",
-    price: "R$ 45,00",
-    status: "Concluído",
-    statusBg: "bg-[#e8f7f1]",
-    statusColor: "text-[#27865b]",
-    dotColor: "bg-[#27865b]",
-  },
-];
+type CustomerOption = { id: string; fullName: string };
+type CustomerPageResponse = { items: CustomerOption[] };
+type ServiceOption = { id: string; name: string; durationMinutes: number; price: string };
+type BarberOption = { id: string; unitId: string; displayName: string };
+type CommissionSummary = { provisionedAmount: string; approvedAmount: string; paidAmount: string };
+type TenantResponse = { tradeName: string };
 
-const teamPerformance = [
-  { initials: "LO", name: "Lucas Oliveira", value: "R$ 12.400,00", rating: "4.9", progress: 82 },
-  { initials: "GS", name: "Gabriel Santos", value: "R$ 9.800,00", rating: "4.7", progress: 65 },
-  { initials: "FC", name: "Felipe Cardoso", value: "R$ 7.200,00", rating: "4.6", progress: 48 },
-];
+const statusLabels: Record<AppointmentStatus, { label: string; bg: string; text: string; dot: string }> = {
+  PENDING: { label: "Pendente", bg: "bg-[#fdf3e3]", text: "text-[#d28b27]", dot: "bg-[#d28b27]" },
+  CONFIRMED: { label: "Confirmado", bg: "bg-accent-subtle", text: "text-accent-strong", dot: "bg-accent" },
+  CHECKED_IN: { label: "Check-in", bg: "bg-[#e8f7f1]", text: "text-[#27865b]", dot: "bg-[#27865b]" },
+  IN_PROGRESS: { label: "Em atendimento", bg: "bg-[#fdf3e3]", text: "text-[#d28b27]", dot: "bg-[#d28b27]" },
+  COMPLETED: { label: "Concluído", bg: "bg-[#e8f7f1]", text: "text-[#27865b]", dot: "bg-[#27865b]" },
+  CANCELED: { label: "Cancelado", bg: "bg-[#f0efea]", text: "text-[#686a73]", dot: "bg-[#98a2b3]" },
+  NO_SHOW: { label: "Falta", bg: "bg-[#fdecee]", text: "text-[#e0333f]", dot: "bg-[#e0333f]" },
+};
 
-const reviews = [
-  {
-    initials: "JS",
-    name: "João Silva",
-    stars: 5,
-    text: "Serviço impecável, como sempre. Lucas é muito habilidoso e atencioso.",
-  },
-  {
-    initials: "TP",
-    name: "Thiago Pereira",
-    stars: 4,
-    text: "Ótimo atendimento, o ambiente é muito agradável. Recomendo!",
-  },
-  {
-    initials: "RC",
-    name: "Rafael Costa",
-    stars: 5,
-    text: "Sempre saio daqui satisfeito. Melhor barbearia da região!",
-  },
-];
+function toLocalDateTime(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+}
 
-const lowStock = [
-  { name: "Óleo para barba", detail: "3 un · mínimo 5" },
-  { name: "Cera de acabamento mate", detail: "2 un · mínimo 5" },
-];
+function toIsoDate(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
 
 /** Qual modal cada ação rápida abre. */
-type ModalId =
-  | "agendamento"
-  | "cliente"
-  | "barbeiro"
-  | "despesa"
-  | "bloqueio";
+type ModalId = "agendamento" | "cliente" | "barbeiro" | "bloqueio";
 
 const quickActions: { label: string; icon: typeof CalendarPlus; modal: ModalId }[] = [
   { label: "Novo agendamento", icon: CalendarPlus, modal: "agendamento" },
   { label: "Cadastrar cliente", icon: UserPlus, modal: "cliente" },
   { label: "Adicionar barbeiro", icon: UserCog, modal: "barbeiro" },
-  { label: "Registrar despesa", icon: DollarSign, modal: "despesa" },
   { label: "Bloquear horário", icon: Clock, modal: "bloqueio" },
 ];
 
-const chartDays = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-const chartValues = [11, 12, 8, 15, 18, 25, 0];
-
-const chartData = chartDays.map((label, i) => ({
-  label,
-  value: chartValues[i],
-  detalhe: `${chartValues[i]} ${chartValues[i] === 1 ? "agendamento" : "agendamentos"}`,
-}));
-
 export function AdminDashboardPage() {
-  const [period, setPeriod] = useState<Period>("Hoje");
-  /** null = nenhum modal aberto. */
+  const { data: session } = useSession();
   const [modalAberto, setModalAberto] = useState<ModalId | null>(null);
   const toast = useToast();
+
+  const [tenantName, setTenantName] = useState<string>();
+  const [overview, setOverview] = useState<DashboardOverview>();
+  const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
+  const [customers, setCustomers] = useState<CustomerOption[]>([]);
+  const [services, setServices] = useState<ServiceOption[]>([]);
+  const [barbers, setBarbers] = useState<BarberOption[]>([]);
+  const [comissaoPorBarbeiro, setComissaoPorBarbeiro] = useState<{ barber: BarberOption; total: number }[]>([]);
+  const [chartData, setChartData] = useState<{ label: string; value: number; detalhe: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+
+  const customersById = Object.fromEntries(customers.map((c) => [c.id, c.fullName]));
+  const barbersById = Object.fromEntries(barbers.map((b) => [b.id, b.displayName]));
+
+  async function carregar() {
+    setLoading(true);
+    try {
+      const today = new Date();
+      const todayStart = new Date(today);
+      todayStart.setHours(0, 0, 0, 0);
+      const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
+      const [tenant, overviewRes, appointmentsRes, customersRes, servicesRes, barbersRes] = await Promise.all([
+        apiFetch<TenantResponse>("/tenant"),
+        apiFetch<DashboardOverview>(`/dashboard/overview?${new URLSearchParams({ date: toIsoDate(today) })}`),
+        apiFetch<AppointmentResponse[]>(
+          `/appointments?${new URLSearchParams({ from: toLocalDateTime(todayStart), to: toLocalDateTime(todayEnd) })}`,
+        ),
+        apiFetch<CustomerPageResponse>("/customers?page=0&size=200"),
+        apiFetch<ServiceOption[]>("/services"),
+        apiFetch<BarberOption[]>("/barbers"),
+      ]);
+
+      setTenantName(tenant.tradeName);
+      setOverview(overviewRes);
+      setAppointments(appointmentsRes.sort((a, b) => a.startAt.localeCompare(b.startAt)));
+      setCustomers(customersRes.items);
+      setServices(servicesRes);
+      setBarbers(barbersRes);
+
+      // Desempenho da equipe: comissão provisionada+aprovada+paga no mês, por barbeiro.
+      const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+      const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0);
+      const desempenho = await Promise.all(
+        barbersRes.map(async (barber) => {
+          const summary = await apiFetch<CommissionSummary>(
+            `/commissions/summary?${new URLSearchParams({
+              barberId: barber.id,
+              from: toIsoDate(monthStart),
+              to: toIsoDate(monthEnd),
+            })}`,
+          );
+          const total = Number(summary.provisionedAmount) + Number(summary.approvedAmount) + Number(summary.paidAmount);
+          return { barber, total };
+        }),
+      );
+      setComissaoPorBarbeiro(desempenho.sort((a, b) => b.total - a.total).slice(0, 5));
+
+      // Agendamentos por dia — semana atual.
+      const weekStart = new Date(today);
+      const diaSemana = weekStart.getDay();
+      weekStart.setDate(weekStart.getDate() + (diaSemana === 0 ? -6 : 1 - diaSemana));
+      weekStart.setHours(0, 0, 0, 0);
+
+      const dias = await Promise.all(
+        Array.from({ length: 7 }, (_, i) => {
+          const dia = new Date(weekStart);
+          dia.setDate(weekStart.getDate() + i);
+          return apiFetch<DashboardOverview>(`/dashboard/overview?${new URLSearchParams({ date: toIsoDate(dia) })}`)
+            .then((res) => ({ label: weekdayShort.format(dia).replace(".", ""), value: res.scheduled, detalhe: `${res.scheduled} agendamentos` }));
+        }),
+      );
+      setChartData(dias);
+
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar o dashboard.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregar();
+  }, []);
 
   const fechar = () => setModalAberto(null);
 
@@ -204,6 +185,7 @@ export function AdminDashboardPage() {
         version: 0,
       },
     });
+    carregar();
   }
 
   async function criarBarbeiro(payload: NovoBarbeiroPayload) {
@@ -229,52 +211,47 @@ export function AdminDashboardPage() {
         defaultCommissionPercent: Number(payload.commission) || 0,
       },
     });
+    carregar();
   }
+
+  const metrics = overview
+    ? [
+        { label: "Faturamento hoje", value: brl.format(Number(overview.grossAmount)), tone: "positivo" as const },
+        { label: "Agendamentos", value: String(overview.scheduled), tone: "neutro" as const },
+        { label: "Concluídos", value: String(overview.completed), tone: "positivo" as const },
+        { label: "Cancelados", value: String(overview.canceled), tone: "negativo" as const },
+        { label: "Faltas", value: String(overview.noShow), tone: "atencao" as const },
+        { label: "Comissão do dia", value: brl.format(Number(overview.commissionAmount)), tone: "neutro" as const },
+      ]
+    : [];
 
   return (
     <div className="flex flex-col gap-5">
       <SaudacaoHeader
-        data="Sexta-feira, 14 de agosto"
-        nome="Rafael"
-        contexto="Barbearia Estilo Único · Unidade Centro"
+        data={weekdayFormatter.format(new Date())}
+        nome={session?.user?.name?.split(" ")[0] ?? ""}
+        contexto={tenantName ?? ""}
         acoes={
-          <>
-            <div className="flex h-11 items-center gap-1 rounded-[10px] border border-[#e6e4df] bg-white p-1">
-              {(["Hoje", "Semana", "Mês"] as Period[]).map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => setPeriod(p)}
-                  className={`rounded-[8px] px-3 py-1.5 text-xs font-medium transition ${
-                    period === p ? "bg-accent text-on-accent" : "text-[#686a73] hover:bg-[#f7f6f2]"
-                  }`}
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={() => setModalAberto("agendamento")}
-              className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
-            >
-              <Plus className="h-4 w-4" />
-              Novo agendamento
-            </button>
-          </>
+          <button
+            type="button"
+            onClick={() => setModalAberto("agendamento")}
+            className="flex h-11 items-center justify-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover"
+          >
+            <Plus className="h-4 w-4" />
+            Novo agendamento
+          </button>
         }
       />
 
+      {error && <p className="rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">{error}</p>}
+
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
-        {metrics.map((metric) => (
+        {(loading ? Array.from({ length: 6 }) : metrics).map((metric, i) => (
           <StatCard
-            key={metric.label}
-            label={metric.label}
-            value={metric.value}
-            hint={metric.delta}
-            tone={
-              metric.trend === "up" ? "positivo" : metric.trend === "down" ? "negativo" : "neutro"
-            }
+            key={i}
+            label={loading ? "…" : (metric as (typeof metrics)[number]).label}
+            value={loading ? "…" : (metric as (typeof metrics)[number]).value}
+            tone={loading ? "neutro" : (metric as (typeof metrics)[number]).tone}
           />
         ))}
       </div>
@@ -291,29 +268,38 @@ export function AdminDashboardPage() {
             </Link>
           </div>
           <div className="mt-4 flex flex-col divide-y divide-[#e6e4df]">
-            {appointments.map((apt) => (
-              <div key={apt.name} className="flex items-center gap-3 py-3">
-                <span
-                  className={`grid size-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${apt.avatarBg} ${apt.avatarColor}`}
-                >
-                  {apt.initials}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between gap-2">
-                    <p className="truncate text-sm font-medium text-[#0d1831]">{apt.name}</p>
-                    <span
-                      className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${apt.statusBg} ${apt.statusColor}`}
-                    >
-                      <span className={`size-1.5 rounded-full ${apt.dotColor}`} />
-                      {apt.status}
+            {loading ? (
+              <p className="py-4 text-sm text-[#98a2b3]">Carregando…</p>
+            ) : appointments.length === 0 ? (
+              <p className="py-4 text-sm text-[#98a2b3]">Nenhum agendamento hoje.</p>
+            ) : (
+              appointments.map((apt) => {
+                const style = statusLabels[apt.status];
+                return (
+                  <div key={apt.id} className="flex items-center gap-3 py-3">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f7f6f2] text-xs font-semibold text-[#5f6f87]">
+                      {(customersById[apt.customerId] ?? "?").slice(0, 2).toUpperCase()}
                     </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="truncate text-sm font-medium text-[#0d1831]">{customersById[apt.customerId] ?? "Cliente"}</p>
+                        <span className={`flex shrink-0 items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${style.bg} ${style.text}`}>
+                          <span className={`size-1.5 rounded-full ${style.dot}`} />
+                          {style.label}
+                        </span>
+                      </div>
+                      <p className="truncate text-xs text-[#686a73]">
+                        {apt.items.map((i) => i.name).join(" + ")} · {barbersById[apt.barberId] ?? "Profissional"}
+                      </p>
+                      <p className="text-xs text-[#686a73]">
+                        {timeFormatter.format(new Date(apt.startAt))} – {timeFormatter.format(new Date(apt.endAt))}
+                      </p>
+                    </div>
+                    <p className="shrink-0 text-sm font-semibold text-[#0d1831]">{brl.format(Number(apt.totalAmount))}</p>
                   </div>
-                  <p className="truncate text-xs text-[#686a73]">{apt.service}</p>
-                  <p className="text-xs text-[#686a73]">{apt.time}</p>
-                </div>
-                <p className="shrink-0 text-sm font-semibold text-[#0d1831]">{apt.price}</p>
-              </div>
-            ))}
+                );
+              })
+            )}
           </div>
         </div>
 
@@ -321,96 +307,53 @@ export function AdminDashboardPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-sm font-bold text-[#0d1831]">Desempenho da equipe</h2>
-              <p className="text-xs text-[#686a73]">Este mês</p>
+              <p className="text-xs text-[#686a73]">Comissão deste mês</p>
             </div>
             <Link href="/admin/equipe" className="flex items-center gap-1 text-xs text-accent-strong">
               Ver tudo <ChevronRight className="h-3 w-3" />
             </Link>
           </div>
           <div className="mt-4 flex flex-col gap-4">
-            {teamPerformance.map((member) => (
-              <div key={member.name} className="flex items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#e8f7f1] text-xs font-semibold text-[#27865b]">
-                  {member.initials}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="truncate text-sm font-medium text-[#0d1831]">{member.name}</p>
-                    <p className="text-sm font-semibold text-[#0d1831]">{member.value}</p>
-                  </div>
-                  <div className="mt-1 flex items-center gap-2">
-                    <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-[#f0efea]">
-                      <div className="h-1.5 rounded-full bg-accent" style={{ width: `${member.progress}%` }} />
-                    </div>
-                    <span className="flex shrink-0 items-center gap-1 text-xs text-[#686a73]">
-                      <Star className="h-2.5 w-2.5 fill-[#d28b27] text-[#d28b27]" />
-                      {member.rating}
+            {loading ? (
+              <p className="text-sm text-[#98a2b3]">Carregando…</p>
+            ) : comissaoPorBarbeiro.length === 0 ? (
+              <p className="text-sm text-[#98a2b3]">Nenhum barbeiro cadastrado ainda.</p>
+            ) : (
+              (() => {
+                const max = Math.max(...comissaoPorBarbeiro.map((c) => c.total), 1);
+                return comissaoPorBarbeiro.map(({ barber, total }) => (
+                  <div key={barber.id} className="flex items-center gap-3">
+                    <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#e8f7f1] text-xs font-semibold text-[#27865b]">
+                      {barber.displayName.slice(0, 2).toUpperCase()}
                     </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="truncate text-sm font-medium text-[#0d1831]">{barber.displayName}</p>
+                        <p className="text-sm font-semibold text-[#0d1831]">{brl.format(total)}</p>
+                      </div>
+                      <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-[#f0efea]">
+                        <div className="h-1.5 rounded-full bg-accent" style={{ width: `${(total / max) * 100}%` }} />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
-            ))}
+                ));
+              })()
+            )}
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2.5">
-        <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#0d1831]">Avaliações recentes</h2>
-            <Link href="/admin/avaliacoes" className="flex items-center gap-1 text-xs text-accent-strong">
-              Ver tudo <ChevronRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="mt-4 flex flex-col gap-3">
-            {reviews.map((review) => (
-              <div key={review.name} className="flex gap-2">
-                <span className="grid size-6 shrink-0 place-items-center rounded-full bg-[#fbf4e8] text-[10px] font-semibold text-[#c8a86b]">
-                  {review.initials}
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-center justify-between">
-                    <p className="text-xs font-medium text-[#0d1831]">{review.name}</p>
-                    <div className="flex items-center gap-px">
-                      {Array.from({ length: 5 }).map((_, i) => (
-                        <Star
-                          key={i}
-                          className={`h-2.5 w-2.5 ${
-                            i < review.stars ? "fill-[#d28b27] text-[#d28b27]" : "text-[#e6e4df]"
-                          }`}
-                        />
-                      ))}
-                    </div>
-                  </div>
-                  <p className="mt-0.5 text-xs text-[#686a73]">{review.text}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
-          <div className="flex items-center justify-between">
-            <h2 className="text-sm font-bold text-[#0d1831]">Estoque baixo</h2>
-            <Link href="/admin/estoque" className="flex items-center gap-1 text-xs text-accent-strong">
-              Ver tudo <ChevronRight className="h-3 w-3" />
-            </Link>
-          </div>
-          <div className="mt-4 flex flex-col gap-3">
-            {lowStock.map((item) => (
-              <div key={item.name} className="flex items-center gap-3">
-                <span className="grid size-8 shrink-0 place-items-center rounded-lg bg-[#fdf3e3]">
-                  <Package className="h-4 w-4 text-[#d28b27]" />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <p className="truncate text-sm font-medium text-[#0d1831]">{item.name}</p>
-                  <p className="text-xs text-[#686a73]">{item.detail}</p>
-                </div>
-                <span className="shrink-0 rounded-full bg-[#fdf3e3] px-2 py-0.5 text-xs font-medium text-[#d28b27]">
-                  Baixo
-                </span>
-              </div>
-            ))}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-2.5">
+        <div className="rounded-xl border border-[#e6e4df] bg-white p-5 lg:col-span-2">
+          <h2 className="text-sm font-bold text-[#0d1831]">Agendamentos por dia</h2>
+          <p className="text-xs text-[#686a73]">Semana atual</p>
+          <div className="mt-4">
+            <AreaTrendChart
+              data={chartData}
+              height={200}
+              yWidth={32}
+              label={`Agendamentos por dia na semana atual. ${chartData.map((d) => `${d.label}: ${d.value}`).join(", ")}.`}
+            />
           </div>
         </div>
 
@@ -435,47 +378,24 @@ export function AdminDashboardPage() {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#e6e4df] bg-white p-5">
-        <h2 className="text-sm font-bold text-[#0d1831]">Agendamentos por dia</h2>
-        <p className="text-xs text-[#686a73]">Semana atual</p>
-        <div className="mt-4">
-          <AreaTrendChart
-            data={chartData}
-            height={200}
-            yWidth={32}
-            label={`Agendamentos por dia na semana atual. ${chartData
-              .map((d) => `${d.label}: ${d.value}`)
-              .join(", ")}.`}
-          />
-        </div>
-      </div>
-
-      <NovoAgendamentoModal
+      <AdminNovoAgendamentoModal
         open={modalAberto === "agendamento"}
         onClose={fechar}
-        onConcluir={toast.mostrar}
+        onConcluir={(msg, tom) => {
+          toast.mostrar(msg, tom);
+          carregar();
+        }}
+        customers={customers}
+        services={services}
+        barbers={barbers}
       />
-      <NovoClienteModal
-        open={modalAberto === "cliente"}
-        onClose={fechar}
-        onConcluir={toast.mostrar}
-        onCriar={criarCliente}
-      />
-      <NovoBarbeiroModal
-        open={modalAberto === "barbeiro"}
-        onClose={fechar}
-        onConcluir={toast.mostrar}
-        onCriar={criarBarbeiro}
-      />
-      <RegistrarDespesaModal
-        open={modalAberto === "despesa"}
-        onClose={fechar}
-        onConcluir={toast.mostrar}
-      />
-      <BloquearHorarioModal
+      <NovoClienteModal open={modalAberto === "cliente"} onClose={fechar} onConcluir={toast.mostrar} onCriar={criarCliente} />
+      <NovoBarbeiroModal open={modalAberto === "barbeiro"} onClose={fechar} onConcluir={toast.mostrar} onCriar={criarBarbeiro} />
+      <AdminBloquearHorarioModal
         open={modalAberto === "bloqueio"}
         onClose={fechar}
         onConcluir={toast.mostrar}
+        barbers={barbers}
       />
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
