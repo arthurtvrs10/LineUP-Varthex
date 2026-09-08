@@ -12,7 +12,8 @@ public record UserResponse (
         Role role,
         UserStatus UserStatus,
         UUID tenantId,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String photoData
 ) {
 
 }

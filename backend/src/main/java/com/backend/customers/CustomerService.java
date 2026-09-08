@@ -52,6 +52,20 @@ public class CustomerService {
     }
 
     @Transactional
+    public MeCustomerResponse updateMyPhone(UUID userId, String phone) {
+        Customer customer = customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Você ainda não é cliente de nenhuma barbearia"
+                ));
+
+        customer.setPhone(phone == null || phone.isBlank() ? null : phone);
+        customerRepository.save(customer);
+
+        return getMyCustomer(userId);
+    }
+
+    @Transactional
     public CustomerResponse createCustomer(UUID tenantId, CustomerRequest request) {
         validate(request);
 

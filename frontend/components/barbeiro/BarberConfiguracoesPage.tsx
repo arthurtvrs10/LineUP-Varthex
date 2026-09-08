@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Bell, CalendarCog, Scissors, UserRound } from "lucide-react";
 import { FieldInput, SectionCard } from "@/components/ui/SettingsPrimitives";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { EmBreve } from "@/components/ui/EmBreve";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { apiFetch, ApiError } from "@/lib/api";
@@ -16,6 +17,13 @@ type BarberMeResponse = {
   version: number;
 };
 
+type MeResponse = { photoData: string | null };
+
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
 export function BarberConfiguracoesPage() {
   const { data: session, update: updateSession } = useSession();
   const [barber, setBarber] = useState<BarberMeResponse>();
@@ -24,6 +32,7 @@ export function BarberConfiguracoesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const [nome, setNome] = useState("");
+  const [photoData, setPhotoData] = useState<string | null>(null);
   const [savingConta, setSavingConta] = useState(false);
   const toast = useToast();
 
@@ -31,10 +40,14 @@ export function BarberConfiguracoesPage() {
     if (session?.user?.name) setNome(session.user.name);
   }, [session?.user?.name]);
 
+  useEffect(() => {
+    apiFetch<MeResponse>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
+  }, []);
+
   async function salvarConta() {
     setSavingConta(true);
     try {
-      await apiFetch("/users/me", { method: "PATCH", body: { name: nome } });
+      await apiFetch("/users/me", { method: "PATCH", body: { name: nome, photoData } });
       await updateSession?.({ name: nome });
       toast.mostrar("Perfil atualizado!");
     } catch (err) {
@@ -78,6 +91,13 @@ export function BarberConfiguracoesPage() {
       )}
 
       <SectionCard icon={UserRound} title="Conta">
+        <div className="flex justify-center">
+          <AvatarUpload
+            photoData={photoData}
+            initials={initialsFor(nome || session?.user?.email || "")}
+            onChange={setPhotoData}
+          />
+        </div>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput label="Nome" value={nome} onChange={setNome} />
           <FieldInput label="E-mail" value={session?.user?.email ?? ""} onChange={() => {}} disabled type="email" />

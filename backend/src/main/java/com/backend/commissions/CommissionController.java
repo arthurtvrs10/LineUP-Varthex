@@ -44,6 +44,20 @@ public class CommissionController {
         return commissionService.updateRule(currentTenantId(authentication), id, request);
     }
 
+    // Mesma regra de escopo do resumo (RN-COM-004), mas devolve os lançamentos
+    // individuais em vez do agregado — usado pela tela de histórico do barbeiro.
+    @GetMapping("/commissions")
+    public List<CommissionEntryResponse> list(
+            @RequestParam LocalDate from,
+            @RequestParam LocalDate to,
+            @RequestParam(required = false) UUID barberId,
+            JwtAuthenticationToken authentication
+    ) {
+        UUID tenantId = currentTenantId(authentication);
+        UUID effectiveBarberId = "BARBER".equals(role(authentication)) ? ownBarberId(authentication) : barberId;
+        return commissionService.listEntries(tenantId, from, to, effectiveBarberId);
+    }
+
     // Admin/SuperAdmin veem a equipe inteira; BARBER só os próprios lançamentos (RN-COM-004) —
     // barberId da query é ignorado pra esse role, sempre força o barberId do próprio JWT.
     @GetMapping("/commissions/summary")

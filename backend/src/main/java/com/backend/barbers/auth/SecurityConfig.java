@@ -72,6 +72,9 @@ public class SecurityConfig {
                         .hasRole("SUPER_ADMIN")
 
                         // Autoatendimento do próprio perfil — qualquer role autenticada.
+                        .requestMatchers(HttpMethod.GET, "/users/me")
+                        .authenticated()
+
                         .requestMatchers(HttpMethod.PATCH, "/users/me")
                         .authenticated()
 
@@ -157,6 +160,11 @@ public class SecurityConfig {
                         // NotificationController via o userId do JWT, não por role.
                         .requestMatchers("/notifications", "/notifications/**")
                         .authenticated()
+
+                        // Fila de espera: staff vê a fila inteira do tenant, CLIENT só
+                        // entra/sai da própria — escopo aplicado em WaitlistController.
+                        .requestMatchers("/waitlist-entries", "/waitlist-entries/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
 
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()

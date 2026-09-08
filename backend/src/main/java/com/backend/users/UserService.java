@@ -70,13 +70,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User updateOwnName(UUID userId, String name) {
+    public User updateOwnProfile(UUID userId, String name, String photoData) {
         if (name == null || name.isBlank()) {
             throw new RuntimeException("O nome é obrigatório");
         }
 
         User user = findById(userId);
         user.setName(name);
+        if (photoData != null) {
+            user.setPhotoData(photoData.isBlank() ? null : photoData);
+        }
         return userRepository.save(user);
     }
 

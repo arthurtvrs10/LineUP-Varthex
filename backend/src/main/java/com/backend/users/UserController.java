@@ -38,11 +38,10 @@ public class UserController {
         return new RequesterContext(role, tenantId);
     }
 
-    @PatchMapping("/me")
-    public UserResponse updateOwnProfile(@RequestBody UpdateOwnProfileRequest request,
-                                          JwtAuthenticationToken authentication) {
+    @GetMapping("/me")
+    public UserResponse getOwnProfile(JwtAuthenticationToken authentication) {
         UUID userId = UUID.fromString(authentication.getToken().getSubject());
-        User user = userService.updateOwnName(userId, request.name());
+        User user = userService.findById(userId);
 
         return new UserResponse(
                 user.getId(),
@@ -51,7 +50,26 @@ public class UserController {
                 user.getRole(),
                 user.getStatus(),
                 user.getTenantId(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getPhotoData()
+        );
+    }
+
+    @PatchMapping("/me")
+    public UserResponse updateOwnProfile(@RequestBody UpdateOwnProfileRequest request,
+                                          JwtAuthenticationToken authentication) {
+        UUID userId = UUID.fromString(authentication.getToken().getSubject());
+        User user = userService.updateOwnProfile(userId, request.name(), request.photoData());
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getTenantId(),
+                user.getCreatedAt(),
+                user.getPhotoData()
         );
     }
 
@@ -74,7 +92,8 @@ public class UserController {
                 createdUser.getRole(),
                 createdUser.getStatus(),
                 createdUser.getTenantId(),
-                createdUser.getCreatedAt()
+                createdUser.getCreatedAt(),
+                createdUser.getPhotoData()
         );
     }
 
@@ -104,7 +123,8 @@ public class UserController {
                 user.getRole(),
                 user.getStatus(),
                 user.getTenantId(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getPhotoData()
         );
     }
 
@@ -119,7 +139,8 @@ public class UserController {
                 user.getRole(),
                 user.getStatus(),
                 user.getTenantId(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getPhotoData()
         );
     }
 
@@ -133,7 +154,8 @@ public class UserController {
                 user.getRole(),
                 user.getStatus(),
                 user.getTenantId(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getPhotoData()
         );
     }
 
@@ -147,7 +169,8 @@ public class UserController {
                 user.getRole(),
                 user.getStatus(),
                 user.getTenantId(),
-                user.getCreatedAt()
+                user.getCreatedAt(),
+                user.getPhotoData()
         );
     }
 }

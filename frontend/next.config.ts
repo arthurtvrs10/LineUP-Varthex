@@ -30,10 +30,13 @@ const nextConfig: NextConfig = {
       { source: "/commission-rules", destination: `${backendUrl}/commission-rules` },
       { source: "/commission-rules/:path*", destination: `${backendUrl}/commission-rules/:path*` },
       { source: "/commission-adjustments", destination: `${backendUrl}/commission-adjustments` },
+      { source: "/commissions", destination: `${backendUrl}/commissions` },
       { source: "/commissions/:path*", destination: `${backendUrl}/commissions/:path*` },
       { source: "/dashboard/:path*", destination: `${backendUrl}/dashboard/:path*` },
       { source: "/notifications", destination: `${backendUrl}/notifications` },
       { source: "/notifications/:path*", destination: `${backendUrl}/notifications/:path*` },
+      { source: "/waitlist-entries", destination: `${backendUrl}/waitlist-entries` },
+      { source: "/waitlist-entries/:path*", destination: `${backendUrl}/waitlist-entries/:path*` },
     ];
   },
 };

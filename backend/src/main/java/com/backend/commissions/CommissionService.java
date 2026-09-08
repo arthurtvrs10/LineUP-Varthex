@@ -106,6 +106,18 @@ public class CommissionService {
         }
     }
 
+    @Transactional(readOnly = true)
+    public List<CommissionEntryResponse> listEntries(UUID tenantId, LocalDate from, LocalDate to, UUID barberId) {
+        LocalDateTime start = from.atStartOfDay();
+        LocalDateTime end = to.plusDays(1).atStartOfDay();
+
+        List<CommissionEntry> entries = barberId != null
+                ? commissionEntryRepository.findAllByTenantIdAndBarberIdAndCreatedAtBetweenOrderByCreatedAtDesc(tenantId, barberId, start, end)
+                : commissionEntryRepository.findAllByTenantIdAndCreatedAtBetweenOrderByCreatedAtDesc(tenantId, start, end);
+
+        return entries.stream().map(this::toEntryResponse).toList();
+    }
+
     public CommissionSummaryResponse summary(UUID tenantId, LocalDate from, LocalDate to, UUID barberId) {
         LocalDateTime start = from.atStartOfDay();
         LocalDateTime end = to.plusDays(1).atStartOfDay();

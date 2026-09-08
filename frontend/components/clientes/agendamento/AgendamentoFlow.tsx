@@ -223,7 +223,7 @@ export function AgendamentoFlow() {
           <PassoDataHora
             hoje={hoje}
             barberId={selecao.profissional.id}
-            duracaoMin={selecao.servico.duracaoMin}
+            serviceId={selecao.servico.id}
             dia={selecao.dia}
             horario={selecao.horario}
             /* Trocar de dia zera o horário: o escolhido pode estar ocupado no novo dia. */

@@ -48,6 +48,11 @@ public class User {
     @Column(nullable = false, length = 20)
     private AuthProvider provider;
 
+    // Data URL (base64) da foto de perfil — sem infra de storage de arquivo
+    // ainda, então guarda direto no banco. Nula = usa as iniciais no lugar.
+    @Column(name = "photo_data", columnDefinition = "TEXT")
+    private String photoData;
+
     public User() {
         // O JPA precisa de um construtor sem argumentos para conseguir criar a entidade.
     }
@@ -160,6 +165,14 @@ public class User {
 
     public void setProvider(AuthProvider provider) {
         this.provider = provider;
+    }
+
+    public String getPhotoData() {
+        return photoData;
+    }
+
+    public void setPhotoData(String photoData) {
+        this.photoData = photoData;
     }
 
     public void changeStatus(UserStatus status) {

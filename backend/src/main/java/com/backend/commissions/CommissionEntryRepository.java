@@ -14,4 +14,10 @@ public interface CommissionEntryRepository extends JpaRepository<CommissionEntry
             UUID tenantId, UUID barberId, LocalDateTime from, LocalDateTime to);
 
     List<CommissionEntry> findAllByAppointmentId(UUID appointmentId);
+
+    List<CommissionEntry> findAllByTenantIdAndCreatedAtBetweenOrderByCreatedAtDesc(
+            UUID tenantId, LocalDateTime from, LocalDateTime to);
+
+    List<CommissionEntry> findAllByTenantIdAndBarberIdAndCreatedAtBetweenOrderByCreatedAtDesc(
+            UUID tenantId, UUID barberId, LocalDateTime from, LocalDateTime to);
 }

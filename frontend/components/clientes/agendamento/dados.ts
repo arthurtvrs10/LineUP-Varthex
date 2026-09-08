@@ -54,15 +54,6 @@ export function proximosDias(base: Date, quantidade = 14): DiaDisponivel[] {
   });
 }
 
-/** Janela fixa de horários — ainda não existe jornada de trabalho real
- * cadastrada por barbeiro, então isto é um horário comercial padrão, não
- * a disponibilidade real de cada profissional. */
-export const horarios = [
-  "08:00", "08:30", "09:00", "09:30", "10:00", "10:30",
-  "11:00", "11:30", "13:00", "13:30", "14:00", "14:30",
-  "15:00", "15:30", "16:00", "16:30", "17:00", "17:30",
-];
-
 export type Selecao = {
   servico: Servico | null;
   profissional: Profissional | null;

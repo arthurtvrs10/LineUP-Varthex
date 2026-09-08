@@ -9,8 +9,16 @@ import {
   SectionCard,
   ToggleRow,
 } from "@/components/ui/SettingsPrimitives";
+import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { apiFetch, ApiError } from "@/lib/api";
+
+type MeResponse = { photoData: string | null };
+
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
 
 type Integracao = {
   nome: string;
@@ -37,6 +45,7 @@ const integracaoStyles: Record<Integracao["status"], { bg: string; color: string
 export function SuperAdminConfiguracoesPage() {
   const { data: session, update: updateSession } = useSession();
   const [nome, setNome] = useState("");
+  const [photoData, setPhotoData] = useState<string | null>(null);
   const [savingConta, setSavingConta] = useState(false);
   const toast = useToast();
 
@@ -44,10 +53,14 @@ export function SuperAdminConfiguracoesPage() {
     if (session?.user?.name) setNome(session.user.name);
   }, [session?.user?.name]);
 
+  useEffect(() => {
+    apiFetch<MeResponse>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
+  }, []);
+
   async function salvarConta() {
     setSavingConta(true);
     try {
-      await apiFetch("/users/me", { method: "PATCH", body: { name: nome } });
+      await apiFetch("/users/me", { method: "PATCH", body: { name: nome, photoData } });
       await updateSession?.({ name: nome });
       toast.mostrar("Perfil atualizado!");
     } catch (err) {
@@ -61,6 +74,13 @@ export function SuperAdminConfiguracoesPage() {
     <div className="flex w-full flex-col items-end gap-4">
       <div className="flex w-full flex-col gap-4">
         <SectionCard icon={UserRound} title="Conta">
+          <div className="flex justify-center">
+            <AvatarUpload
+              photoData={photoData}
+              initials={initialsFor(nome || session?.user?.email || "")}
+              onChange={setPhotoData}
+            />
+          </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <FieldInput label="Nome" value={nome} onChange={setNome} />
             <FieldInput label="E-mail" value={session?.user?.email ?? ""} onChange={() => {}} type="email" disabled />

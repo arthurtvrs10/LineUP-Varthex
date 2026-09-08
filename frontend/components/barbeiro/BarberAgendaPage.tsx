@@ -410,14 +410,17 @@ export function BarberAgendaPage() {
         </div>
       )}
 
-      <NovoAgendamentoModal
-        open={novoAberto}
-        onClose={() => setNovoAberto(false)}
-        onConcluir={toast.mostrar}
-        onCriar={criarAgendamento}
-        customers={customerOptions}
-        services={serviceOptions}
-      />
+      {barber && (
+        <NovoAgendamentoModal
+          open={novoAberto}
+          onClose={() => setNovoAberto(false)}
+          onConcluir={toast.mostrar}
+          onCriar={criarAgendamento}
+          customers={customerOptions}
+          services={serviceOptions}
+          barberId={barber.id}
+        />
+      )}
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
