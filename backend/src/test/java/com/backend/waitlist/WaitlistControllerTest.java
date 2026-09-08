@@ -216,4 +216,118 @@ class WaitlistControllerTest {
                                 """.formatted(unitId, serviceId, amanha, amanha)))
                 .andExpect(status().isBadRequest());
     }
+
+    private String criarEntrada(String token, String customerIdOrNull) throws Exception {
+        LocalDate amanha = LocalDate.now().plusDays(1);
+        String customerField = customerIdOrNull != null ? "\"customerId\":\"" + customerIdOrNull + "\"," : "";
+        String created = mockMvc.perform(post("/waitlist-entries")
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {%s"unitId":"%s","serviceId":"%s","windowStartAt":"%sT09:00:00","windowEndAt":"%sT18:00:00"}
+                                """.formatted(customerField, unitId, serviceId, amanha, amanha)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        return objectMapper.readTree(created).get("id").asText();
+    }
+
+    @Test
+    void clienteAceitaOfertaEViraAgendamento() throws Exception {
+        String entryId = criarEntrada(adminToken, customerId.toString());
+        LocalDate amanha = LocalDate.now().plusDays(1);
+
+        String offerResponse = mockMvc.perform(post("/waitlist-entries/{id}/offers", entryId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"barberId":"%s","slotStartAt":"%sT10:00:00","slotEndAt":"%sT10:30:00"}
+                                """.formatted(barberId, amanha, amanha)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.status").value("PENDING"))
+                .andReturn().getResponse().getContentAsString();
+        String offerId = objectMapper.readTree(offerResponse).get("id").asText();
+
+        // Cliente vê a notificação da oferta.
+        mockMvc.perform(get("/notifications").header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[0].type").value("WAITLIST_OFFER"));
+
+        mockMvc.perform(post("/waitlist-offers/{id}/accept", offerId)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.barberId").value(barberId.toString()))
+                .andExpect(jsonPath("$.status").value("PENDING"));
+
+        // A entrada da fila vira BOOKED e some da fila ativa.
+        mockMvc.perform(get("/waitlist-entries").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(0));
+    }
+
+    @Test
+    void staffNaoConseguerOfertarHorarioJaOcupado() throws Exception {
+        String entryId = criarEntrada(adminToken, customerId.toString());
+        LocalDate amanha = LocalDate.now().plusDays(1);
+
+        mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"unitId":"%s","customerId":"%s","barberId":"%s","startAt":"%sT10:00:00","channel":"ADMIN","items":[{"serviceId":"%s"}]}
+                                """.formatted(unitId, customerId, barberId, amanha, serviceId)))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/waitlist-entries/{id}/offers", entryId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"barberId":"%s","slotStartAt":"%sT10:00:00","slotEndAt":"%sT10:30:00"}
+                                """.formatted(barberId, amanha, amanha)))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void clienteRejeitaOfertaEEntradaContinuaAtiva() throws Exception {
+        String entryId = criarEntrada(adminToken, customerId.toString());
+        LocalDate amanha = LocalDate.now().plusDays(1);
+
+        String offerResponse = mockMvc.perform(post("/waitlist-entries/{id}/offers", entryId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"barberId":"%s","slotStartAt":"%sT11:00:00","slotEndAt":"%sT11:30:00"}
+                                """.formatted(barberId, amanha, amanha)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String offerId = objectMapper.readTree(offerResponse).get("id").asText();
+
+        mockMvc.perform(post("/waitlist-offers/{id}/reject", offerId)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isNoContent());
+
+        // Rejeitar não tira da fila — staff pode ofertar pra outro horário/barbeiro.
+        mockMvc.perform(get("/waitlist-entries").header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].status").value("ACTIVE"));
+
+        // Oferta já respondida não aceita de novo.
+        mockMvc.perform(post("/waitlist-offers/{id}/accept", offerId)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isConflict());
+    }
+
+    @Test
+    void clienteNaoOfertaVagaParaSiMesmo() throws Exception {
+        String entryId = criarEntrada(adminToken, customerId.toString());
+        LocalDate amanha = LocalDate.now().plusDays(1);
+
+        mockMvc.perform(post("/waitlist-entries/{id}/offers", entryId)
+                        .header("Authorization", "Bearer " + clientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"barberId":"%s","slotStartAt":"%sT10:00:00","slotEndAt":"%sT10:30:00"}
+                                """.formatted(barberId, amanha, amanha)))
+                .andExpect(status().isForbidden());
+    }
 }

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ListOrdered, Plus, X } from "lucide-react";
+import { Gift, ListOrdered, Plus, X } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Toast, useToast } from "@/components/ui/Toast";
 
@@ -20,15 +20,40 @@ type WaitlistEntry = {
   createdAt: string;
 };
 
+type WaitlistOffer = {
+  id: string;
+  barberId: string;
+  barberName: string | null;
+  slotStartAt: string;
+  slotEndAt: string;
+  status: "PENDING" | "ACCEPTED" | "REJECTED" | "EXPIRED";
+  expiresAt: string;
+};
+
 type CustomerOption = { id: string; fullName: string };
 type CustomerPageResponse = { items: CustomerOption[] };
-type ServiceOption = { id: string; name: string };
+type ServiceOption = { id: string; name: string; durationMinutes: number };
 type BarberOption = { id: string; unitId: string; displayName: string };
 
 const dateTimeFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
 
+const offerStatusLabels: Record<WaitlistOffer["status"], string> = {
+  PENDING: "Aguardando resposta do cliente",
+  ACCEPTED: "Aceita",
+  REJECTED: "Recusada",
+  EXPIRED: "Expirada",
+};
+
 function toLocalDateTime(date: string, time: string) {
   return `${date}T${time}:00`;
+}
+
+function addMinutes(date: string, time: string, minutes: number) {
+  const [h, m] = time.split(":").map(Number);
+  const base = new Date(`${date}T${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}:00`);
+  base.setMinutes(base.getMinutes() + minutes);
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${base.getFullYear()}-${pad(base.getMonth() + 1)}-${pad(base.getDate())}T${pad(base.getHours())}:${pad(base.getMinutes())}:00`;
 }
 
 export function BarberFilaDeEsperaPage() {
@@ -51,6 +76,13 @@ export function BarberFilaDeEsperaPage() {
   const [dataFim, setDataFim] = useState("");
   const [horaFim, setHoraFim] = useState("18:00");
   const [notas, setNotas] = useState("");
+
+  const [ofertandoId, setOfertandoId] = useState<string | null>(null);
+  const [ofertaBarberId, setOfertaBarberId] = useState("");
+  const [ofertaData, setOfertaData] = useState("");
+  const [ofertaHora, setOfertaHora] = useState("09:00");
+  const [criandoOferta, setCriandoOferta] = useState(false);
+  const [ofertasPorEntrada, setOfertasPorEntrada] = useState<Record<string, WaitlistOffer[]>>({});
 
   async function carregar() {
     setLoading(true);
@@ -124,6 +156,53 @@ export function BarberFilaDeEsperaPage() {
       toast.mostrar("Removido da fila.");
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível remover.", "erro");
+    }
+  }
+
+  async function carregarOfertas(entryId: string) {
+    try {
+      const ofertas = await apiFetch<WaitlistOffer[]>(`/waitlist-entries/${entryId}/offers`);
+      setOfertasPorEntrada((prev) => ({ ...prev, [entryId]: ofertas }));
+    } catch {
+      // Não trava a lista se a busca de ofertas falhar — a entrada continua visível.
+    }
+  }
+
+  useEffect(() => {
+    entries.forEach((entry) => carregarOfertas(entry.id));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [entries.length]);
+
+  function abrirFormularioOferta(entry: WaitlistEntry) {
+    setOfertandoId(entry.id);
+    setOfertaBarberId(entry.preferredBarberId ?? "");
+    setOfertaData("");
+    setOfertaHora("09:00");
+  }
+
+  async function criarOferta(entry: WaitlistEntry) {
+    const service = services.find((s) => s.id === entry.serviceId);
+    if (!ofertaBarberId || !ofertaData || !service) {
+      toast.mostrar("Selecione o profissional e a data/hora.", "erro");
+      return;
+    }
+    setCriandoOferta(true);
+    try {
+      await apiFetch(`/waitlist-entries/${entry.id}/offers`, {
+        method: "POST",
+        body: {
+          barberId: ofertaBarberId,
+          slotStartAt: toLocalDateTime(ofertaData, ofertaHora),
+          slotEndAt: addMinutes(ofertaData, ofertaHora, service.durationMinutes),
+        },
+      });
+      toast.mostrar("Vaga oferecida! O cliente foi notificado.");
+      setOfertandoId(null);
+      carregarOfertas(entry.id);
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível ofertar essa vaga.", "erro");
+    } finally {
+      setCriandoOferta(false);
     }
   }
 
@@ -240,28 +319,101 @@ export function BarberFilaDeEsperaPage() {
           </div>
         ) : (
           <ul>
-            {entries.map((entry) => (
-              <li key={entry.id} className="flex items-center justify-between gap-3 border-b border-[#eef0f3] px-5 py-4 last:border-none">
-                <div>
-                  <p className="text-sm font-bold text-[#0d1831]">{entry.customerName ?? "Cliente"}</p>
-                  <p className="mt-0.5 text-xs text-[#5f6f87]">
-                    {entry.serviceName ?? "Serviço"}
-                    {entry.preferredBarberName && ` · com ${entry.preferredBarberName}`}
-                  </p>
-                  <p className="mt-1 text-xs text-[#98a2b3]">
-                    {dateTimeFormatter.format(new Date(entry.windowStartAt))} — {dateTimeFormatter.format(new Date(entry.windowEndAt))}
-                    {entry.notes && ` · ${entry.notes}`}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => cancelarEntrada(entry.id)}
-                  className="shrink-0 rounded-[8px] border border-[#e6e4df] px-3 py-1.5 text-xs font-bold text-[#5f6f87] transition hover:bg-[#f7f6f2]"
-                >
-                  Remover
-                </button>
-              </li>
-            ))}
+            {entries.map((entry) => {
+              const ofertas = ofertasPorEntrada[entry.id] ?? [];
+              const ofertaPendente = ofertas.find((o) => o.status === "PENDING");
+
+              return (
+                <li key={entry.id} className="border-b border-[#eef0f3] px-5 py-4 last:border-none">
+                  <div className="flex items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-[#0d1831]">{entry.customerName ?? "Cliente"}</p>
+                      <p className="mt-0.5 text-xs text-[#5f6f87]">
+                        {entry.serviceName ?? "Serviço"}
+                        {entry.preferredBarberName && ` · com ${entry.preferredBarberName}`}
+                      </p>
+                      <p className="mt-1 text-xs text-[#98a2b3]">
+                        {dateTimeFormatter.format(new Date(entry.windowStartAt))} — {dateTimeFormatter.format(new Date(entry.windowEndAt))}
+                        {entry.notes && ` · ${entry.notes}`}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center gap-2">
+                      {!ofertaPendente && (
+                        <button
+                          type="button"
+                          onClick={() => abrirFormularioOferta(entry)}
+                          className="flex items-center gap-1.5 rounded-[8px] bg-accent-subtle px-3 py-1.5 text-xs font-bold text-accent-strong transition hover:bg-accent/20"
+                        >
+                          <Gift size={13} strokeWidth={2} />
+                          Ofertar vaga
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => cancelarEntrada(entry.id)}
+                        className="rounded-[8px] border border-[#e6e4df] px-3 py-1.5 text-xs font-bold text-[#5f6f87] transition hover:bg-[#f7f6f2]"
+                      >
+                        Remover
+                      </button>
+                    </div>
+                  </div>
+
+                  {ofertaPendente && (
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-[10px] bg-accent-subtle px-3.5 py-2.5">
+                      <p className="text-xs font-bold text-accent-strong">
+                        Vaga oferecida com {ofertaPendente.barberName} em{" "}
+                        {dateTimeFormatter.format(new Date(ofertaPendente.slotStartAt))} —{" "}
+                        {offerStatusLabels[ofertaPendente.status]}
+                      </p>
+                    </div>
+                  )}
+
+                  {ofertandoId === entry.id && (
+                    <div className="mt-3 flex flex-wrap items-end gap-2 rounded-[10px] border border-dashed border-[#e6e4df] p-3">
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[11px] font-bold text-[#5f6f87]">Profissional</label>
+                        <select
+                          value={ofertaBarberId}
+                          onChange={(e) => setOfertaBarberId(e.target.value)}
+                          disabled={Boolean(entry.preferredBarberId)}
+                          className="h-9 rounded-[8px] border border-[#e6e4df] px-2 text-sm text-[#0d1831] outline-none focus:border-accent disabled:bg-[#f7f6f2]"
+                        >
+                          <option value="">Selecione</option>
+                          {barbers.map((b) => (
+                            <option key={b.id} value={b.id}>
+                              {b.displayName}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[11px] font-bold text-[#5f6f87]">Data</label>
+                        <input type="date" value={ofertaData} onChange={(e) => setOfertaData(e.target.value)} className="h-9 rounded-[8px] border border-[#e6e4df] px-2 text-sm text-[#0d1831] outline-none focus:border-accent" />
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[11px] font-bold text-[#5f6f87]">Horário</label>
+                        <input type="time" value={ofertaHora} onChange={(e) => setOfertaHora(e.target.value)} className="h-9 rounded-[8px] border border-[#e6e4df] px-2 text-sm text-[#0d1831] outline-none focus:border-accent" />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => criarOferta(entry)}
+                        disabled={criandoOferta}
+                        className="h-9 rounded-[8px] bg-accent px-4 text-xs font-bold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        {criandoOferta ? "Enviando…" : "Enviar oferta"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setOfertandoId(null)}
+                        className="h-9 rounded-[8px] px-3 text-xs font-bold text-[#5f6f87] transition hover:bg-[#f7f6f2]"
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

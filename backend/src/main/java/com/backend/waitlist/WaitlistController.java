@@ -3,6 +3,8 @@ package com.backend.waitlist;
 import com.backend.customers.CustomerRepository;
 import com.backend.waitlist.dto.WaitlistEntryRequest;
 import com.backend.waitlist.dto.WaitlistEntryResponse;
+import com.backend.waitlist.dto.WaitlistOfferRequest;
+import com.backend.waitlist.dto.WaitlistOfferResponse;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -38,6 +40,19 @@ public class WaitlistController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void cancel(@PathVariable UUID id, JwtAuthenticationToken authentication) {
         waitlistService.cancel(currentTenantId(authentication), id, restrictToOwnCustomer(authentication));
+    }
+
+    // Staff-only (checado no SecurityConfig) — oferta a vaga pro dono da entrada.
+    @PostMapping("/{id}/offers")
+    @ResponseStatus(HttpStatus.CREATED)
+    public WaitlistOfferResponse createOffer(@PathVariable UUID id, @RequestBody WaitlistOfferRequest request,
+                                              JwtAuthenticationToken authentication) {
+        return waitlistService.createOffer(currentTenantId(authentication), id, request);
+    }
+
+    @GetMapping("/{id}/offers")
+    public List<WaitlistOfferResponse> listOffers(@PathVariable UUID id, JwtAuthenticationToken authentication) {
+        return waitlistService.listOffers(currentTenantId(authentication), id, restrictToOwnCustomer(authentication));
     }
 
     private UUID currentTenantId(JwtAuthenticationToken authentication) {

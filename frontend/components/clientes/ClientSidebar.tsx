@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutGrid, CalendarDays, History, UserRound, Settings, HelpCircle } from "lucide-react";
+import { LayoutGrid, CalendarDays, History, ListOrdered, UserRound, Settings, HelpCircle } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { PortalSidebar, type PortalNavGroup } from "@/components/layout/PortalSidebar";
 import { useMyCustomer } from "./MyCustomerContext";
@@ -10,6 +10,7 @@ const groups: PortalNavGroup[] = [
     items: [
       { href: "/clientes/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/clientes/agendamento", label: "Agendar", icon: CalendarDays },
+      { href: "/clientes/fila-de-espera", label: "Fila de espera", icon: ListOrdered },
       { href: "/clientes/historico", label: "Histórico", icon: History },
       { href: "/clientes/perfil", label: "Perfil", icon: UserRound },
     ],

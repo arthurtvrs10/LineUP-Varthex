@@ -162,9 +162,14 @@ public class SecurityConfig {
                         .requestMatchers("/notifications", "/notifications/**")
                         .authenticated()
 
+                        // Ofertar uma vaga (RN-FIL-003) é ação de staff, nunca do
+                        // próprio cliente — precisa vir antes da regra geral abaixo.
+                        .requestMatchers(HttpMethod.POST, "/waitlist-entries/*/offers")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
                         // Fila de espera: staff vê a fila inteira do tenant, CLIENT só
                         // entra/sai da própria — escopo aplicado em WaitlistController.
-                        .requestMatchers("/waitlist-entries", "/waitlist-entries/**")
+                        .requestMatchers("/waitlist-entries", "/waitlist-entries/**", "/waitlist-offers/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
 
                         // Qualquer outro endpoint exige login
