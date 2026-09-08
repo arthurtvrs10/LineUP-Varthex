@@ -249,7 +249,7 @@ export function AuthPage({ mode }: AuthPageProps) {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <div className="mx-auto flex w-full max-w-[400px] flex-1 flex-col justify-center px-6 py-6">
+      <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col justify-center px-6 py-6">
         {status === "success" ? (
           <div className="flex flex-col items-center gap-4 rounded-2xl border border-[#e3e5eb] bg-[#f8fafc] px-6 py-11 text-center">
             <span className="grid size-12 place-items-center rounded-full bg-[#e6f7ec] text-[#189155]">
@@ -276,10 +276,7 @@ export function AuthPage({ mode }: AuthPageProps) {
           </div>
         ) : (
           <div className="rounded-2xl border border-[#e3e5eb] bg-white px-6 py-7 sm:px-8">
-            <Link href="/" aria-label="LINEUP - Página inicial" className="mb-5 inline-flex self-start">
-              <Logo variant="horizontal" height={26} className="text-ink" />
-            </Link>
-            <div className="flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-3">
               <Link
                 aria-label="Voltar para o menu"
                 className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[#d9dce5] text-[#4b5468] transition hover:border-[#b8bdcd] hover:text-[#1c1c26]"
@@ -287,10 +284,13 @@ export function AuthPage({ mode }: AuthPageProps) {
               >
                 <ChevronLeft size={18} strokeWidth={2} />
               </Link>
-              <h1 className="text-[28px] font-bold text-[#1c1c26]">
-                {registering ? "Registre-se" : "Login"}
-              </h1>
+              <Link href="/" aria-label="LINEUP - Página inicial" className="inline-flex">
+                <Logo variant="horizontal" height={26} className="text-ink" />
+              </Link>
             </div>
+            <h1 className="text-[28px] font-bold text-[#1c1c26]">
+              {registering ? "Registre-se" : "Login"}
+            </h1>
             <p className="mb-4 mt-1.5 text-[13px] text-[#667085]">
               {registering
                 ? "Preencha os dados abaixo para criar sua conta."

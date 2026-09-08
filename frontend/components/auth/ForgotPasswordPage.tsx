@@ -30,7 +30,7 @@ export function ForgotPasswordPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-16">
+      <div className="mx-auto flex w-full max-w-[480px] flex-1 flex-col justify-center px-6 py-16">
         {status === "success" ? (
           <div className="flex flex-col items-start gap-4">
             <span className="grid size-12 place-items-center rounded-full bg-[#e6f7ec] text-[#189155]">
@@ -55,10 +55,7 @@ export function ForgotPasswordPage() {
           </div>
         ) : (
           <div className="rounded-2xl border border-[#e3e5eb] bg-white px-6 py-7 sm:px-8">
-            <Link href="/" aria-label="LINEUP - Página inicial" className="mb-5 inline-flex self-start">
-              <Logo variant="horizontal" height={26} className="text-ink" />
-            </Link>
-            <div className="flex items-center gap-3">
+            <div className="mb-5 flex items-center gap-3">
               <Link
                 aria-label="Voltar para o login"
                 className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[#d9dce5] text-[#4b5468] transition hover:border-[#b8bdcd] hover:text-[#1c1c26]"
@@ -66,10 +63,13 @@ export function ForgotPasswordPage() {
               >
                 <ChevronLeft size={18} strokeWidth={2} />
               </Link>
-              <h1 className="text-[22px] font-bold text-[#1c1c26]">
-                Encontre sua conta
-              </h1>
+              <Link href="/" aria-label="LINEUP - Página inicial" className="inline-flex">
+                <Logo variant="horizontal" height={26} className="text-ink" />
+              </Link>
             </div>
+            <h1 className="text-[22px] font-bold text-[#1c1c26]">
+              Encontre sua conta
+            </h1>
             <p className="mt-2 text-[13px] leading-6 text-[#667085]">
               Digite o e-mail cadastrado na sua conta para receber um link de
               redefinição de senha.
