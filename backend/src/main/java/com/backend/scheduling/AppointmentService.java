@@ -2,6 +2,7 @@ package com.backend.scheduling;
 
 import com.backend.barbers.BarberProfile;
 import com.backend.barbers.BarberRepository;
+import com.backend.commissions.CommissionService;
 import com.backend.customers.Customer;
 import com.backend.customers.CustomerRepository;
 import com.backend.scheduling.dto.AppointmentActionRequest;
@@ -38,17 +39,20 @@ public class AppointmentService {
     private final BarberRepository barberRepository;
     private final UnitRepository unitRepository;
     private final ServiceOfferingRepository serviceOfferingRepository;
+    private final CommissionService commissionService;
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                                CustomerRepository customerRepository,
                                BarberRepository barberRepository,
                                UnitRepository unitRepository,
-                               ServiceOfferingRepository serviceOfferingRepository) {
+                               ServiceOfferingRepository serviceOfferingRepository,
+                               CommissionService commissionService) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
         this.barberRepository = barberRepository;
         this.unitRepository = unitRepository;
         this.serviceOfferingRepository = serviceOfferingRepository;
+        this.commissionService = commissionService;
     }
 
     @Transactional
@@ -157,7 +161,15 @@ public class AppointmentService {
             appointment.setCompletedAt(LocalDateTime.now());
         }
 
-        return toResponse(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+
+        if (target == AppointmentStatus.COMPLETED) {
+            // Provisiona a comissão de cada item já com o agendamento salvo
+            // (mesma transação) — RN-COM-002/003/005: comissão nasce na conclusão.
+            commissionService.provisionForAppointment(saved);
+        }
+
+        return toResponse(saved);
     }
 
     private AppointmentStatus resolveTarget(String action) {

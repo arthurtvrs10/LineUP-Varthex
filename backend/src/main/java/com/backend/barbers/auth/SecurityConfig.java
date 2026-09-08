@@ -127,6 +127,16 @@ public class SecurityConfig {
                                 "/appointments/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
+                        // Comissão: regras e ajuste manual (RN-COM-007, exige permissão)
+                        // são staff-only. Consulta do resumo inclui BARBER — o escopo
+                        // "só os próprios lançamentos" pra esse role é aplicado em
+                        // CommissionController, não aqui.
+                        .requestMatchers("/commission-rules", "/commission-rules/**", "/commission-adjustments")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN")
+
+                        .requestMatchers("/commissions/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
                 )
