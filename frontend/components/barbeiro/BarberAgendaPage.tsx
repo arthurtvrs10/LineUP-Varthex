@@ -1,42 +1,76 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { ChevronDown, ChevronLeft, ChevronRight, Plus, User } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, User } from "lucide-react";
+import { apiFetch, ApiError } from "@/lib/api";
+import { Toast, useToast } from "@/components/ui/Toast";
+import {
+  NovoAgendamentoModal,
+  type CustomerOption,
+  type NovoAgendamentoPayload,
+  type ServiceOption,
+} from "./modals/NovoAgendamentoModal";
 
 const WEEKDAY_LABELS = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 const ROW_HEIGHT = 60;
 const DAY_START_MINUTES = HOURS[0] * 60;
 
-type Status = "pendente" | "confirmado" | "atendimento" | "bloqueio";
+type AppointmentStatus =
+  | "PENDING"
+  | "CONFIRMED"
+  | "CHECKED_IN"
+  | "IN_PROGRESS"
+  | "COMPLETED"
+  | "CANCELED"
+  | "NO_SHOW";
 
-type Appointment = {
-  weekday: number; // 0 = segunda ... 6 = domingo
-  start: string;
-  end: string;
-  client: string;
-  service: string;
-  status: Status;
+type AppointmentResponse = {
+  id: string;
+  unitId: string;
+  customerId: string;
+  barberId: string;
+  status: AppointmentStatus;
+  channel: string;
+  startAt: string;
+  endAt: string;
+  totalAmount: string;
+  notes: string | null;
+  items: { id: string; serviceId: string; name: string; durationMinutes: number }[];
+  version: number;
 };
 
-const appointments: Appointment[] = [
-  { weekday: 0, start: "09:00", end: "10:00", client: "Carlos", service: "Corte", status: "confirmado" },
-  { weekday: 1, start: "09:30", end: "10:30", client: "Gabriel", service: "Barba", status: "confirmado" },
-  { weekday: 2, start: "12:00", end: "13:00", client: "Almoço", service: "", status: "bloqueio" },
-  { weekday: 4, start: "13:00", end: "14:30", client: "Paulo", service: "Corte + Barba", status: "atendimento" },
-  { weekday: 5, start: "10:00", end: "11:30", client: "Marcos", service: "Corte + Barba", status: "pendente" },
-];
+type BarberMeResponse = { id: string; unitId: string; displayName: string };
+type CustomerResponse = { id: string; fullName: string };
+type CustomerPageResponse = { items: CustomerResponse[]; page: { totalElements: number } };
+type ServiceResponse = { id: string; name: string; durationMinutes: number; price: string };
 
-const statusStyles: Record<Status, { bg: string; border: string; label: string; labelColor: string }> = {
-  pendente: { bg: "bg-[#fdf3e3]", border: "border-l-4 border-[#d28b27]", label: "PENDENTE", labelColor: "text-[#d28b27]" },
-  confirmado: { bg: "bg-accent-subtle", border: "border-l-4 border-accent", label: "CONFIRMADO", labelColor: "text-accent-strong" },
-  atendimento: { bg: "bg-[#e8f7f1]", border: "border-l-4 border-[#27865b]", label: "EM ATENDIMENTO", labelColor: "text-[#27865b]" },
-  bloqueio: { bg: "bg-[#f0efea]", border: "border-l-4 border-[#98a2b3] border-dashed", label: "BLOQUEIO", labelColor: "text-[#686a73]" },
+const statusStyles: Record<
+  AppointmentStatus,
+  { bg: string; border: string; label: string; labelColor: string }
+> = {
+  PENDING: { bg: "bg-[#fdf3e3]", border: "border-l-4 border-[#d28b27]", label: "PENDENTE", labelColor: "text-[#d28b27]" },
+  CONFIRMED: { bg: "bg-accent-subtle", border: "border-l-4 border-accent", label: "CONFIRMADO", labelColor: "text-accent-strong" },
+  CHECKED_IN: { bg: "bg-[#e8f7f1]", border: "border-l-4 border-[#27865b]", label: "CHECK-IN", labelColor: "text-[#27865b]" },
+  IN_PROGRESS: { bg: "bg-[#e8f7f1]", border: "border-l-4 border-[#27865b]", label: "EM ATENDIMENTO", labelColor: "text-[#27865b]" },
+  COMPLETED: { bg: "bg-[#f0efea]", border: "border-l-4 border-[#686a73]", label: "CONCLUÍDO", labelColor: "text-[#686a73]" },
+  CANCELED: { bg: "bg-[#f0efea]", border: "border-l-4 border-[#98a2b3] border-dashed", label: "CANCELADO", labelColor: "text-[#98a2b3]" },
+  NO_SHOW: { bg: "bg-[#fdecee]", border: "border-l-4 border-[#e0333f]", label: "FALTA", labelColor: "text-[#e0333f]" },
 };
 
-function toMinutes(time: string) {
-  const [h, m] = time.split(":").map(Number);
-  return h * 60 + m;
+const NEXT_ACTIONS: Record<AppointmentStatus, { action: string; label: string }[]> = {
+  PENDING: [{ action: "confirm", label: "Confirmar" }, { action: "cancel", label: "Cancelar" }],
+  CONFIRMED: [{ action: "check-in", label: "Check-in" }, { action: "cancel", label: "Cancelar" }, { action: "no-show", label: "Falta" }],
+  CHECKED_IN: [{ action: "start", label: "Iniciar" }, { action: "cancel", label: "Cancelar" }],
+  IN_PROGRESS: [{ action: "complete", label: "Concluir" }],
+  COMPLETED: [],
+  CANCELED: [],
+  NO_SHOW: [],
+};
+
+function toMinutes(iso: string) {
+  const d = new Date(iso);
+  return d.getHours() * 60 + d.getMinutes();
 }
 
 function startOfWeek(date: Date) {
@@ -52,12 +86,27 @@ function isSameDay(a: Date, b: Date) {
   return a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
 }
 
+function toLocalDateTime(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+}
+
 const rangeFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
 const yearFormatter = new Intl.DateTimeFormat("pt-BR", { year: "numeric" });
+const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
 export function BarberAgendaPage() {
   const [weekStart, setWeekStart] = useState(() => startOfWeek(new Date()));
   const [view, setView] = useState<"dia" | "semana">("semana");
+  const [barber, setBarber] = useState<BarberMeResponse>();
+  const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
+  const [customersById, setCustomersById] = useState<Record<string, string>>({});
+  const [customerOptions, setCustomerOptions] = useState<CustomerOption[]>([]);
+  const [serviceOptions, setServiceOptions] = useState<ServiceOption[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const [novoAberto, setNovoAberto] = useState(false);
+  const toast = useToast();
 
   const today = useMemo(() => new Date(), []);
 
@@ -72,6 +121,77 @@ export function BarberAgendaPage() {
   );
 
   const rangeLabel = `${rangeFormatter.format(weekDays[0])} — ${rangeFormatter.format(weekDays[6])} ${yearFormatter.format(weekDays[6])}`;
+
+  useEffect(() => {
+    async function carregarBase() {
+      try {
+        const [me, customerPage, services] = await Promise.all([
+          apiFetch<BarberMeResponse>("/barbers/me"),
+          apiFetch<CustomerPageResponse>("/customers?page=0&size=200"),
+          apiFetch<ServiceResponse[]>("/services"),
+        ]);
+        setBarber(me);
+        setCustomerOptions(customerPage.items.map((c) => ({ id: c.id, fullName: c.fullName })));
+        setCustomersById(Object.fromEntries(customerPage.items.map((c) => [c.id, c.fullName])));
+        setServiceOptions(services.map((s) => ({ id: s.id, name: s.name, durationMinutes: s.durationMinutes, price: s.price })));
+      } catch (err) {
+        setError(err instanceof ApiError ? err.message : "Não foi possível carregar seus dados de barbeiro.");
+      }
+    }
+    carregarBase();
+  }, []);
+
+  async function carregarAgenda(barberId: string) {
+    setLoading(true);
+    try {
+      const from = toLocalDateTime(weekDays[0]);
+      const to = toLocalDateTime(new Date(weekDays[6].getTime() + 24 * 60 * 60 * 1000));
+      const params = new URLSearchParams({ barberId, from, to });
+      const items = await apiFetch<AppointmentResponse[]>(`/appointments?${params.toString()}`);
+      setAppointments(items);
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar a agenda.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (barber) carregarAgenda(barber.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [barber, weekStart]);
+
+  async function criarAgendamento(payload: NovoAgendamentoPayload) {
+    if (!barber) return;
+    const [hours, minutes] = payload.time.split(":").map(Number);
+    const [year, month, day] = payload.date.split("-").map(Number);
+    const startAt = new Date(year, month - 1, day, hours, minutes, 0);
+
+    await apiFetch("/appointments", {
+      method: "POST",
+      body: {
+        unitId: barber.unitId,
+        customerId: payload.customerId,
+        barberId: barber.id,
+        startAt: toLocalDateTime(startAt),
+        channel: "BARBER",
+        notes: payload.notes || null,
+        items: [{ serviceId: payload.serviceId }],
+      },
+    });
+    await carregarAgenda(barber.id);
+  }
+
+  async function executarAcao(appointmentId: string, action: string) {
+    try {
+      await apiFetch(`/appointments/${appointmentId}/${action}`, { method: "POST" });
+      toast.mostrar("Agendamento atualizado.");
+      if (barber) await carregarAgenda(barber.id);
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+    }
+  }
 
   function goToWeek(offset: number) {
     setWeekStart((current) => {
@@ -94,12 +214,18 @@ export function BarberAgendaPage() {
         </div>
         <button
           type="button"
-          className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
+          onClick={() => setNovoAberto(true)}
+          disabled={!barber}
+          className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
         >
           <Plus size={16} strokeWidth={2.5} />
           Novo agendamento
         </button>
       </div>
+
+      {error && (
+        <p className="rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">{error}</p>
+      )}
 
       <div className="flex flex-wrap items-center gap-3 rounded-[12px] border border-[#e6e4df] bg-white p-4">
         <button
@@ -133,17 +259,9 @@ export function BarberAgendaPage() {
               <User size={15} strokeWidth={2} />
             </span>
             <div className="text-left">
-              <p className="text-xs font-bold text-[#0d1831] leading-tight">João Pereira</p>
+              <p className="text-xs font-bold text-[#0d1831] leading-tight">{barber?.displayName ?? "Carregando…"}</p>
               <p className="text-[10px] text-[#5f6f87] leading-tight">Minha agenda</p>
             </div>
-          </div>
-
-          <div className="rounded-[10px] border border-[#e6e4df] px-3.5 py-2">
-            <p className="text-[10px] text-[#5f6f87]">STATUS</p>
-            <p className="flex items-center gap-1 text-xs font-bold text-[#0d1831]">
-              Todos
-              <ChevronDown size={12} strokeWidth={2} />
-            </p>
           </div>
 
           <div className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] p-1">
@@ -202,16 +320,16 @@ export function BarberAgendaPage() {
                   <div
                     key={hour}
                     style={{ height: ROW_HEIGHT }}
-                    className="flex items-start justify-end border-b border-[#eef0f3] pr-2 pt-[-8px] text-[11px] text-[#98a2b3]"
+                    className="flex items-start justify-end border-b border-[#eef0f3] pr-2 text-[11px] text-[#98a2b3]"
                   >
                     {String(hour).padStart(2, "0")}:00
                   </div>
                 ))}
               </div>
 
-              {WEEKDAY_LABELS.map((_, dayIndex) => {
+              {weekDays.map((dayDate, dayIndex) => {
                 const isSunday = dayIndex === 6;
-                const dayAppointments = appointments.filter((item) => item.weekday === dayIndex);
+                const dayAppointments = appointments.filter((item) => isSameDay(new Date(item.startAt), dayDate));
 
                 return (
                   <div
@@ -220,37 +338,50 @@ export function BarberAgendaPage() {
                     style={{ height: ROW_HEIGHT * (HOURS.length - 1) }}
                   >
                     {HOURS.slice(0, -1).map((hour) => (
-                      <div
-                        key={hour}
-                        className="border-b border-[#eef0f3]"
-                        style={{ height: ROW_HEIGHT }}
-                      />
+                      <div key={hour} className="border-b border-[#eef0f3]" style={{ height: ROW_HEIGHT }} />
                     ))}
 
-                    {isSunday && (
+                    {isSunday && dayAppointments.length === 0 && (
                       <div className="absolute inset-2 grid place-items-center rounded-[10px] bg-[#f7f6f2]">
                         <span className="text-[11px] font-bold text-[#5f6f87]">Fechado</span>
                       </div>
                     )}
 
                     {dayAppointments.map((item) => {
-                      const top = ((toMinutes(item.start) - DAY_START_MINUTES) / 60) * ROW_HEIGHT;
-                      const height = ((toMinutes(item.end) - toMinutes(item.start)) / 60) * ROW_HEIGHT;
+                      const top = ((toMinutes(item.startAt) - DAY_START_MINUTES) / 60) * ROW_HEIGHT;
+                      const height = ((toMinutes(item.endAt) - toMinutes(item.startAt)) / 60) * ROW_HEIGHT;
                       const style = statusStyles[item.status];
+                      const clientName = customersById[item.customerId] ?? "Cliente";
+                      const serviceNames = item.items.map((i) => i.name).join(" + ");
+                      const actions = NEXT_ACTIONS[item.status];
+
                       return (
                         <div
-                          key={`${item.weekday}-${item.start}`}
+                          key={item.id}
                           className={`absolute inset-x-1 overflow-hidden rounded-md ${style.bg} ${style.border} px-2 py-1`}
-                          style={{ top, height: Math.max(height, 32) }}
+                          style={{ top, height: Math.max(height, 46) }}
                         >
                           <p className={`text-[9px] font-bold ${style.labelColor}`}>
-                            {item.start} • {style.label}
+                            {timeFormatter.format(new Date(item.startAt))} • {style.label}
                           </p>
                           <p className="truncate text-[11px] font-bold text-[#0d1831]">
-                            {item.client}
-                            {item.service && ` • ${item.service}`}
+                            {clientName}
+                            {serviceNames && ` • ${serviceNames}`}
                           </p>
-                          <p className="text-[9px] text-[#5f6f87]">até {item.end}</p>
+                          {actions.length > 0 && (
+                            <div className="mt-0.5 flex flex-wrap gap-1">
+                              {actions.map(({ action, label }) => (
+                                <button
+                                  key={action}
+                                  type="button"
+                                  onClick={() => executarAcao(item.id, action)}
+                                  className="rounded bg-white/70 px-1.5 py-0.5 text-[8px] font-bold text-[#0d1831] transition hover:bg-white"
+                                >
+                                  {label}
+                                </button>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       );
                     })}
@@ -268,15 +399,26 @@ export function BarberAgendaPage() {
                 <span className="size-2.5 rounded-full bg-accent" /> Confirmado
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded-full bg-[#27865b]" /> Em atendimento
+                <span className="size-2.5 rounded-full bg-[#27865b]" /> Check-in / Atendimento
               </span>
               <span className="flex items-center gap-1.5">
-                <span className="size-2.5 rounded border border-dashed border-[#98a2b3]" /> Bloqueio
+                <span className="size-2.5 rounded-full bg-[#e0333f]" /> Falta
               </span>
+              {loading && <span className="ml-auto text-[#98a2b3]">Carregando…</span>}
             </div>
           </div>
         </div>
       )}
+
+      <NovoAgendamentoModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+        onCriar={criarAgendamento}
+        customers={customerOptions}
+        services={serviceOptions}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

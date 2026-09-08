@@ -42,7 +42,7 @@ export const authOptions: NextAuthOptions = {
         const user: BackendUser = {
           id: data.id,
           email: data.email,
-          name: data.email,
+          name: data.name,
           backendJwt: data.accessToken,
           role: data.role,
         };
