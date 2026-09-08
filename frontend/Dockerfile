@@ -18,6 +18,12 @@ RUN node --version && npm --version
 # 5. Copia o restante do frontend
 COPY . .
 
+# 5.1 next.config.ts resolve os rewrites (proxy /tenants, /users etc. para
+# o backend) em tempo de BUILD quando roda em modo produção (next start) —
+# por isso precisa entrar como build arg, não só como env de runtime.
+ARG BACKEND_INTERNAL_URL=http://backend:8080
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
+
 # 6. Gera o build de produção
 RUN npm run build
 

@@ -97,7 +97,11 @@ services:
   # Serviço do frontend Next.js
   frontend:
     # Faz o build usando o Dockerfile dentro da pasta frontend
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        # next.config.ts resolve os rewrites em tempo de build (next start).
+        BACKEND_INTERNAL_URL: http://backend:8080
 
     # Nome fixo do container do frontend
     container_name: varthex-barber-frontend
@@ -118,6 +122,9 @@ services:
       # Dentro da rede do Docker Compose, "localhost" não chega no
       # container do backend — precisa ser o nome do serviço.
       NEXT_PUBLIC_API_URL: http://backend:8080
+      # Lido em next.config.ts (rewrites) para proxiar /tenants, /users,
+      # /customers etc. do navegador (porta 3000) para o backend.
+      BACKEND_INTERNAL_URL: http://backend:8080
 
     # O frontend depende do backend
     # Isso não garante que a API esteja pronta, mas garante a ordem básica
