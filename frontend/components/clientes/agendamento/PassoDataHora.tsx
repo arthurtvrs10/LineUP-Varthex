@@ -1,7 +1,20 @@
 "use client";
 
-import { useMemo } from "react";
-import { horarios, horariosOcupados, proximosDias, type DiaDisponivel } from "./dados";
+import { useEffect, useMemo, useState } from "react";
+import { apiFetch, ApiError } from "@/lib/api";
+import { horarios, proximosDias, type DiaDisponivel } from "./dados";
+
+type AppointmentWindow = { startAt: string; endAt: string; status: string };
+
+function toLocalDateTime(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+}
+
+function parseIsoDate(iso: string) {
+  const [y, m, d] = iso.split("-").map(Number);
+  return new Date(y, m - 1, d);
+}
 
 /**
  * Data e horário.
@@ -10,9 +23,16 @@ import { horarios, horariosOcupados, proximosDias, type DiaDisponivel } from "./
  * 7 colunas dava células de 42px — abaixo do alvo mínimo de toque, e a
  * pílula "Disponível" de 77px saía cortada (medido antes de trocar).
  * Aqui cada dia tem 64px de largura e rola no eixo X.
+ *
+ * "Ocupado" é calculado a partir dos agendamentos reais do profissional
+ * naquele dia — não existe jornada de trabalho cadastrada ainda, então a
+ * janela 08:00–18:00 é um horário comercial padrão, não a disponibilidade
+ * real de cada barbeiro.
  */
 export function PassoDataHora({
   hoje,
+  barberId,
+  duracaoMin,
   dia,
   horario,
   onSelecionarDia,
@@ -20,13 +40,57 @@ export function PassoDataHora({
 }: {
   /** Data-base vinda do orquestrador, para não divergir na hidratação. */
   hoje: Date;
+  barberId: string;
+  duracaoMin: number;
   dia: DiaDisponivel | null;
   horario: string | null;
   onSelecionarDia: (d: DiaDisponivel) => void;
   onSelecionarHorario: (h: string) => void;
 }) {
   const dias = useMemo(() => proximosDias(hoje, 14), [hoje]);
-  const ocupados = dia ? horariosOcupados(dia.iso) : [];
+  const [ocupacoes, setOcupacoes] = useState<AppointmentWindow[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string>();
+
+  useEffect(() => {
+    if (!dia) return;
+    let ativo = true;
+    setLoading(true);
+    const from = parseIsoDate(dia.iso);
+    const to = new Date(from.getTime() + 24 * 60 * 60 * 1000);
+    apiFetch<AppointmentWindow[]>(
+      `/appointments?${new URLSearchParams({ barberId, from: toLocalDateTime(from), to: toLocalDateTime(to) })}`,
+    )
+      .then((items) => {
+        if (ativo) {
+          setOcupacoes(items.filter((a) => a.status !== "CANCELED" && a.status !== "NO_SHOW"));
+          setError(undefined);
+        }
+      })
+      .catch((err) => {
+        if (ativo) setError(err instanceof ApiError ? err.message : "Não foi possível carregar os horários.");
+      })
+      .finally(() => {
+        if (ativo) setLoading(false);
+      });
+    return () => {
+      ativo = false;
+    };
+  }, [dia, barberId]);
+
+  function slotOcupado(h: string) {
+    if (!dia) return false;
+    const [hh, mm] = h.split(":").map(Number);
+    const base = parseIsoDate(dia.iso);
+    const slotStart = new Date(base.getFullYear(), base.getMonth(), base.getDate(), hh, mm);
+    const slotEnd = new Date(slotStart.getTime() + duracaoMin * 60 * 1000);
+
+    return ocupacoes.some((a) => {
+      const aStart = new Date(a.startAt);
+      const aEnd = new Date(a.endAt);
+      return slotStart < aEnd && slotEnd > aStart;
+    });
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -67,10 +131,19 @@ export function PassoDataHora({
 
       <div>
         <p className="mb-2.5 text-sm font-bold text-[#0d1831]">Escolha o horário</p>
+        <p className="mb-2.5 -mt-1.5 text-xs text-[#98a2b3]">Horário comercial padrão (08:00–18:00).</p>
+
+        {error && (
+          <p className="mb-2.5 rounded-[10px] bg-[#fdecee] px-3 py-2 text-xs text-[#e0333f]">{error}</p>
+        )}
 
         {!dia ? (
           <p className="rounded-[12px] border border-dashed border-[#e6e4df] px-4 py-8 text-center text-sm text-[#98a2b3]">
             Selecione um dia para ver os horários livres.
+          </p>
+        ) : loading ? (
+          <p className="rounded-[12px] border border-dashed border-[#e6e4df] px-4 py-8 text-center text-sm text-[#98a2b3]">
+            Carregando horários…
           </p>
         ) : (
           <div
@@ -79,7 +152,7 @@ export function PassoDataHora({
             className="grid grid-cols-3 gap-2 sm:grid-cols-5"
           >
             {horarios.map((h) => {
-              const ocupado = ocupados.includes(h);
+              const ocupado = slotOcupado(h);
               const ativo = horario === h;
               return (
                 <button

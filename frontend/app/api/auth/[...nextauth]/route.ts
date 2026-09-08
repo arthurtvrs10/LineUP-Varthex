@@ -57,7 +57,14 @@ export const authOptions: NextAuthOptions = {
     // para o backend. O backend valida a assinatura contra as chaves
     // públicas do Google antes de confiar no e-mail; nunca repassamos
     // email/nome soltos, que qualquer chamador poderia forjar.
-    async jwt({ token, account, user }) {
+    async jwt({ token, account, user, trigger, session }) {
+      // Disparado por updateSession({ name }) no client (ex.: PerfilPage
+      // depois de um PATCH /users/me) — sem isso o nome editado nunca
+      // entra no cookie da sessão e volta pro valor antigo a cada reload.
+      if (trigger === "update" && session?.name) {
+        token.name = session.name;
+      }
+
       if (account?.provider === "google" && account.id_token) {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {

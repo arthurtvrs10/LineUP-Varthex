@@ -36,8 +36,10 @@ type PortalSidebarProps = {
   theme?: "dark" | "light";
   /** Destino de "Ver perfil" no menu de conta. */
   profileHref: string;
-  /** Destino de "Sair". Não há autenticação ainda — é navegação. */
+  /** Destino de "Sair" quando não há `onLogoutClick` — navegação simples. */
   logoutHref?: string;
+  /** Quando informado, "Sair" chama isto (ex.: signOut() do NextAuth) em vez de só navegar. */
+  onLogoutClick?: () => void;
 };
 
 function NavRow({
@@ -91,12 +93,14 @@ function AccountMenu({
   theme,
   profileHref,
   logoutHref,
+  onLogoutClick,
   onNavigate,
 }: {
   user: PortalSidebarUser;
   theme: "dark" | "light";
   profileHref: string;
   logoutHref: string;
+  onLogoutClick?: () => void;
   onNavigate: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -180,17 +184,34 @@ function AccountMenu({
             <UserRound size={15} strokeWidth={1.8} />
             Ver perfil
           </Link>
-          <Link
-            href={logoutHref}
-            role="menuitem"
-            onClick={close}
-            className={`flex items-center gap-2.5 px-3 py-2 text-[13px] transition ${
-              light ? "text-[#c84a4a] hover:bg-[#fdeaea]" : "text-[#ff8a8a] hover:bg-white/5"
-            }`}
-          >
-            <LogOut size={15} strokeWidth={1.8} />
-            Sair
-          </Link>
+          {onLogoutClick ? (
+            <button
+              type="button"
+              role="menuitem"
+              onClick={() => {
+                close();
+                onLogoutClick();
+              }}
+              className={`flex w-full items-center gap-2.5 px-3 py-2 text-left text-[13px] transition ${
+                light ? "text-[#c84a4a] hover:bg-[#fdeaea]" : "text-[#ff8a8a] hover:bg-white/5"
+              }`}
+            >
+              <LogOut size={15} strokeWidth={1.8} />
+              Sair
+            </button>
+          ) : (
+            <Link
+              href={logoutHref}
+              role="menuitem"
+              onClick={close}
+              className={`flex items-center gap-2.5 px-3 py-2 text-[13px] transition ${
+                light ? "text-[#c84a4a] hover:bg-[#fdeaea]" : "text-[#ff8a8a] hover:bg-white/5"
+              }`}
+            >
+              <LogOut size={15} strokeWidth={1.8} />
+              Sair
+            </Link>
+          )}
         </div>
       )}
     </div>
@@ -208,6 +229,7 @@ export function PortalSidebar({
   theme = "dark",
   profileHref,
   logoutHref = "/login",
+  onLogoutClick,
 }: PortalSidebarProps) {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -309,6 +331,7 @@ export function PortalSidebar({
             theme={theme}
             profileHref={profileHref}
             logoutHref={logoutHref}
+            onLogoutClick={onLogoutClick}
             onNavigate={close}
           />
         </div>

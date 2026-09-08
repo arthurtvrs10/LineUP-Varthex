@@ -25,7 +25,7 @@ function Linha({
   );
 }
 
-export function PassoConfirmacao({ selecao }: { selecao: Selecao }) {
+export function PassoConfirmacao({ selecao, tenantName }: { selecao: Selecao; tenantName: string }) {
   const { servico, profissional, dia, horario } = selecao;
   if (!servico || !profissional || !dia || !horario) return null;
 
@@ -61,7 +61,7 @@ export function PassoConfirmacao({ selecao }: { selecao: Selecao }) {
         <Linha
           icone={<MapPin size={14} strokeWidth={1.8} />}
           rotulo="Unidade"
-          valor="Barbearia Estilo Único — Centro"
+          valor={tenantName}
         />
       </div>
 
@@ -71,7 +71,7 @@ export function PassoConfirmacao({ selecao }: { selecao: Selecao }) {
       </div>
 
       <p className="text-xs text-[#98a2b3]">
-        O pagamento é feito na barbearia. Você pode cancelar até 12h antes pelo histórico.
+        O pagamento é feito na barbearia. Você pode cancelar pelo histórico a qualquer momento.
       </p>
     </div>
   );

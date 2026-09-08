@@ -1,7 +1,9 @@
 "use client";
 
 import { LayoutGrid, CalendarDays, History, UserRound, Settings, HelpCircle } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
 import { PortalSidebar, type PortalNavGroup } from "@/components/layout/PortalSidebar";
+import { useMyCustomer } from "./MyCustomerContext";
 
 const groups: PortalNavGroup[] = [
   {
@@ -19,18 +21,30 @@ const bottomLinks = [
   { href: "/clientes/ajuda", label: "Ajuda", icon: HelpCircle },
 ];
 
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
 export function ClientSidebar() {
+  const { data: session } = useSession();
+  const { customer } = useMyCustomer();
+
+  const name = session?.user?.name ?? "";
+  const email = session?.user?.email ?? "";
+
   return (
     <PortalSidebar
       homeHref="/clientes/dashboard"
-      subtitleLine1="Barbearia Estilo Único"
-      subtitleLine2="Unidade"
+      subtitleLine1={customer?.tenantName ?? "LINEUP"}
+      subtitleLine2="Portal do cliente"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: "RM", name: "Rafael Mendes", email: "admin@lineup.com" }}
+      user={{ initials: initialsFor(name || email), name: name || email, email }}
       activeColor="#2563eb"
       theme="light"
       profileHref="/clientes/perfil"
+      onLogoutClick={() => signOut({ callbackUrl: "/login" })}
     />
   );
 }
