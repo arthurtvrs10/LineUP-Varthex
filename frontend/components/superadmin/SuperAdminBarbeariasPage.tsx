@@ -1,131 +1,123 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, FolderPlus } from "lucide-react";
-import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { FilterSelect } from "@/components/ui/FilterSelect";
-import { FieldGrid, SelectField, TextField } from "@/components/ui/FormFields";
 import { Toast, useToast } from "@/components/ui/Toast";
+import { apiFetch, ApiError } from "@/lib/api";
 
-type Barbearia = {
+type TenantStatus = "TRIAL" | "ACTIVE" | "PAST_DUE" | "SUSPENDED" | "CANCELED";
+
+type TenantResponse = {
+  id: string;
+  tradeName: string;
+  document: string | null;
+  status: TenantStatus;
+  email: string | null;
+  createdAt: string;
+  version: number;
+};
+
+type UserSummaryResponse = {
+  id: string;
   name: string;
-  cnpj: string;
-  responsavel: string;
-  plano: "pro" | "free";
-  usuarios: number;
-  criacao: string;
-  ultimoAcesso: string;
-  status: "Ativo" | "Bloqueado";
+  email: string;
+  role: "SUPER_ADMIN" | "ADMIN" | "BARBER" | "CLIENT";
+  status: string;
+  tenantId: string | null;
 };
 
-const barbearias: Barbearia[] = [
-  {
-    name: "Barbearia Estilo Único",
-    cnpj: "12.345.678/0001-90",
-    responsavel: "Rafael Mendes",
-    plano: "pro",
-    usuarios: 8,
-    criacao: "15/01/2024",
-    ultimoAcesso: "15/01/2024",
-    status: "Ativo",
-  },
-  {
-    name: "Corte & Arte",
-    cnpj: "23.456.789/0001-11",
-    responsavel: "Marcos Vieira",
-    plano: "free",
-    usuarios: 3,
-    criacao: "02/03/2024",
-    ultimoAcesso: "01/08/2026",
-    status: "Bloqueado",
-  },
-  {
-    name: "Studio Navalha de Ouro",
-    cnpj: "34.567.890/0001-22",
-    responsavel: "Camila Duarte",
-    plano: "pro",
-    usuarios: 6,
-    criacao: "18/05/2024",
-    ultimoAcesso: "24/08/2026",
-    status: "Ativo",
-  },
-  {
-    name: "Barba Boa",
-    cnpj: "45.678.901/0001-33",
-    responsavel: "Diego Almeida",
-    plano: "free",
-    usuarios: 2,
-    criacao: "09/09/2024",
-    ultimoAcesso: "20/08/2026",
-    status: "Ativo",
-  },
-  {
-    name: "Barbearia Vintage",
-    cnpj: "56.789.012/0001-44",
-    responsavel: "Renata Souza",
-    plano: "pro",
-    usuarios: 5,
-    criacao: "27/11/2024",
-    ultimoAcesso: "22/08/2026",
-    status: "Ativo",
-  },
-  {
-    name: "Clube do Corte",
-    cnpj: "67.890.123/0001-55",
-    responsavel: "Felipe Nogueira",
-    plano: "free",
-    usuarios: 4,
-    criacao: "14/02/2025",
-    ultimoAcesso: "19/08/2026",
-    status: "Ativo",
-  },
-];
-
-const planoStyles: Record<Barbearia["plano"], string> = {
-  pro: "bg-accent-subtle text-accent-strong",
-  free: "bg-[#f0efea] text-[#686a73]",
+const statusLabel: Record<TenantStatus, string> = {
+  TRIAL: "Trial",
+  ACTIVE: "Ativo",
+  PAST_DUE: "Inadimplente",
+  SUSPENDED: "Suspenso",
+  CANCELED: "Cancelado",
 };
 
-const statusStyles: Record<Barbearia["status"], string> = {
-  Ativo: "bg-[#e8f7f1] text-[#27865b]",
-  Bloqueado: "bg-[#fdeaea] text-[#c84a4a]",
+const statusStyles: Record<TenantStatus, string> = {
+  TRIAL: "bg-[#fdf3e3] text-[#d28b27]",
+  ACTIVE: "bg-[#e8f7f1] text-[#27865b]",
+  PAST_DUE: "bg-[#fdf3e3] text-[#d28b27]",
+  SUSPENDED: "bg-[#fdeaea] text-[#c84a4a]",
+  CANCELED: "bg-[#f0efea] text-[#686a73]",
 };
+
+function formatarData(iso: string) {
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
 
 export function SuperAdminBarbeariasPage() {
-  const [novaAberto, setNovaAberto] = useState(false);
+  const [tenants, setTenants] = useState<TenantResponse[]>([]);
+  const [users, setUsers] = useState<UserSummaryResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("Todos os status");
-  const [filtroPlano, setFiltroPlano] = useState("Todos os planos");
-  /** Barbearia cuja mudança de status está sendo confirmada. */
-  const [confirmando, setConfirmando] = useState<Barbearia | null>(null);
+  const [confirmando, setConfirmando] = useState<TenantResponse | null>(null);
   const toast = useToast();
 
-  const visiveis = barbearias.filter(
-    (b) =>
-      (filtroStatus === "Todos os status" || b.status === filtroStatus) &&
-      (filtroPlano === "Todos os planos" || b.plano === filtroPlano) &&
-      (busca === "" ||
-        b.name.toLowerCase().includes(busca.toLowerCase()) ||
-        b.responsavel.toLowerCase().includes(busca.toLowerCase())),
-  );
-
-  function confirmarMudancaDeStatus() {
-    const b = confirmando;
-    setConfirmando(null);
-    if (!b) return;
-    toast.mostrar(
-      b.status === "Ativo"
-        ? `${b.name} foi bloqueada. Os usuários perderam o acesso.`
-        : `${b.name} foi reativada.`,
-    );
+  async function carregar() {
+    try {
+      const [listaTenants, listaUsuarios] = await Promise.all([
+        apiFetch<TenantResponse[]>("/tenants"),
+        apiFetch<UserSummaryResponse[]>("/users"),
+      ]);
+      setTenants(listaTenants);
+      setUsers(listaUsuarios);
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar as barbearias.");
+    } finally {
+      setLoading(false);
+    }
   }
 
-  function criarBarbearia(event: React.FormEvent) {
-    event.preventDefault();
-    // Sem backend ainda: é aqui que a chamada de API entra depois.
-    setNovaAberto(false);
-    toast.mostrar("Barbearia criada. Um convite foi enviado ao responsável.");
+  useEffect(() => {
+    carregar();
+  }, []);
+
+  function responsavel(tenantId: string) {
+    return users.find((u) => u.tenantId === tenantId && u.role === "ADMIN")?.name ?? "—";
+  }
+
+  function contarUsuarios(tenantId: string) {
+    return users.filter((u) => u.tenantId === tenantId).length;
+  }
+
+  const visiveis = tenants.filter(
+    (t) =>
+      (filtroStatus === "Todos os status" || statusLabel[t.status] === filtroStatus) &&
+      (busca === "" ||
+        t.tradeName.toLowerCase().includes(busca.toLowerCase()) ||
+        responsavel(t.id).toLowerCase().includes(busca.toLowerCase())),
+  );
+
+  async function confirmarMudancaDeStatus() {
+    const t = confirmando;
+    setConfirmando(null);
+    if (!t) return;
+
+    const novoStatus: TenantStatus = t.status === "SUSPENDED" ? "ACTIVE" : "SUSPENDED";
+
+    try {
+      await apiFetch(`/tenants/${t.id}/status`, {
+        method: "PATCH",
+        body: { status: novoStatus },
+      });
+      await carregar();
+      toast.mostrar(
+        novoStatus === "SUSPENDED"
+          ? `${t.tradeName} foi suspensa. Os usuários perdem o acesso.`
+          : `${t.tradeName} foi reativada.`,
+      );
+    } catch (err) {
+      toast.mostrar(
+        err instanceof ApiError ? err.message : "Não foi possível atualizar o status.",
+        "erro",
+      );
+    }
   }
 
   return (
@@ -143,94 +135,92 @@ export function SuperAdminBarbeariasPage() {
         </div>
         <FilterSelect
           label="Filtrar por status"
-          options={["Todos os status", "Ativo", "Bloqueado"]}
+          options={["Todos os status", ...Object.values(statusLabel)]}
           value={filtroStatus}
           onChange={setFiltroStatus}
         />
-        <FilterSelect
-          label="Filtrar por plano"
-          options={["Todos os planos", "pro", "free"]}
-          value={filtroPlano}
-          onChange={setFiltroPlano}
-        />
         <button
           type="button"
-          onClick={() => setNovaAberto(true)}
-          className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-xs font-medium text-on-accent transition hover:bg-accent-hover"
+          disabled
+          title="Cadastro de barbearia é feito pelo próprio responsável em /cadastro"
+          className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-xs font-medium text-on-accent opacity-50"
         >
           <FolderPlus size={18} strokeWidth={1.8} />
           Nova barbearia
         </button>
       </div>
 
+      {error && (
+        <p className="w-full rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">
+          {error}
+        </p>
+      )}
+
       <div className="w-full rounded-[12px] border border-[#e6e4df] bg-white p-6">
-        <p className="text-lg font-bold text-[#0d1831]">Barbearias recentes</p>
+        <p className="text-lg font-bold text-[#0d1831]">
+          Barbearias{!loading && ` (${tenants.length})`}
+        </p>
         <div className="w-full overflow-x-auto">
           <table className="mt-4 w-full min-w-[900px] border-collapse text-left">
             <thead>
               <tr className="border-b border-[#e6e4df] text-[10px] font-bold text-[#98a2b3]">
                 <th className="pb-2 pr-3 font-bold">BARBEARIA</th>
                 <th className="pb-2 pr-3 text-center font-bold">RESPONSÁVEL</th>
-                <th className="pb-2 pr-3 text-center font-bold">PLANO</th>
                 <th className="pb-2 pr-3 text-center font-bold">USUÁRIOS</th>
                 <th className="pb-2 pr-3 text-center font-bold">CRIAÇÃO</th>
-                <th className="pb-2 pr-3 text-center font-bold">ÚLTIMO ACESSO</th>
                 <th className="pb-2 pr-3 text-center font-bold">STATUS</th>
                 <th className="pb-2 pr-3 text-center font-bold">AÇÕES</th>
               </tr>
             </thead>
             <tbody>
-              {visiveis.map((b) => (
-                <tr key={b.name} className="border-b border-[#eef0f3] last:border-b-0">
+              {visiveis.map((t) => (
+                <tr key={t.id} className="border-b border-[#eef0f3] last:border-b-0">
                   <td className="sticky left-0 z-10 bg-white py-3 pr-3">
                     <div className="flex items-center gap-3">
                       <span className="grid size-10 place-items-center rounded-[10px] bg-accent-subtle text-xs font-bold text-accent-strong">
-                        {b.name
+                        {t.tradeName
                           .split(" ")
                           .slice(0, 2)
                           .map((w) => w[0])
                           .join("")}
                       </span>
                       <div>
-                        <p className="text-sm font-bold text-[#0d1831]">{b.name}</p>
-                        <p className="text-sm text-[#5f6f87]">{b.cnpj}</p>
+                        <p className="text-sm font-bold text-[#0d1831]">{t.tradeName}</p>
+                        <p className="text-sm text-[#5f6f87]">{t.document ?? "—"}</p>
                       </div>
                     </div>
                   </td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.responsavel}</td>
-                  <td className="py-3 pr-3 text-center">
-                    <span className={`rounded-full px-2.5 py-1 text-xs font-medium ${planoStyles[b.plano]}`}>
-                      {b.plano}
-                    </span>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">
+                    {responsavel(t.id)}
                   </td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.usuarios}</td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.criacao}</td>
-                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">{b.ultimoAcesso}</td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">
+                    {contarUsuarios(t.id)}
+                  </td>
+                  <td className="py-3 pr-3 text-center text-sm text-[#5f6f87]">
+                    {formatarData(t.createdAt)}
+                  </td>
                   <td className="py-3 pr-3 text-center">
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${statusStyles[b.status]}`}>
-                      {b.status}
+                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-medium ${statusStyles[t.status]}`}>
+                      {statusLabel[t.status]}
                     </span>
                   </td>
                   <td className="py-3 pr-3">
                     <div className="flex items-center justify-center gap-3">
-                      <button type="button" className="text-sm text-[#5f6f87] transition hover:text-[#0d1831]">
-                        Ver
-                      </button>
-                      {b.status === "Ativo" ? (
+                      {t.status === "SUSPENDED" ? (
                         <button
                           type="button"
-                          onClick={() => setConfirmando(b)}
-                          className="rounded-[8px] bg-[#c84a4a] px-3 py-1 text-sm font-medium text-white transition hover:bg-[#b13f3f]"
+                          onClick={() => setConfirmando(t)}
+                          className="rounded-[8px] border border-[#e6e4df] px-3 py-1 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
                         >
-                          Bloquear
+                          Ativar
                         </button>
                       ) : (
                         <button
                           type="button"
-                          onClick={() => setConfirmando(b)}
-                          className="rounded-[8px] border border-[#e6e4df] px-3 py-1 text-sm text-[#0d1831] transition hover:bg-[#f7f6f2]"
+                          onClick={() => setConfirmando(t)}
+                          className="rounded-[8px] bg-[#c84a4a] px-3 py-1 text-sm font-medium text-white transition hover:bg-[#b13f3f]"
                         >
-                          Ativar
+                          Suspender
                         </button>
                       )}
                     </div>
@@ -239,65 +229,32 @@ export function SuperAdminBarbeariasPage() {
               ))}
             </tbody>
           </table>
+          {!loading && visiveis.length === 0 && (
+            <p className="py-6 text-center text-sm text-[#686a73]">Nenhuma barbearia encontrada.</p>
+          )}
         </div>
       </div>
-
-      <Modal
-        open={novaAberto}
-        onClose={() => setNovaAberto(false)}
-        title="Nova barbearia"
-        description="A barbearia começa em trial e o responsável recebe um convite por e-mail."
-        size="md"
-        footer={
-          <>
-            <ModalCancelButton onClick={() => setNovaAberto(false)} />
-            <ModalSubmitButton form="form-nova-barbearia">Criar barbearia</ModalSubmitButton>
-          </>
-        }
-      >
-        <form id="form-nova-barbearia" onSubmit={criarBarbearia} className="flex flex-col gap-4">
-          <FieldGrid>
-            <TextField label="Nome da barbearia" required placeholder="Barbearia Estilo Único" />
-            <TextField label="CNPJ" required placeholder="00.000.000/0001-00" />
-          </FieldGrid>
-          <FieldGrid>
-            <TextField label="Nome do responsável" required placeholder="Rafael Mendes" />
-            <TextField
-              label="E-mail do responsável"
-              type="email"
-              required
-              placeholder="responsavel@barbearia.com"
-              hint="O convite de acesso vai para este endereço."
-            />
-          </FieldGrid>
-          <FieldGrid>
-            <SelectField label="Plano inicial" options={["Básico", "Pro", "Enterprise"]} defaultValue="Básico" />
-            <TextField label="Dias de trial" type="number" defaultValue="14" />
-          </FieldGrid>
-          <TextField label="Cidade / UF" placeholder="São Paulo / SP" />
-        </form>
-      </Modal>
 
       <ConfirmModal
         open={confirmando !== null}
         onClose={() => setConfirmando(null)}
         onConfirm={confirmarMudancaDeStatus}
-        tone={confirmando?.status === "Ativo" ? "danger" : "accent"}
+        tone={confirmando?.status === "SUSPENDED" ? "accent" : "danger"}
         title={
-          confirmando?.status === "Ativo"
-            ? `Bloquear ${confirmando.name}?`
-            : `Reativar ${confirmando?.name}?`
+          confirmando?.status === "SUSPENDED"
+            ? `Reativar ${confirmando.tradeName}?`
+            : `Suspender ${confirmando?.tradeName}?`
         }
-        confirmLabel={confirmando?.status === "Ativo" ? "Bloquear barbearia" : "Reativar barbearia"}
+        confirmLabel={confirmando?.status === "SUSPENDED" ? "Reativar barbearia" : "Suspender barbearia"}
         description={
-          confirmando?.status === "Ativo"
-            ? "Todos os usuários perdem o acesso imediatamente e os agendamentos futuros ficam suspensos. Nenhum dado é apagado — a barbearia pode ser reativada depois."
-            : "Os usuários voltam a ter acesso e os agendamentos suspensos são retomados."
+          confirmando?.status === "SUSPENDED"
+            ? "Os usuários voltam a ter acesso."
+            : "Todos os usuários perdem o acesso imediatamente. Nenhum dado é apagado — a barbearia pode ser reativada depois."
         }
       >
         {confirmando && (
           <p className="mt-3 rounded-[8px] bg-[#f7f6f2] px-3 py-2 text-xs text-[#5f6f87]">
-            {confirmando.usuarios} usuário(s) · responsável {confirmando.responsavel}
+            {contarUsuarios(confirmando.id)} usuário(s) · responsável {responsavel(confirmando.id)}
           </p>
         )}
       </ConfirmModal>

@@ -1,89 +1,90 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { AlertTriangle, ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { useEffect, useState } from "react";
+import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { NovoClienteModal, type NovoClientePayload } from "@/components/admin/modals/CadastroModals";
+import { apiFetch, ApiError } from "@/lib/api";
 
-type Client = {
-  name: string;
-  role: string;
-  phone: string;
-  email: string;
-  birth: string;
-  registeredAt: string;
-  status: "Ativo" | "Arquivado";
-  duplicate?: boolean;
-  initials: string;
-  avatarBg: string;
-  avatarColor: string;
+type CustomerResponse = {
+  id: string;
+  fullName: string;
+  email: string | null;
+  phone: string | null;
+  birthDate: string | null;
+  notes: string | null;
+  version: number;
+  status: "ACTIVE" | "ARCHIVED";
+  createdAt: string;
 };
 
-const clients: Client[] = [
-  {
-    name: "Carlos Henrique",
-    role: "Cliente",
-    phone: "(61) 99999-1020",
-    email: "carlos@exemplo.com",
-    birth: "15/04/1992",
-    registeredAt: "10/02/2026",
-    status: "Ativo",
-    initials: "CH",
-    avatarBg: "bg-accent-subtle",
-    avatarColor: "text-accent-strong",
-  },
-  {
-    name: "Rafael Martins",
-    role: "Cliente",
-    phone: "(61) 98888-2210",
-    email: "Não informado",
-    birth: "22/09/1988",
-    registeredAt: "18/03/2026",
-    status: "Ativo",
-    duplicate: true,
-    initials: "RM",
-    avatarBg: "bg-accent-subtle",
-    avatarColor: "text-accent-strong",
-  },
-  {
-    name: "André Lima",
-    role: "Cliente",
-    phone: "(61) 97777-0345",
-    email: "andre@exemplo.com",
-    birth: "Não informado",
-    registeredAt: "06/04/2026",
-    status: "Ativo",
-    initials: "AL",
-    avatarBg: "bg-accent-subtle",
-    avatarColor: "text-accent-strong",
-  },
-  {
-    name: "Marcos Souza",
-    role: "Cliente",
-    phone: "(61) 96666-4182",
-    email: "marcos@exemplo.com",
-    birth: "03/11/1995",
-    registeredAt: "21/01/2026",
-    status: "Arquivado",
-    initials: "MS",
-    avatarBg: "bg-[#f0efea]",
-    avatarColor: "text-[#686a73]",
-  },
-];
+type CustomerPageResponse = {
+  items: CustomerResponse[];
+  page: { number: number; size: number; totalElements: number; totalPages: number };
+};
 
-const TOTAL_CLIENTS = 48;
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase();
+}
+
+function formatarData(iso: string | null) {
+  if (!iso) return "Não informado";
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
 
 export function BarberClientesPage() {
+  const [customers, setCustomers] = useState<CustomerResponse[]>([]);
+  const [totalElements, setTotalElements] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [page, setPage] = useState(0);
+  const [pageSize, setPageSize] = useState(10);
   const [query, setQuery] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const [novoAberto, setNovoAberto] = useState(false);
+  const toast = useToast();
 
-  const filtered = useMemo(() => {
-    const term = query.trim().toLowerCase();
-    if (!term) return clients;
-    return clients.filter(
-      (client) =>
-        client.name.toLowerCase().includes(term) || client.email.toLowerCase().includes(term),
-    );
-  }, [query]);
+  async function carregar() {
+    try {
+      const params = new URLSearchParams({
+        page: String(page),
+        size: String(pageSize),
+      });
+      if (query.trim()) params.set("query", query.trim());
 
-  const hasDuplicateAlert = filtered.some((client) => client.duplicate);
+      const pagina = await apiFetch<CustomerPageResponse>(`/customers?${params.toString()}`);
+      setCustomers(pagina.items);
+      setTotalElements(pagina.page.totalElements);
+      setTotalPages(pagina.page.totalPages);
+      setError(undefined);
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : "Não foi possível carregar os clientes.");
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    carregar();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, pageSize, query]);
+
+  async function criarCliente(payload: NovoClientePayload) {
+    await apiFetch("/customers", {
+      method: "POST",
+      body: {
+        fullName: payload.fullName,
+        email: payload.email || null,
+        phone: payload.phone || null,
+        birthDate: payload.birthDate || null,
+        notes: payload.notes || null,
+        version: 0,
+      },
+    });
+    setPage(0);
+    await carregar();
+  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -94,6 +95,7 @@ export function BarberClientesPage() {
         </div>
         <button
           type="button"
+          onClick={() => setNovoAberto(true)}
           className="flex items-center gap-2 rounded-[10px] bg-accent px-5 py-3 text-sm font-bold text-on-accent transition hover:bg-accent-hover"
         >
           <Plus size={16} strokeWidth={2.5} />
@@ -111,7 +113,10 @@ export function BarberClientesPage() {
             <input
               id="buscar-clientes"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setPage(0);
+                setQuery(event.target.value);
+              }}
               placeholder="Buscar clientes"
               className="h-11 w-full rounded-[10px] border border-[#e6e4df] pl-10 pr-3.5 text-sm text-[#0d1831] outline-none focus:border-accent focus:ring-3 focus:ring-accent/10"
             />
@@ -121,8 +126,12 @@ export function BarberClientesPage() {
         <div>
           <p className="text-xs text-[#5f6f87]">RESULTADOS POR PÁGINA</p>
           <select
+            value={pageSize}
+            onChange={(event) => {
+              setPage(0);
+              setPageSize(Number(event.target.value));
+            }}
             className="mt-1.5 h-10 rounded-[10px] border border-[#e6e4df] px-3 text-sm font-bold text-[#0d1831] outline-none"
-            defaultValue="4"
           >
             <option value="4">4</option>
             <option value="10">10</option>
@@ -130,19 +139,13 @@ export function BarberClientesPage() {
           </select>
         </div>
 
-        <p className="text-sm text-[#5f6f87]">{TOTAL_CLIENTS} clientes</p>
+        <p className="text-sm text-[#5f6f87]">
+          {loading ? "Carregando…" : `${totalElements} clientes`}
+        </p>
       </div>
 
-      {hasDuplicateAlert && (
-        <div className="flex items-start gap-3 rounded-[12px] border border-[#e6e4df] bg-[#fdf3e3] px-5 py-4">
-          <AlertTriangle size={18} strokeWidth={2} className="mt-0.5 shrink-0 text-[#d28b27]" />
-          <div>
-            <p className="text-sm font-bold text-[#d28b27]">Possível cadastro duplicado</p>
-            <p className="mt-1 text-xs text-[#5f6f87]">
-              Telefone ou e-mail semelhante foi encontrado. Revise os dados antes de cadastrar outro cliente.
-            </p>
-          </div>
-        </div>
+      {error && (
+        <p className="rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">{error}</p>
       )}
 
       <div className="rounded-[12px] border border-[#e6e4df] bg-white">
@@ -160,60 +163,49 @@ export function BarberClientesPage() {
                 <th className="px-6 py-3 font-bold">NASCIMENTO</th>
                 <th className="px-6 py-3 font-bold">CADASTRO</th>
                 <th className="px-6 py-3 font-bold">STATUS</th>
-                <th className="px-6 py-3 text-right font-bold">AÇÃO</th>
               </tr>
             </thead>
             <tbody>
-              {filtered.map((client) => (
-                <tr key={client.name} className="border-b border-[#eef0f3] last:border-none">
+              {customers.map((client) => (
+                <tr key={client.id} className="border-b border-[#eef0f3] last:border-none">
                   <td className="sticky left-0 z-10 bg-white px-6 py-4">
                     <div className="flex items-center gap-3">
-                      <span
-                        className={`grid size-10 shrink-0 place-items-center rounded-full text-xs font-bold ${client.avatarBg} ${client.avatarColor}`}
-                      >
-                        {client.initials}
+                      <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-subtle text-xs font-bold text-accent-strong">
+                        {initialsFor(client.fullName)}
                       </span>
                       <div>
-                        <p className="text-sm font-bold text-[#0d1831]">{client.name}</p>
-                        {client.duplicate ? (
-                          <p className="flex items-center gap-1 text-[11px] font-bold text-[#d28b27]">
-                            <AlertTriangle size={11} strokeWidth={2.5} />
-                            Possível duplicidade
-                          </p>
-                        ) : (
-                          <p className="text-xs text-[#5f6f87]">{client.role}</p>
-                        )}
+                        <p className="text-sm font-bold text-[#0d1831]">{client.fullName}</p>
+                        <p className="text-xs text-[#5f6f87]">Cliente</p>
                       </div>
                     </div>
                   </td>
                   <td className="px-6 py-4">
-                    <p className="text-[13px] text-[#5f6f87]">{client.phone}</p>
-                    <p className="mt-0.5 text-xs text-[#5f6f87]">{client.email}</p>
+                    <p className="text-[13px] text-[#5f6f87]">{client.phone ?? "Não informado"}</p>
+                    <p className="mt-0.5 text-xs text-[#5f6f87]">{client.email ?? "Não informado"}</p>
                   </td>
-                  <td className="px-6 py-4 text-[13px] text-[#5f6f87]">{client.birth}</td>
-                  <td className="px-6 py-4 text-[13px] text-[#5f6f87]">{client.registeredAt}</td>
+                  <td className="px-6 py-4 text-[13px] text-[#5f6f87]">
+                    {formatarData(client.birthDate)}
+                  </td>
+                  <td className="px-6 py-4 text-[13px] text-[#5f6f87]">
+                    {formatarData(client.createdAt)}
+                  </td>
                   <td className="px-6 py-4">
                     <span
                       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-bold ${
-                        client.status === "Ativo"
+                        client.status === "ACTIVE"
                           ? "bg-[#e8f7f1] text-[#27865b]"
                           : "bg-[#f0efea] text-[#686a73]"
                       }`}
                     >
                       <span className="size-1.5 rounded-full bg-current" />
-                      {client.status}
+                      {client.status === "ACTIVE" ? "Ativo" : "Arquivado"}
                     </span>
-                  </td>
-                  <td className="px-6 py-4 text-right text-[13px] font-bold text-accent-strong">
-                    <button type="button" className="hover:underline">
-                      Ver histórico
-                    </button>
                   </td>
                 </tr>
               ))}
-              {filtered.length === 0 && (
+              {!loading && customers.length === 0 && (
                 <tr>
-                  <td colSpan={6} className="px-6 py-10 text-center text-sm text-[#98a2b3]">
+                  <td colSpan={5} className="px-6 py-10 text-center text-sm text-[#98a2b3]">
                     Nenhum cliente encontrado para essa busca.
                   </td>
                 </tr>
@@ -224,23 +216,26 @@ export function BarberClientesPage() {
 
         <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#e6e4df] px-6 py-4 text-sm">
           <p className="text-[#5f6f87]">
-            Mostrando 1–{filtered.length} de {TOTAL_CLIENTS}
+            Página {totalPages === 0 ? 0 : page + 1} de {totalPages}
           </p>
           <div className="flex items-center gap-2">
             <button
               type="button"
-              disabled
-              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-[#0d1831] opacity-40"
+              disabled={page === 0}
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-[#0d1831] transition hover:bg-[#f7f6f2] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <ChevronLeft size={14} strokeWidth={2} />
               Anterior
             </button>
             <span className="grid size-10 place-items-center rounded-[10px] border border-accent text-sm font-bold text-accent-strong">
-              1
+              {page + 1}
             </span>
             <button
               type="button"
-              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-[#0d1831] transition hover:bg-[#f7f6f2]"
+              disabled={page + 1 >= totalPages}
+              onClick={() => setPage((p) => p + 1)}
+              className="flex items-center gap-1 rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-[#0d1831] transition hover:bg-[#f7f6f2] disabled:cursor-not-allowed disabled:opacity-40"
             >
               Próxima
               <ChevronRight size={14} strokeWidth={2} />
@@ -248,6 +243,14 @@ export function BarberClientesPage() {
           </div>
         </div>
       </div>
+
+      <NovoClienteModal
+        open={novoAberto}
+        onClose={() => setNovoAberto(false)}
+        onConcluir={toast.mostrar}
+        onCriar={criarCliente}
+      />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }
