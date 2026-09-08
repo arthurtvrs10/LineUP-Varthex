@@ -79,6 +79,12 @@ public class SecurityConfig {
                         .requestMatchers("/users", "/users/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN")
 
+                        // Leitura do nome/config da própria barbearia é liberada pro
+                        // BARBER também (ex.: mostrar o nome da barbearia no menu) —
+                        // escrita continua só ADMIN/SUPER_ADMIN, na regra geral abaixo.
+                        .requestMatchers(HttpMethod.GET, "/tenant", "/unit")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
                         // Tenant/unidade do contexto autenticado
                         .requestMatchers(
                                 "/tenant",

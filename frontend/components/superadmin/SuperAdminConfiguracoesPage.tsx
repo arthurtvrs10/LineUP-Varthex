@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Bell, CreditCard, Mail, Plug, Settings, Shield, UserRound } from "lucide-react";
 import {
   FieldInput,
@@ -7,6 +9,8 @@ import {
   SectionCard,
   ToggleRow,
 } from "@/components/ui/SettingsPrimitives";
+import { Toast, useToast } from "@/components/ui/Toast";
+import { apiFetch, ApiError } from "@/lib/api";
 
 type Integracao = {
   nome: string;
@@ -31,15 +35,45 @@ const integracaoStyles: Record<Integracao["status"], { bg: string; color: string
 };
 
 export function SuperAdminConfiguracoesPage() {
+  const { data: session, update: updateSession } = useSession();
+  const [nome, setNome] = useState("");
+  const [savingConta, setSavingConta] = useState(false);
+  const toast = useToast();
+
+  useEffect(() => {
+    if (session?.user?.name) setNome(session.user.name);
+  }, [session?.user?.name]);
+
+  async function salvarConta() {
+    setSavingConta(true);
+    try {
+      await apiFetch("/users/me", { method: "PATCH", body: { name: nome } });
+      await updateSession?.({ name: nome });
+      toast.mostrar("Perfil atualizado!");
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível salvar.", "erro");
+    } finally {
+      setSavingConta(false);
+    }
+  }
+
   return (
     <div className="flex w-full flex-col items-end gap-4">
       <div className="flex w-full flex-col gap-4">
         <SectionCard icon={UserRound} title="Conta">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <FieldInput label="Nome" defaultValue="Rafael Mendes" />
-            <FieldInput label="E-mail" defaultValue="admin@lineup.com" type="email" />
-            <FieldInput label="Telefone" defaultValue="(11) 99999-0110" />
-            <FieldInput label="Cargo" defaultValue="Super Admin da plataforma" />
+            <FieldInput label="Nome" value={nome} onChange={setNome} />
+            <FieldInput label="E-mail" value={session?.user?.email ?? ""} onChange={() => {}} type="email" disabled />
+          </div>
+          <div className="flex justify-end pt-4">
+            <button
+              type="button"
+              onClick={salvarConta}
+              disabled={savingConta}
+              className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {savingConta ? "Salvando…" : "Salvar perfil"}
+            </button>
           </div>
         </SectionCard>
 
@@ -177,6 +211,7 @@ export function SuperAdminConfiguracoesPage() {
       </div>
 
       <SaveBar />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
 }

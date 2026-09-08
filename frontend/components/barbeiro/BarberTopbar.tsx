@@ -3,10 +3,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
+import { useSession, signOut } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
 import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
 import { apiFetch } from "@/lib/api";
+
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
 
 type BarberTopbarProps = {
   title: string;
@@ -14,10 +20,13 @@ type BarberTopbarProps = {
 };
 
 export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
+  const { data: session } = useSession();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
   const pathname = usePathname();
+  const nome = session?.user?.name ?? session?.user?.email ?? "";
+  const iniciais = initialsFor(nome);
 
   useEffect(() => {
     // Refaz a busca a cada navegação — a página /barbeiro/notificacoes marca
@@ -63,7 +72,7 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
             className="flex items-center gap-2 rounded-[8px] px-2 py-1 transition hover:bg-[#f7f6f2]"
           >
             <span className="grid size-8 place-items-center rounded-full bg-[#fdf3e3] text-xs font-semibold text-[#d28b27]">
-              PR
+              {iniciais}
             </span>
             <ChevronDown size={14} className="text-[#98a2b3]" />
           </button>
@@ -81,14 +90,17 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
               >
                 Notificações
               </Link>
-              <Link
-                href="/"
+              <button
+                type="button"
                 role="menuitem"
-                className="block px-3.5 py-2 text-[13px] text-[#0d1831] hover:bg-[#f7f6f2]"
-                onClick={() => setOpen(false)}
+                className="block w-full px-3.5 py-2 text-left text-[13px] text-[#0d1831] hover:bg-[#f7f6f2]"
+                onClick={() => {
+                  setOpen(false);
+                  signOut({ callbackUrl: "/login" });
+                }}
               >
                 Sair
-              </Link>
+              </button>
             </div>
           )}
         </div>

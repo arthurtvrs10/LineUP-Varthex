@@ -17,13 +17,32 @@ type BarberMeResponse = {
 };
 
 export function BarberConfiguracoesPage() {
-  const { data: session } = useSession();
+  const { data: session, update: updateSession } = useSession();
   const [barber, setBarber] = useState<BarberMeResponse>();
   const [displayName, setDisplayName] = useState("");
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
+  const [nome, setNome] = useState("");
+  const [savingConta, setSavingConta] = useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    if (session?.user?.name) setNome(session.user.name);
+  }, [session?.user?.name]);
+
+  async function salvarConta() {
+    setSavingConta(true);
+    try {
+      await apiFetch("/users/me", { method: "PATCH", body: { name: nome } });
+      await updateSession?.({ name: nome });
+      toast.mostrar("Perfil atualizado!");
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível salvar.", "erro");
+    } finally {
+      setSavingConta(false);
+    }
+  }
 
   useEffect(() => {
     apiFetch<BarberMeResponse>("/barbers/me")
@@ -60,8 +79,18 @@ export function BarberConfiguracoesPage() {
 
       <SectionCard icon={UserRound} title="Conta">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldInput label="Nome" value={session?.user?.name ?? ""} onChange={() => {}} disabled />
+          <FieldInput label="Nome" value={nome} onChange={setNome} />
           <FieldInput label="E-mail" value={session?.user?.email ?? ""} onChange={() => {}} disabled type="email" />
+        </div>
+        <div className="flex justify-end">
+          <button
+            type="button"
+            onClick={salvarConta}
+            disabled={savingConta}
+            className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingConta ? "Salvando…" : "Salvar perfil"}
+          </button>
         </div>
       </SectionCard>
 

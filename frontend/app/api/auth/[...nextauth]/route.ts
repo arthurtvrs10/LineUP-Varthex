@@ -65,6 +65,15 @@ export const authOptions: NextAuthOptions = {
         token.name = session.name;
       }
 
+      // Explícito de propósito, sem depender do merge implícito padrão do
+      // NextAuth (este projeto tem breaking changes documentados vs. a
+      // versão "normal") — sem isso, e-mail (e em alguns casos nome) some
+      // da sessão depois do primeiro login.
+      if (user) {
+        if (user.name) token.name = user.name;
+        if (user.email) token.email = user.email;
+      }
+
       if (account?.provider === "google" && account.id_token) {
         try {
           const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
@@ -94,6 +103,12 @@ export const authOptions: NextAuthOptions = {
       return token;
     },
     async session({ session, token }) {
+      if (token.name) {
+        session.user.name = token.name as string;
+      }
+      if (token.email) {
+        session.user.email = token.email as string;
+      }
       if (token.backendJwt) {
         session.user.accessToken = token.backendJwt as string;
       }

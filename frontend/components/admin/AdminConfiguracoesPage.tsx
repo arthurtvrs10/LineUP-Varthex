@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 import { Bell, CalendarCog, Store, UserRound, Wallet } from "lucide-react";
 import {
   FieldInput,
@@ -55,6 +56,9 @@ type BarbeariaForm = {
 };
 
 export function AdminConfiguracoesPage() {
+  const { data: session, update: updateSession } = useSession();
+  const [nome, setNome] = useState("");
+  const [savingConta, setSavingConta] = useState(false);
   const [tenant, setTenant] = useState<TenantResponse>();
   const [unit, setUnit] = useState<UnitResponse>();
   const [form, setForm] = useState<BarbeariaForm>({
@@ -70,6 +74,23 @@ export function AdminConfiguracoesPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
   const toast = useToast();
+
+  useEffect(() => {
+    if (session?.user?.name) setNome(session.user.name);
+  }, [session?.user?.name]);
+
+  async function salvarConta() {
+    setSavingConta(true);
+    try {
+      await apiFetch("/users/me", { method: "PATCH", body: { name: nome } });
+      await updateSession?.({ name: nome });
+      toast.mostrar("Perfil atualizado!");
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível salvar.", "erro");
+    } finally {
+      setSavingConta(false);
+    }
+  }
 
   async function carregar() {
     try {
@@ -161,13 +182,19 @@ export function AdminConfiguracoesPage() {
   return (
     <div className="flex w-full flex-col gap-4">
       <SectionCard icon={UserRound} title="Conta">
-        <p className="text-sm text-secondary">
-          Edição do próprio perfil ainda não tem endpoint no backend (falta{" "}
-          <code>PATCH /me/profile</code>). Campos abaixo são só visuais por enquanto.
-        </p>
-        <div className="grid grid-cols-1 gap-4 pt-4 sm:grid-cols-2">
-          <FieldInput label="Nome" defaultValue="Rafael Mendes" disabled />
-          <FieldInput label="E-mail" defaultValue="admin@lineup.com" type="email" disabled />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <FieldInput label="Nome" value={nome} onChange={setNome} />
+          <FieldInput label="E-mail" value={session?.user?.email ?? ""} onChange={() => {}} type="email" disabled />
+        </div>
+        <div className="flex justify-end pt-4">
+          <button
+            type="button"
+            onClick={salvarConta}
+            disabled={savingConta}
+            className="flex h-10 items-center gap-2 rounded-[10px] bg-accent px-4 text-sm font-medium text-on-accent transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {savingConta ? "Salvando…" : "Salvar perfil"}
+          </button>
         </div>
       </SectionCard>
 

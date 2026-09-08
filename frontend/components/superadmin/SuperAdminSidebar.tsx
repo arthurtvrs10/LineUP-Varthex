@@ -1,5 +1,6 @@
 "use client";
 
+import { useSession, signOut } from "next-auth/react";
 import {
   LayoutDashboard,
   Store,
@@ -42,7 +43,16 @@ const bottomLinks = [
   { href: "/superadmin/ajuda", label: "Ajuda", icon: HelpCircle },
 ];
 
+function initialsFor(name: string) {
+  const parts = name.trim().split(/\s+/);
+  return ((parts[0]?.[0] ?? "") + (parts[1]?.[0] ?? "")).toUpperCase() || "?";
+}
+
 export function SuperAdminSidebar() {
+  const { data: session } = useSession();
+  const name = session?.user?.name ?? "";
+  const email = session?.user?.email ?? "";
+
   return (
     <PortalSidebar
       homeHref="/superadmin/dashboard"
@@ -50,10 +60,11 @@ export function SuperAdminSidebar() {
       subtitleLine2="Super Admin"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: "RM", name: "Rafael Mendes", email: "admin@lineup.com" }}
+      user={{ initials: initialsFor(name || email), name: name || email, email }}
       activeColor="#2563eb"
       theme="light"
       profileHref="/superadmin/configuracoes"
+      onLogoutClick={() => signOut({ callbackUrl: "/login" })}
     />
   );
 }
