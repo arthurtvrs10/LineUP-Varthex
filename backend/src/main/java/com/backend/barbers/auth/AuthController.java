@@ -3,6 +3,7 @@ package com.backend.barbers.auth;
 import com.backend.barbers.auth.dto.LoginRequest;
 import com.backend.barbers.auth.dto.LoginResponse;
 import com.backend.barbers.auth.dto.MeResponse;
+import com.backend.barbers.auth.dto.SocialLoginRequest;
 import com.backend.users.Role;
 
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -24,6 +25,11 @@ public class AuthController {
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request){
         return authService.login(request);
+    }
+
+    @PostMapping("/social-login")
+    public LoginResponse socialLogin(@RequestBody SocialLoginRequest request){
+        return authService.processSocialLogin(request.idToken());
     }
 
     @GetMapping("/me")

@@ -16,6 +16,7 @@ import {
   type FormEvent,
   type ReactNode,
 } from "react";
+import { signIn } from "next-auth/react";
 import { Logo } from "@/components/brand/Logo";
 
 type AuthPageProps = {
@@ -203,9 +204,10 @@ export function AuthPage({ mode }: AuthPageProps) {
 
   async function handleGoogleAuth() {
     setGoogleLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setGoogleLoading(false);
-    setStatus("success");
+    // O NextAuth cuida do redirecionamento/popup do Google e da troca de
+    // código; ao voltar, o backend já validou o ID token e emitiu o JWT
+    // do LINEUP (ver app/api/auth/[...nextauth]/route.ts).
+    await signIn("google", { callbackUrl: "/clientes/dashboard" });
   }
 
   return (

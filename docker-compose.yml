@@ -75,6 +75,12 @@ services:
     ports:
       - "8080:8080"
 
+    # Lê GOOGLE_CLIENT_ID do mesmo .env.local do frontend (mesmo valor dos
+    # dois lados; o backend só precisa do client-id, nunca do secret, para
+    # validar a audiência do ID token do Google).
+    env_file:
+      - ./frontend/.env.local
+
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/varthex_barber
       SPRING_DATASOURCE_USERNAME: postgres
@@ -100,6 +106,18 @@ services:
     # Next.js normalmente roda na porta 3000
     ports:
       - "3000:3000"
+
+    # Lê GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET, NEXTAUTH_SECRET e
+    # NEXTAUTH_URL direto do .env.local (nunca entra na imagem — está no
+    # .dockerignore de propósito; isto injeta como variável de ambiente
+    # do container em tempo de execução, não no build).
+    env_file:
+      - ./frontend/.env.local
+
+    environment:
+      # Dentro da rede do Docker Compose, "localhost" não chega no
+      # container do backend — precisa ser o nome do serviço.
+      NEXT_PUBLIC_API_URL: http://backend:8080
 
     # O frontend depende do backend
     # Isso não garante que a API esteja pronta, mas garante a ordem básica

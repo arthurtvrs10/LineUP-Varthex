@@ -44,6 +44,10 @@ public class User {
     private LocalDateTime updatedAt;
     private LocalDateTime lastLoginAt;
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    private AuthProvider provider;
+
     public User() {
         // O JPA precisa de um construtor sem argumentos para conseguir criar a entidade.
     }
@@ -74,6 +78,10 @@ public class User {
 
         if (this.status == null) {
             this.status = UserStatus.ACTIVE;
+        }
+
+        if (this.provider == null) {
+            this.provider = AuthProvider.LOCAL;
         }
     }
 
@@ -140,6 +148,14 @@ public class User {
 
     public LocalDateTime getLastLoginAt() {
         return lastLoginAt;
+    }
+
+    public AuthProvider getProvider() {
+        return provider;
+    }
+
+    public void setProvider(AuthProvider provider) {
+        this.provider = provider;
     }
 
     public void changeStatus(UserStatus status) {

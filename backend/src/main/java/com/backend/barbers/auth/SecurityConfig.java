@@ -48,7 +48,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Público
-                        .requestMatchers(HttpMethod.POST, "/auth/login")
+                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login")
                         .permitAll()
 
                         // Gestão de usuários
