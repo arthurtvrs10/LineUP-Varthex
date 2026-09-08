@@ -23,6 +23,8 @@ export type PortalSidebarUser = {
   email: string;
   avatarBg?: string;
   avatarColor?: string;
+  /** Foto de perfil (data URL) — quando presente, substitui as iniciais. */
+  avatarUrl?: string | null;
 };
 
 type PortalSidebarProps = {
@@ -144,12 +146,21 @@ function AccountMenu({
           light ? "hover:bg-[#f7f6f2]" : "hover:bg-white/5"
         }`}
       >
-        <span
-          className="grid size-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold"
-          style={{ backgroundColor: user.avatarBg ?? "#fdf3e3", color: user.avatarColor ?? "#d28b27" }}
-        >
-          {user.initials}
-        </span>
+        {user.avatarUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={user.avatarUrl}
+            alt=""
+            className="size-7 shrink-0 rounded-full object-cover"
+          />
+        ) : (
+          <span
+            className="grid size-7 shrink-0 place-items-center rounded-full text-[11px] font-semibold"
+            style={{ backgroundColor: user.avatarBg ?? "#fdf3e3", color: user.avatarColor ?? "#d28b27" }}
+          >
+            {user.initials}
+          </span>
+        )}
         <span className="min-w-0 flex-1">
           <span className={`block truncate text-[13px] font-medium ${light ? "text-[#0d1831]" : "text-white"}`}>
             {user.name}

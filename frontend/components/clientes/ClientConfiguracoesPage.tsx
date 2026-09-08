@@ -1,7 +1,7 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, Lock, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, KeyRound, ShieldCheck, UserRound } from "lucide-react";
 import { FieldInput, SectionCard } from "@/components/ui/SettingsPrimitives";
 import { EmBreve } from "@/components/ui/EmBreve";
 import { useMyCustomer } from "./MyCustomerContext";
@@ -19,7 +19,7 @@ export function ClientConfiguracoesPage() {
           <FieldInput label="Telefone" value={customer?.phone ?? "Não informado"} onChange={() => {}} disabled />
         </div>
         <p className="text-xs text-[#98a2b3]">
-          Para editar seu nome, acesse{" "}
+          Para editar seus dados, acesse{" "}
           <a href="/clientes/perfil" className="font-semibold text-accent-strong hover:underline">
             Meu perfil
           </a>
@@ -28,15 +28,27 @@ export function ClientConfiguracoesPage() {
       </SectionCard>
 
       <SectionCard icon={Bell} title="Lembretes e avisos">
-        <EmBreve text="Preferências de lembrete e canal de contato ainda não estão disponíveis." />
+        <p className="text-sm text-secondary">
+          Escolha quais e-mails você recebe (confirmação, cancelamento, vaga na fila de espera) em{" "}
+          <a href="/clientes/perfil" className="font-semibold text-accent-strong hover:underline">
+            Meu perfil → Preferências de comunicação
+          </a>
+          .
+        </p>
+      </SectionCard>
+
+      <SectionCard icon={KeyRound} title="Segurança">
+        <p className="text-sm text-secondary">
+          Trocar senha e gerenciar dispositivos conectados também ficam em{" "}
+          <a href="/clientes/perfil" className="font-semibold text-accent-strong hover:underline">
+            Meu perfil → Segurança e acesso
+          </a>
+          .
+        </p>
       </SectionCard>
 
       <SectionCard icon={ShieldCheck} title="Privacidade">
         <EmBreve text="Controles de privacidade ainda não estão disponíveis." />
-      </SectionCard>
-
-      <SectionCard icon={Lock} title="Segurança">
-        <EmBreve text="Troca de senha ainda não está disponível." />
       </SectionCard>
     </div>
   );

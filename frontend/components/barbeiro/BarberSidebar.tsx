@@ -47,9 +47,11 @@ function initialsFor(name: string) {
 export function BarberSidebar() {
   const { data: session } = useSession();
   const [tenantName, setTenantName] = useState<string>();
+  const [photoData, setPhotoData] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<{ tradeName: string }>("/tenant").then((t) => setTenantName(t.tradeName)).catch(() => {});
+    apiFetch<{ photoData: string | null }>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
   }, []);
 
   const name = session?.user?.name ?? "";
@@ -62,7 +64,7 @@ export function BarberSidebar() {
       subtitleLine2="Unidade"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: initialsFor(name || email), name: name || email, email }}
+      user={{ initials: initialsFor(name || email), name: name || email, email, avatarUrl: photoData }}
       activeColor="#2563eb"
       theme="light"
       profileHref="/barbeiro/configuracoes"

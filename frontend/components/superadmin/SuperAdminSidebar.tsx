@@ -1,6 +1,8 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
+import { apiFetch } from "@/lib/api";
 import {
   LayoutDashboard,
   Store,
@@ -50,8 +52,13 @@ function initialsFor(name: string) {
 
 export function SuperAdminSidebar() {
   const { data: session } = useSession();
+  const [photoData, setPhotoData] = useState<string | null>(null);
   const name = session?.user?.name ?? "";
   const email = session?.user?.email ?? "";
+
+  useEffect(() => {
+    apiFetch<{ photoData: string | null }>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
+  }, []);
 
   return (
     <PortalSidebar
@@ -60,7 +67,7 @@ export function SuperAdminSidebar() {
       subtitleLine2="Super Admin"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: initialsFor(name || email), name: name || email, email }}
+      user={{ initials: initialsFor(name || email), name: name || email, email, avatarUrl: photoData }}
       activeColor="#2563eb"
       theme="light"
       profileHref="/superadmin/configuracoes"

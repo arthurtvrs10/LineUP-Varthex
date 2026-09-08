@@ -25,9 +25,11 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
   const nome = session?.user?.name ?? session?.user?.email ?? "";
   const iniciais = initialsFor(nome);
   const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
+  const [photoData, setPhotoData] = useState<string | null>(null);
 
   useEffect(() => {
     apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
+    apiFetch<{ photoData: string | null }>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -65,9 +67,14 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
             aria-haspopup="menu"
             className="flex items-center gap-2 rounded-[8px] px-2 py-1 transition hover:bg-[#f7f6f2]"
           >
-            <span className="grid size-8 place-items-center rounded-full bg-[#fdf3e3] text-xs font-semibold text-[#d28b27]">
-              {iniciais}
-            </span>
+            {photoData ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={photoData} alt="" className="size-8 rounded-full object-cover" />
+            ) : (
+              <span className="grid size-8 place-items-center rounded-full bg-[#fdf3e3] text-xs font-semibold text-[#d28b27]">
+                {iniciais}
+              </span>
+            )}
             <ChevronDown size={14} className="text-[#98a2b3]" />
           </button>
 

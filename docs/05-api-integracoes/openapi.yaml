@@ -632,23 +632,22 @@ paths:
     post:
       tags: [Waitlist]
       summary: "Oferta criada"
+      description: "Staff-only — oferta a vaga pro dono da entrada, pra um profissional específico."
       operationId: createWaitlistOffer
       x-release: MVP
       parameters:
-        - name: waitlistEntryId
-          in: path
-          required: true
-          schema:
-            type: string
-            format: uuid
+        - $ref: '#/components/parameters/WaitlistEntryId'
       requestBody:
         required: true
         content:
           application/json:
             schema:
               type: object
-              required: [slotStartAt, slotEndAt]
+              required: [barberId, slotStartAt, slotEndAt]
               properties:
+                barberId:
+                  type: string
+                  format: uuid
                 slotStartAt:
                   type: string
                   format: date-time
@@ -658,6 +657,27 @@ paths:
       responses:
         '201':
           description: Oferta criada
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/WaitlistOffer'
+    get:
+      tags: [Waitlist]
+      summary: "Ofertas da entrada"
+      description: "Staff vê todas; cliente só as da própria entrada."
+      operationId: listWaitlistOffers
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/WaitlistEntryId'
+      responses:
+        '200':
+          description: Ofertas da entrada
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/WaitlistOffer'
   /commissions/summary:
     get:
       tags: [Commissions]
@@ -1763,26 +1783,18 @@ paths:
     post:
       tags: [Waitlist]
       summary: "Primeira aceitação válida convertida em agendamento"
+      description: >-
+        Simplificação de escopo (RN-FIL-004): o cliente aceita autenticado no
+        app, sem link/token público — mesma proteção transação+índice usada
+        em conflito de agenda garante que só a primeira aceitação vence.
+        Staff também pode responder em nome do cliente.
       operationId: acceptWaitlistOffer
       x-release: MVP
-      security: []
       parameters:
         - $ref: '#/components/parameters/WaitlistOfferId'
         - $ref: '#/components/parameters/IdempotencyKey'
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              required: [token]
-              properties:
-                token:
-                  type: string
-                  minLength: 32
-                  maxLength: 512
       responses:
-        '201':
+        '200':
           description: Primeira aceitação válida convertida em agendamento
           content:
             application/json:
@@ -1790,6 +1802,17 @@ paths:
                 $ref: '#/components/schemas/Appointment'
         '409':
           $ref: '#/components/responses/Conflict'
+  /waitlist-offers/{waitlistOfferId}/reject:
+    post:
+      tags: [Waitlist]
+      summary: "Oferta recusada"
+      operationId: rejectWaitlistOffer
+      x-release: MVP
+      parameters:
+        - $ref: '#/components/parameters/WaitlistOfferId'
+      responses:
+        '204':
+          description: Oferta recusada
   /commission-rules:
     get:
       tags: [Commissions]
@@ -4468,6 +4491,36 @@ components:
               enum: [ACTIVE, OFFERED, BOOKED, EXPIRED, CANCELED]
             priority:
               type: integer
+    WaitlistOffer:
+      type: object
+      required: [id, waitlistEntryId, barberId, barberName, slotStartAt, slotEndAt, status, expiresAt, createdAt]
+      properties:
+        id:
+          type: string
+          format: uuid
+        waitlistEntryId:
+          type: string
+          format: uuid
+        barberId:
+          type: string
+          format: uuid
+        barberName:
+          type: string
+        slotStartAt:
+          type: string
+          format: date-time
+        slotEndAt:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [PENDING, ACCEPTED, REJECTED, EXPIRED]
+        expiresAt:
+          type: string
+          format: date-time
+        createdAt:
+          type: string
+          format: date-time
     CommissionSummary:
       type: object
       required: [from, to, provisionedAmount, approvedAmount, paidAmount]

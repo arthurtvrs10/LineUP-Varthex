@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { LayoutGrid, CalendarDays, History, ListOrdered, UserRound, Settings, HelpCircle } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { PortalSidebar, type PortalNavGroup } from "@/components/layout/PortalSidebar";
+import { apiFetch } from "@/lib/api";
 import { useMyCustomer } from "./MyCustomerContext";
 
 const groups: PortalNavGroup[] = [
@@ -30,6 +32,11 @@ function initialsFor(name: string) {
 export function ClientSidebar() {
   const { data: session } = useSession();
   const { customer } = useMyCustomer();
+  const [photoData, setPhotoData] = useState<string | null>(null);
+
+  useEffect(() => {
+    apiFetch<{ photoData: string | null }>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
+  }, []);
 
   const name = session?.user?.name ?? "";
   const email = session?.user?.email ?? "";
@@ -41,7 +48,7 @@ export function ClientSidebar() {
       subtitleLine2="Portal do cliente"
       groups={groups}
       bottomLinks={bottomLinks}
-      user={{ initials: initialsFor(name || email), name: name || email, email }}
+      user={{ initials: initialsFor(name || email), name: name || email, email, avatarUrl: photoData }}
       activeColor="#2563eb"
       theme="light"
       profileHref="/clientes/perfil"

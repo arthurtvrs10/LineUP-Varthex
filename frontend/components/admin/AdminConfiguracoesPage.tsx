@@ -282,8 +282,8 @@ export function AdminConfiguracoesPage() {
 
       <SectionCard icon={CalendarCog} title="Agendamento">
         <p className="mb-4 text-sm text-secondary">
-          Depende do domínio de Scheduling, ainda não construído no backend. Campos abaixo são só
-          visuais.
+          Essas regras ainda não são configuráveis por barbearia — os campos abaixo são só
+          visuais, sem endpoint de configuração por trás.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput
@@ -303,8 +303,9 @@ export function AdminConfiguracoesPage() {
 
       <SectionCard icon={Wallet} title="Financeiro e comissões">
         <p className="mb-4 text-sm text-secondary">
-          Depende do domínio de Commissions, ainda não construído no backend. Campos abaixo são só
-          visuais.
+          Cada barbeiro já tem uma comissão definida no cadastro. Um percentual padrão por
+          barbearia e o dia de fechamento de caixa ainda não existem como configuração — os campos
+          abaixo são só visuais.
         </p>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput
@@ -319,8 +320,8 @@ export function AdminConfiguracoesPage() {
 
       <SectionCard icon={Bell} title="Notificações">
         <p className="mb-4 text-sm text-secondary">
-          Depende do domínio de Notifications, ainda não construído no backend. Toggles abaixo são
-          só visuais.
+          O barbeiro já é avisado no app a cada novo agendamento. Desligar esses avisos por
+          barbearia ainda não é configurável — os toggles abaixo são só visuais.
         </p>
         <div className="flex flex-col opacity-60">
           <ToggleRow
