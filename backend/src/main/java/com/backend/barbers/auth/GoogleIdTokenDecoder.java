@@ -36,7 +36,11 @@ public class GoogleIdTokenDecoder {
         OAuth2TokenValidator<Jwt> validator = new DelegatingOAuth2TokenValidator<>(List.of(
                 new JwtTimestampValidator(),
                 new JwtClaimValidator<String>("iss", VALID_ISSUERS::contains),
-                new JwtClaimValidator<String>("aud", googleClientId::equals),
+                // O claim "aud" é sempre normalizado pelo Spring/Nimbus como
+                // List<String> (o JWT pode ter uma ou várias audiências) —
+                // validar como String direto derruba todo login do Google
+                // com ClassCastException.
+                new JwtClaimValidator<List<String>>("aud", auds -> auds != null && auds.contains(googleClientId)),
                 new JwtClaimValidator<Boolean>("email_verified", Boolean.TRUE::equals)
         ));
         decoder.setJwtValidator(validator);
