@@ -56,6 +56,7 @@ public class AuthService {
         return new LoginResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getName(),
                 user.getRole(),
                 accessToken,
                 "Bearer",
@@ -97,6 +98,7 @@ public class AuthService {
         return new LoginResponse(
                 user.getId(),
                 user.getEmail(),
+                user.getName(),
                 user.getRole(),
                 accessToken,
                 "Bearer",
