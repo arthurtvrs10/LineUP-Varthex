@@ -10,6 +10,7 @@ public record LoginResponse(
         String name,
         Role role,
         String accessToken,
+        String refreshToken,
         String tokenType,
         String message
 ) {

@@ -1,14 +1,27 @@
 "use client";
 
 import { useEffect, useState, type FormEvent } from "react";
-import { useSession } from "next-auth/react";
-import { KeyRound, Monitor } from "lucide-react";
+import { useSession, signOut } from "next-auth/react";
+import { KeyRound, Monitor, X } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { EmBreve } from "@/components/ui/EmBreve";
 import { useMyCustomer } from "./MyCustomerContext";
 
 type MeResponse = { photoData: string | null };
+type SessionInfo = { id: string; createdAt: string; expiresAt: string; userAgent: string | null };
+
+const sessionDateFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit" });
+
+function deviceLabel(userAgent: string | null) {
+  if (!userAgent) return "Dispositivo desconhecido";
+  if (/iphone|ipad/i.test(userAgent)) return "iPhone/iPad";
+  if (/android/i.test(userAgent)) return "Android";
+  if (/chrome/i.test(userAgent)) return "Chrome";
+  if (/firefox/i.test(userAgent)) return "Firefox";
+  if (/safari/i.test(userAgent)) return "Safari";
+  return "Navegador";
+}
 
 function initialsFor(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -31,6 +44,37 @@ export function PerfilPage() {
   const [trocandoSenha, setTrocandoSenha] = useState(false);
   const [senhaSalva, setSenhaSalva] = useState(false);
   const [erroSenha, setErroSenha] = useState<string>();
+
+  const [sessoes, setSessoes] = useState<SessionInfo[]>();
+  const [encerrandoTudo, setEncerrandoTudo] = useState(false);
+
+  function carregarSessoes() {
+    apiFetch<SessionInfo[]>("/auth/sessions")
+      .then(setSessoes)
+      .catch(() => {});
+  }
+
+  useEffect(() => {
+    carregarSessoes();
+  }, []);
+
+  async function revogarSessao(id: string) {
+    try {
+      await apiFetch(`/auth/sessions/${id}`, { method: "DELETE" });
+      setSessoes((prev) => prev?.filter((s) => s.id !== id));
+    } catch {
+      carregarSessoes();
+    }
+  }
+
+  async function encerrarTudo() {
+    setEncerrandoTudo(true);
+    try {
+      await apiFetch("/auth/logout-all", { method: "POST" });
+    } finally {
+      await signOut({ callbackUrl: "/login" });
+    }
+  }
 
   useEffect(() => {
     if (session?.user?.name) setName(session.user.name);
@@ -258,14 +302,56 @@ export function PerfilPage() {
           </div>
         </form>
 
-        <div className="mt-2 flex items-center gap-3 border-t border-[#eef0f3] py-4">
-          <span className="grid size-10 place-items-center rounded-full bg-[#f7f6f2] text-[#5f6f87]">
-            <Monitor size={18} strokeWidth={1.8} />
-          </span>
-          <div className="flex-1">
-            <p className="text-sm font-bold text-[#0d1831]">Sessões e dispositivos</p>
-            <p className="text-xs text-[#5f6f87]">Gerenciamento de sessões ainda não está disponível.</p>
+        <div className="mt-2 border-t border-[#eef0f3] pt-4">
+          <div className="flex items-center gap-3">
+            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#f7f6f2] text-[#5f6f87]">
+              <Monitor size={18} strokeWidth={1.8} />
+            </span>
+            <div className="flex-1">
+              <p className="text-sm font-bold text-[#0d1831]">Sessões e dispositivos</p>
+              <p className="text-xs text-[#5f6f87]">
+                {sessoes && sessoes.length > 0
+                  ? `${sessoes.length} sessão(ões) ativa(s).`
+                  : "Nenhuma outra sessão ativa."}
+              </p>
+            </div>
+            {sessoes && sessoes.length > 0 && (
+              <button
+                type="button"
+                onClick={encerrarTudo}
+                disabled={encerrandoTudo}
+                className="shrink-0 rounded-[10px] border border-[#e6e4df] px-3.5 py-2 text-xs font-bold text-[#c84a4a] transition hover:bg-[#fdeaea] disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {encerrandoTudo ? "Saindo…" : "Sair de todos os dispositivos"}
+              </button>
+            )}
           </div>
+
+          {sessoes && sessoes.length > 0 && (
+            <ul className="mt-3 flex flex-col gap-2">
+              {sessoes.map((s) => (
+                <li
+                  key={s.id}
+                  className="flex items-center justify-between gap-3 rounded-[10px] border border-[#eef0f3] px-3.5 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <p className="truncate text-xs font-bold text-[#0d1831]">{deviceLabel(s.userAgent)}</p>
+                    <p className="text-[11px] text-[#98a2b3]">
+                      Ativa desde {sessionDateFormatter.format(new Date(s.createdAt))}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => revogarSessao(s.id)}
+                    aria-label="Encerrar sessão"
+                    className="grid size-7 shrink-0 place-items-center rounded-full text-[#98a2b3] transition hover:bg-[#fdeaea] hover:text-[#c84a4a]"
+                  >
+                    <X size={14} strokeWidth={2} />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
       </section>
     </div>

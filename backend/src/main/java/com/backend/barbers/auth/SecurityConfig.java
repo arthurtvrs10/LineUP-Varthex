@@ -49,7 +49,8 @@ public class SecurityConfig {
 
                         // Público
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login",
-                                "/auth/password-recovery", "/auth/password-recovery/complete")
+                                "/auth/password-recovery", "/auth/password-recovery/complete",
+                                "/auth/refresh", "/auth/logout")
                         .permitAll()
 
                         // Trocar a própria senha exige estar logado, mas não tem

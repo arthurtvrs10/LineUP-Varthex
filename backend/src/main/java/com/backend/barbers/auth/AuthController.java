@@ -6,6 +6,8 @@ import com.backend.barbers.auth.dto.LoginResponse;
 import com.backend.barbers.auth.dto.MeResponse;
 import com.backend.barbers.auth.dto.PasswordRecoveryCompleteRequest;
 import com.backend.barbers.auth.dto.PasswordRecoveryRequest;
+import com.backend.barbers.auth.dto.RefreshTokenRequest;
+import com.backend.barbers.auth.dto.SessionResponse;
 import com.backend.barbers.auth.dto.SocialLoginRequest;
 import com.backend.users.Role;
 
@@ -14,6 +16,7 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -27,13 +30,44 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public LoginResponse login(@RequestBody LoginRequest request){
-        return authService.login(request);
+    public LoginResponse login(@RequestBody LoginRequest request,
+                                @RequestHeader(value = "User-Agent", required = false) String userAgent){
+        return authService.login(request, userAgent);
     }
 
     @PostMapping("/social-login")
-    public LoginResponse socialLogin(@RequestBody SocialLoginRequest request){
-        return authService.processSocialLogin(request.idToken());
+    public LoginResponse socialLogin(@RequestBody SocialLoginRequest request,
+                                      @RequestHeader(value = "User-Agent", required = false) String userAgent){
+        return authService.processSocialLogin(request.idToken(), userAgent);
+    }
+
+    @PostMapping("/refresh")
+    public LoginResponse refresh(@RequestBody RefreshTokenRequest request,
+                                  @RequestHeader(value = "User-Agent", required = false) String userAgent) {
+        return authService.refresh(request.refreshToken(), userAgent);
+    }
+
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@RequestBody(required = false) RefreshTokenRequest request) {
+        authService.logout(request != null ? request.refreshToken() : null);
+    }
+
+    @PostMapping("/logout-all")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logoutAll(JwtAuthenticationToken authentication) {
+        authService.logoutAll(UUID.fromString(authentication.getToken().getSubject()));
+    }
+
+    @GetMapping("/sessions")
+    public List<SessionResponse> sessions(JwtAuthenticationToken authentication) {
+        return authService.listSessions(UUID.fromString(authentication.getToken().getSubject()));
+    }
+
+    @DeleteMapping("/sessions/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void revokeSession(@PathVariable UUID id, JwtAuthenticationToken authentication) {
+        authService.revokeSession(UUID.fromString(authentication.getToken().getSubject()), id);
     }
 
     @PostMapping("/password-recovery")

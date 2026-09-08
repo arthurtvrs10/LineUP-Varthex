@@ -2,7 +2,7 @@ import NextAuth, { type NextAuthOptions, type User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
 
-type BackendUser = User & { backendJwt: string; role: string };
+type BackendUser = User & { backendJwt: string; backendRefreshToken: string; role: string };
 
 export const authOptions: NextAuthOptions = {
   pages: {
@@ -44,6 +44,7 @@ export const authOptions: NextAuthOptions = {
           email: data.email,
           name: data.name,
           backendJwt: data.accessToken,
+          backendRefreshToken: data.refreshToken,
           role: data.role,
         };
 
@@ -85,6 +86,7 @@ export const authOptions: NextAuthOptions = {
           if (res.ok) {
             const data = await res.json();
             token.backendJwt = data.accessToken;
+            token.backendRefreshToken = data.refreshToken;
             token.role = data.role;
           } else {
             console.error("Falha ao comunicar com o backend:", res.status);
@@ -97,6 +99,7 @@ export const authOptions: NextAuthOptions = {
       if (account?.provider === "credentials" && user) {
         const backendUser = user as BackendUser;
         token.backendJwt = backendUser.backendJwt;
+        token.backendRefreshToken = backendUser.backendRefreshToken;
         token.role = backendUser.role;
       }
 
@@ -120,6 +123,24 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
+  },
+  events: {
+    // Sem isso, o refresh token da sessão fica válido no backend por até
+    // 30 dias mesmo depois do usuário clicar em "Sair" — signOut() do
+    // NextAuth só apaga o cookie local, nunca chamou o backend.
+    async signOut({ token }) {
+      const refreshToken = token?.backendRefreshToken as string | undefined;
+      if (!refreshToken) return;
+      try {
+        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ refreshToken }),
+        });
+      } catch (error) {
+        console.error("Falha ao revogar sessão no backend:", error);
+      }
+    },
   },
 };
 

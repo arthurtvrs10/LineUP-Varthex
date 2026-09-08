@@ -53,6 +53,13 @@ public class User {
     @Column(name = "photo_data", columnDefinition = "TEXT")
     private String photoData;
 
+    // Rate limit de login (RF-AUT-007) — zera a cada sucesso.
+    @Column(name = "failed_login_attempts", nullable = false)
+    private int failedLoginAttempts;
+
+    @Column(name = "locked_until")
+    private LocalDateTime lockedUntil;
+
     public User() {
         // O JPA precisa de um construtor sem argumentos para conseguir criar a entidade.
     }
@@ -173,6 +180,22 @@ public class User {
 
     public void setPhotoData(String photoData) {
         this.photoData = photoData;
+    }
+
+    public int getFailedLoginAttempts() {
+        return failedLoginAttempts;
+    }
+
+    public void setFailedLoginAttempts(int failedLoginAttempts) {
+        this.failedLoginAttempts = failedLoginAttempts;
+    }
+
+    public LocalDateTime getLockedUntil() {
+        return lockedUntil;
+    }
+
+    public void setLockedUntil(LocalDateTime lockedUntil) {
+        this.lockedUntil = lockedUntil;
     }
 
     public void changeStatus(UserStatus status) {
