@@ -8,7 +8,7 @@ import java.util.UUID;
 public record BarberResponse(
         UUID id,
         UUID userId,
-        UUID barbershopId,
+        UUID unitId,
         String displayName,
         String bio,
         int defaultCommissionPercent,

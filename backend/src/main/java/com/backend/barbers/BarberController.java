@@ -29,9 +29,9 @@ public class BarberController {
 
     @GetMapping
     public List<BarberResponse> getBarbers(
-            @RequestParam("barbershopId") UUID barbershopId
+            @RequestParam("unitId") UUID unitId
     ) {
-        return barberService.listByBarbershop(barbershopId);
+        return barberService.listByUnit(unitId);
     }
 
     @GetMapping("/{id}")

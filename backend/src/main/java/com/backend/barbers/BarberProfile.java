@@ -1,6 +1,6 @@
 package com.backend.barbers;
 
-import com.backend.barbershops.Barbershop;
+import com.backend.units.Unit;
 import com.backend.users.User;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -33,10 +33,10 @@ public class BarberProfile {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(
-            name = "barbershop_id",
+            name = "unit_id",
             nullable = false
     )
-    private Barbershop barbershop;
+    private Unit unit;
 
     @Column(nullable = false, length = 150)
     private String displayName;

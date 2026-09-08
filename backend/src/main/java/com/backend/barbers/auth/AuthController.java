@@ -36,18 +36,18 @@ public class AuthController {
     public MeResponse me(JwtAuthenticationToken authentication){
         Jwt jwt = authentication.getToken();
 
-        String barbershopIdClaim =
-                jwt.getClaimAsString("barbershopId");
+        String tenantIdClaim =
+                jwt.getClaimAsString("tenantId");
 
-        UUID barbershopId = barbershopIdClaim != null
-                ? UUID.fromString(barbershopIdClaim)
+        UUID tenantId = tenantIdClaim != null
+                ? UUID.fromString(tenantIdClaim)
                 : null;
 
         return new MeResponse(
                 UUID.fromString(jwt.getSubject()),
                 jwt.getClaimAsString("email"),
                 Role.valueOf(jwt.getClaimAsString("role")),
-                barbershopId
+                tenantId
         );
     }
 }

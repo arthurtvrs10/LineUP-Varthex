@@ -3,8 +3,8 @@ package com.backend.barbers;
 import com.backend.barbers.dto.BarberResponse;
 import com.backend.barbers.dto.CreateBarberRequest;
 import com.backend.barbers.dto.UpdateBarberRequest;
-import com.backend.barbershops.Barbershop;
-import com.backend.barbershops.BarbershopRepository;
+import com.backend.units.Unit;
+import com.backend.units.UnitRepository;
 import com.backend.users.User;
 import com.backend.users.UserRepository;
 import jakarta.transaction.Transactional;
@@ -22,7 +22,7 @@ public class BarberService {
 
     private final BarberRepository barberRepository;
     private final UserRepository userRepository;
-    private final BarbershopRepository barbershopRepository;
+    private final UnitRepository unitRepository;
 
     @Transactional
     public BarberResponse createBarber(CreateBarberRequest request) {
@@ -43,17 +43,17 @@ public class BarberService {
                         "Usuário não encontrado"
                 ));
 
-        Barbershop barbershop = barbershopRepository
-                .findById(request.barbershopId())
+        Unit unit = unitRepository
+                .findById(request.unitId())
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Barbearia não encontrada"
+                        "Unidade não encontrada"
                 ));
 
         BarberProfile barber = new BarberProfile();
 
         barber.setUser(user);
-        barber.setBarbershop(barbershop);
+        barber.setUnit(unit);
         barber.setDisplayName(request.displayName());
         barber.setBio(request.bio());
         barber.setDefaultCommissionPercent(
@@ -66,17 +66,17 @@ public class BarberService {
         return toResponse(savedBarber);
     }
 
-    public List<BarberResponse> listByBarbershop(UUID barbershopId) {
+    public List<BarberResponse> listByUnit(UUID unitId) {
 
-        if (!barbershopRepository.existsById(barbershopId)) {
+        if (!unitRepository.existsById(unitId)) {
             throw new ResponseStatusException(
                     HttpStatus.NOT_FOUND,
-                    "Barbearia não encontrada"
+                    "Unidade não encontrada"
             );
         }
 
         return barberRepository
-                .findAllByBarbershop_Id(barbershopId)
+                .findAllByUnit_Id(unitId)
                 .stream()
                 .map(this::toResponse)
                 .toList();
@@ -183,7 +183,7 @@ public class BarberService {
         return new BarberResponse(
                 barber.getId(),
                 barber.getUser().getId(),
-                barber.getBarbershop().getId(),
+                barber.getUnit().getId(),
                 barber.getDisplayName(),
                 barber.getBio(),
                 barber.getDefaultCommissionPercent(),

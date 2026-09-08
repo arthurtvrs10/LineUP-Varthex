@@ -28,10 +28,10 @@ public class JwtService {
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name());
 
-        if (user.getBarbershopId() != null) {
+        if (user.getTenantId() != null) {
             claimsBuilder.claim(
-                    "barbershopId",
-                    user.getBarbershopId().toString()
+                    "tenantId",
+                    user.getTenantId().toString()
             );
         }
 

@@ -11,7 +11,7 @@ public record UserResponse (
         String email,
         Role role,
         UserStatus UserStatus,
-        UUID barbershopId,
+        UUID tenantId,
         LocalDateTime createdAt
 ) {
 

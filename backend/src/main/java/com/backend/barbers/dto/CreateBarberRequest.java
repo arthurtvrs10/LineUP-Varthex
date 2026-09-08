@@ -13,8 +13,8 @@ public record CreateBarberRequest(
         @NotNull(message = "O usuário é obrigatório")
         UUID userId,
 
-        @NotNull(message = "A barbearia é obrigatória")
-        UUID barbershopId,
+        @NotNull(message = "A unidade é obrigatória")
+        UUID unitId,
 
         @NotBlank(message = "O nome de exibição é obrigatório")
         @Size(

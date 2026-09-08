@@ -7,6 +7,6 @@ public record  MeResponse(
         UUID id,
         String email,
         Role role,
-        UUID barbershopId
+        UUID tenantId
 ) {
 }

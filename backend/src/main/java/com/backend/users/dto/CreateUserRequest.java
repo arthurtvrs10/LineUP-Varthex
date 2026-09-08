@@ -9,5 +9,5 @@ public record CreateUserRequest (
         String email,
         String password,
         Role role,
-        UUID barbershopId
+        UUID tenantId
 ){}

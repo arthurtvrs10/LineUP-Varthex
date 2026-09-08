@@ -1,0 +1,20 @@
+CREATE TABLE units (
+    id UUID PRIMARY KEY,
+    tenant_id UUID NOT NULL REFERENCES tenants(id),
+    name VARCHAR(120) NOT NULL,
+    document VARCHAR(14),
+    email VARCHAR(255),
+    phone VARCHAR(20),
+    street VARCHAR(180),
+    number VARCHAR(30),
+    complement VARCHAR(120),
+    district VARCHAR(120),
+    city VARCHAR(120),
+    state VARCHAR(2),
+    country VARCHAR(2) NOT NULL DEFAULT 'BR',
+    time_zone VARCHAR(50) NOT NULL,
+    active BOOLEAN NOT NULL DEFAULT TRUE,
+    version BIGINT NOT NULL DEFAULT 0,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
+);

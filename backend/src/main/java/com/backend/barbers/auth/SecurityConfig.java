@@ -51,31 +51,38 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login")
                         .permitAll()
 
+                        // Criação de um novo tenant (cadastro da barbearia) é pública —
+                        // ainda não existe usuário autenticado nesse momento.
+                        .requestMatchers(HttpMethod.POST, "/tenants")
+                        .permitAll()
+
                         // Gestão de usuários
                         .requestMatchers("/users", "/users/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN")
 
-                        // Gestão global de barbearias
-                        .requestMatchers(HttpMethod.POST,
-                                "/barbershops")
-                        .hasAnyRole("SUPER_ADMIN",
-                                "ADMIN")
-
-                        // Somente SUPER_ADMIN lista/acessa globalmente barbearias
+                        // Tenant/unidade do contexto autenticado
                         .requestMatchers(
-                                "/barbershops",
-                                "/barbershops/**"
-                        ).hasRole("SUPER_ADMIN")
-
-                        // Barbershops
-                        .requestMatchers(
-                                "/barbershops",
-                                "/barbershops/**"
+                                "/tenant",
+                                "/tenant/**",
+                                "/unit",
+                                "/unit/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN")
 
                         .requestMatchers(
                                 "/barbers",
                                 "/barbers/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
+                        .requestMatchers(
+                                "/customers",
+                                "/customers/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
+                        .requestMatchers(
+                                "/services",
+                                "/services/**",
+                                "/service-categories",
+                                "/service-categories/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
                         // Qualquer outro endpoint exige login

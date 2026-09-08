@@ -34,8 +34,8 @@ public class User {
     @Column(nullable = false, length = 30)
     private UserStatus status;
 
-    @Column(name = "barbershop_id")
-    private UUID barbershopId;
+    @Column(name = "tenant_id")
+    private UUID tenantId;
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -52,14 +52,14 @@ public class User {
         // O JPA precisa de um construtor sem argumentos para conseguir criar a entidade.
     }
 
-    public User(UUID id, String name, String email, String passwordHash, Role role, UserStatus status, UUID barbershopId, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLoginAt) {
+    public User(UUID id, String name, String email, String passwordHash, Role role, UserStatus status, UUID tenantId, LocalDateTime createdAt, LocalDateTime updatedAt, LocalDateTime lastLoginAt) {
         this.id = id;
         this.name = name;
         this.email = email;
         this.passwordHash = passwordHash;
         this.role = role;
         this.status = status;
-        this.barbershopId = barbershopId;
+        this.tenantId = tenantId;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
         this.lastLoginAt = lastLoginAt;
@@ -85,16 +85,16 @@ public class User {
         }
     }
 
-    public void assignBarbershopId(UUID barbershopId){
-        if (barbershopId == null) {
+    public void assignTenantId(UUID tenantId){
+        if (tenantId == null) {
             throw new IllegalArgumentException("Barbearia é obrigatória");
         }
 
-        if (this.barbershopId != null){
+        if (this.tenantId != null){
             throw new IllegalStateException("Usuário já está vinculado a uma barbearia");
         }
 
-        this.barbershopId = barbershopId;
+        this.tenantId = tenantId;
     }
 
     @PreUpdate
@@ -134,8 +134,8 @@ public class User {
         this.status = status;
     }
 
-    public UUID getBarbershopId() {
-        return barbershopId;
+    public UUID getTenantId() {
+        return tenantId;
     }
 
     public LocalDateTime getCreatedAt() {

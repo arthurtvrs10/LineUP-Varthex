@@ -9,5 +9,5 @@ public interface BarberRepository extends JpaRepository<BarberProfile, UUID> {
 
     boolean existsByUser_Id(UUID userId);
 
-    List<BarberProfile> findAllByBarbershop_Id(UUID barbershopId);
+    List<BarberProfile> findAllByUnit_Id(UUID unitId);
 }

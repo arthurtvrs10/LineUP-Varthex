@@ -35,7 +35,7 @@ public class UserController {
                 request.email(),
                 request.password(),
                 request.role(),
-                request.barbershopId()
+                request.tenantId()
         );
 
         UserResponse response = new UserResponse(
@@ -44,7 +44,7 @@ public class UserController {
                 createdUser.getEmail(),
                 createdUser.getRole(),
                 createdUser.getStatus(),
-                createdUser.getBarbershopId(),
+                createdUser.getTenantId(),
                 createdUser.getCreatedAt()
         );
         return response;
@@ -74,7 +74,7 @@ public class UserController {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getBarbershopId(),
+                user.getTenantId(),
                 user.getCreatedAt()
         );
     }
@@ -89,7 +89,7 @@ public class UserController {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getBarbershopId(),
+                user.getTenantId(),
                 user.getCreatedAt()
         );
     }
@@ -103,7 +103,7 @@ public class UserController {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getBarbershopId(),
+                user.getTenantId(),
                 user.getCreatedAt()
         );
     }
@@ -117,7 +117,7 @@ public class UserController {
                 user.getEmail(),
                 user.getRole(),
                 user.getStatus(),
-                user.getBarbershopId(),
+                user.getTenantId(),
                 user.getCreatedAt()
         );
     }

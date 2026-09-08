@@ -8,6 +8,6 @@ public record UpdateUserRequest(
         String name,
         String email,
         Role role,
-        UUID barbershopId
+        UUID tenantId
 ) {
 }

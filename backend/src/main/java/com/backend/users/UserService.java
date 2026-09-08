@@ -38,12 +38,12 @@ public class UserService {
 
     public User findById(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
+                .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
     }
 
     public User findByEmail(String email){
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Email não encontrado")); // Uma função sem parâmetros que retorna uma RuntimeException.
+                .orElseThrow(() -> new UserNotFoundException("Email não encontrado"));
     }
 
     public User blockUser(UUID id){
@@ -58,18 +58,18 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public User assignBarbershop(UUID userId, UUID barbershopId) {
+    public User assignTenant(UUID userId, UUID tenantId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new RuntimeException("Usuário não encontrado")
+                        new UserNotFoundException("Usuário não encontrado")
                 );
 
-        user.assignBarbershopId(barbershopId);
+        user.assignTenantId(tenantId);
         return userRepository.save(user);
     }
 
     // 1 - recebe dados
-    public User createUser(String name, String email, String password, Role role, UUID barbershopId) {
+    public User createUser(String name, String email, String password, Role role, UUID tenantId) {
         // 2 - verifica se faltou algo
         if (name == null || email == null || password == null || role == null){
             throw new RuntimeException("Dados obrigatórios faltando");
@@ -91,7 +91,7 @@ public class UserService {
                 passwordHash,
                 role,
                 ACTIVE,
-                barbershopId,
+                tenantId,
                 null,
                 null,
                 null
