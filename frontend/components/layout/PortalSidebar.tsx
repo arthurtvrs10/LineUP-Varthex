@@ -253,19 +253,21 @@ export function PortalSidebar({
 
   return (
     <>
-      <button
-        type="button"
-        onClick={() => setOpen((v) => !v)}
-        aria-label={open ? "Fechar menu" : "Abrir menu"}
-        aria-expanded={open}
-        className={`fixed left-3 top-3 z-50 grid size-9 place-items-center rounded-[8px] shadow-lg lg:hidden ${
-          theme === "light"
-            ? "border border-[#e2e7f0] bg-white text-[#0d1831]"
-            : "border border-white/10 bg-[#101116] text-white"
-        }`}
-      >
-        {open ? <X size={18} strokeWidth={1.8} /> : <Menu size={18} strokeWidth={1.8} />}
-      </button>
+      {!open && (
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Abrir menu"
+          aria-expanded={false}
+          className={`fixed left-3 top-3 z-50 grid size-9 place-items-center rounded-[8px] shadow-lg lg:hidden ${
+            theme === "light"
+              ? "border border-[#e2e7f0] bg-white text-[#0d1831]"
+              : "border border-white/10 bg-[#101116] text-white"
+          }`}
+        >
+          <Menu size={18} strokeWidth={1.8} />
+        </button>
+      )}
 
       {open && (
         <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={close} aria-hidden="true" />
@@ -277,7 +279,7 @@ export function PortalSidebar({
         } ${open ? "translate-x-0" : "-translate-x-full"}`}
       >
         <div
-          className={`flex h-14 shrink-0 items-center border-b px-4 ${
+          className={`flex h-14 shrink-0 items-center justify-between border-b px-4 ${
             theme === "light" ? "border-[#e2e7f0]" : "border-white/10"
           }`}
         >
@@ -288,6 +290,18 @@ export function PortalSidebar({
               className={theme === "dark" ? "text-white" : "text-ink"}
             />
           </Link>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Fechar menu"
+            className={`grid size-8 shrink-0 place-items-center rounded-[8px] lg:hidden ${
+              theme === "light"
+                ? "text-[#5f6f87] hover:bg-[#f4f5f9]"
+                : "text-white/60 hover:bg-white/5"
+            }`}
+          >
+            <X size={18} strokeWidth={1.8} />
+          </button>
         </div>
 
         <div
