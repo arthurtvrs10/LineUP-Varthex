@@ -3,39 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
-
-const notificacoes: Notificacao[] = [
-  {
-    id: "a1",
-    titulo: "Novo agendamento",
-    detalhe: "Rafael Costa marcou corte degradê com Lucas às 10:30.",
-    quando: "há 8 min",
-    tone: "positivo",
-  },
-  {
-    id: "a2",
-    titulo: "Estoque baixo",
-    detalhe: "Cera de acabamento mate: 2 unidades (mínimo 5).",
-    quando: "há 40 min",
-    tone: "atencao",
-  },
-  {
-    id: "a3",
-    titulo: "Cancelamento",
-    detalhe: "Mateus Rodrigues cancelou o horário das 16:00.",
-    quando: "há 2 h",
-    tone: "negativo",
-  },
-  {
-    id: "a4",
-    titulo: "Nova avaliação",
-    detalhe: "João Silva deixou 5 estrelas para Lucas Oliveira.",
-    quando: "ontem",
-    tone: "positivo",
-    lida: true,
-  },
-];
+import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
+import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
+import { apiFetch } from "@/lib/api";
 
 type AdminTopbarProps = {
   title: string;
@@ -45,6 +15,11 @@ type AdminTopbarProps = {
 export function AdminTopbar({ title, breadcrumb }: AdminTopbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
+
+  useEffect(() => {
+    apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -66,7 +41,10 @@ export function AdminTopbar({ title, breadcrumb }: AdminTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <NotificacoesPopover notificacoes={notificacoes} />
+        <NotificacoesPopover
+          notificacoes={notificacoes.map(toNotificacao)}
+          onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}
+        />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

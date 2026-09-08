@@ -3,39 +3,9 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
-
-const notificacoes: Notificacao[] = [
-  {
-    id: "n1",
-    titulo: "Falha na sincronização",
-    detalhe: "3 agendamentos não sincronizaram na Barbearia Estilo Único.",
-    quando: "há 12 min",
-    tone: "negativo",
-  },
-  {
-    id: "n2",
-    titulo: "5 barbearias aguardam verificação",
-    detalhe: "Cadastros pendentes de validação de dados.",
-    quando: "há 1 h",
-    tone: "atencao",
-  },
-  {
-    id: "n3",
-    titulo: "Worker de agendamentos degradado",
-    detalhe: "Latência acima de 250ms por 15 minutos.",
-    quando: "há 3 h",
-    tone: "atencao",
-  },
-  {
-    id: "n4",
-    titulo: "Pagamento confirmado",
-    detalhe: "BarberKing Premium regularizou a fatura em atraso.",
-    quando: "ontem",
-    tone: "positivo",
-    lida: true,
-  },
-];
+import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
+import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
+import { apiFetch } from "@/lib/api";
 
 type SuperAdminTopbarProps = {
   title: string;
@@ -45,6 +15,11 @@ type SuperAdminTopbarProps = {
 export function SuperAdminTopbar({ title, breadcrumb }: SuperAdminTopbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
+
+  useEffect(() => {
+    apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -66,7 +41,10 @@ export function SuperAdminTopbar({ title, breadcrumb }: SuperAdminTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <NotificacoesPopover notificacoes={notificacoes} />
+        <NotificacoesPopover
+          notificacoes={notificacoes.map(toNotificacao)}
+          onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}
+        />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

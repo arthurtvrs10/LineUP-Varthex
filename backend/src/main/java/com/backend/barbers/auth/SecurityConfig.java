@@ -146,6 +146,12 @@ public class SecurityConfig {
                         .requestMatchers("/dashboard/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
+                        // Notificações: qualquer role autenticada (inclusive CLIENT) —
+                        // o escopo pelas próprias notificações é aplicado em
+                        // NotificationController via o userId do JWT, não por role.
+                        .requestMatchers("/notifications", "/notifications/**")
+                        .authenticated()
+
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
                 )

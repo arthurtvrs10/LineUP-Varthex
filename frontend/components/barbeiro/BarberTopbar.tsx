@@ -1,34 +1,12 @@
 "use client";
 
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { ChevronDown } from "lucide-react";
-import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
-
-const notificacoes: Notificacao[] = [
-  {
-    id: "b1",
-    titulo: "Novo agendamento com você",
-    detalhe: "Thiago Pereira marcou corte social para amanhã às 11:00.",
-    quando: "há 15 min",
-    tone: "positivo",
-  },
-  {
-    id: "b2",
-    titulo: "Horário liberado",
-    detalhe: "Mateus Rodrigues cancelou às 16:00 — vaga aberta na sua agenda.",
-    quando: "há 1 h",
-    tone: "atencao",
-  },
-  {
-    id: "b3",
-    titulo: "Comissão do período fechada",
-    detalhe: "R$ 296,00 provisionados referentes a agosto.",
-    quando: "ontem",
-    tone: "neutro",
-    lida: true,
-  },
-];
+import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
+import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
+import { apiFetch } from "@/lib/api";
 
 type BarberTopbarProps = {
   title: string;
@@ -38,6 +16,15 @@ type BarberTopbarProps = {
 export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
+  const pathname = usePathname();
+
+  useEffect(() => {
+    // Refaz a busca a cada navegação — a página /barbeiro/notificacoes marca
+    // itens como lidos por conta própria, e sem isso o badge do sino ficaria
+    // com a contagem antiga até um refresh manual (o layout não remonta).
+    apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
+  }, [pathname]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -59,7 +46,11 @@ export function BarberTopbar({ title, breadcrumb }: BarberTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <NotificacoesPopover notificacoes={notificacoes} verTudoHref="/barbeiro/notificacoes" />
+        <NotificacoesPopover
+          notificacoes={notificacoes.map(toNotificacao)}
+          verTudoHref="/barbeiro/notificacoes"
+          onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}
+        />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

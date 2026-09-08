@@ -5,6 +5,8 @@ import com.backend.barbers.BarberRepository;
 import com.backend.commissions.CommissionService;
 import com.backend.customers.Customer;
 import com.backend.customers.CustomerRepository;
+import com.backend.notifications.NotificationService;
+import com.backend.notifications.NotificationType;
 import com.backend.scheduling.dto.AppointmentActionRequest;
 import com.backend.scheduling.dto.AppointmentCreateRequest;
 import com.backend.scheduling.dto.AppointmentItemResponse;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
@@ -40,19 +43,24 @@ public class AppointmentService {
     private final UnitRepository unitRepository;
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final CommissionService commissionService;
+    private final NotificationService notificationService;
+
+    private static final DateTimeFormatter WHEN_FORMAT = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm");
 
     public AppointmentService(AppointmentRepository appointmentRepository,
                                CustomerRepository customerRepository,
                                BarberRepository barberRepository,
                                UnitRepository unitRepository,
                                ServiceOfferingRepository serviceOfferingRepository,
-                               CommissionService commissionService) {
+                               CommissionService commissionService,
+                               NotificationService notificationService) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
         this.barberRepository = barberRepository;
         this.unitRepository = unitRepository;
         this.serviceOfferingRepository = serviceOfferingRepository;
         this.commissionService = commissionService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -108,7 +116,16 @@ public class AppointmentService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Horário indisponível para este profissional");
         }
 
-        return toResponse(appointmentRepository.save(appointment));
+        Appointment saved = appointmentRepository.save(appointment);
+
+        notificationService.notifyUser(
+                tenantId, barber.getUser().getId(), NotificationType.APPOINTMENT_CREATED,
+                "Novo agendamento com você",
+                customer.getFullName() + " marcou horário para " + saved.getStartAt().format(WHEN_FORMAT) + ".",
+                "APPOINTMENT", saved.getId()
+        );
+
+        return toResponse(saved);
     }
 
     public List<AppointmentResponse> listAppointments(UUID tenantId, LocalDateTime from, LocalDateTime to,
@@ -169,7 +186,57 @@ public class AppointmentService {
             commissionService.provisionForAppointment(saved);
         }
 
+        if (target == AppointmentStatus.CONFIRMED) {
+            notifyCustomerAppointmentConfirmed(tenantId, saved);
+        }
+        if (target == AppointmentStatus.CANCELED) {
+            notifyAppointmentCanceled(tenantId, saved);
+        }
+
         return toResponse(saved);
+    }
+
+    private void notifyCustomerAppointmentConfirmed(UUID tenantId, Appointment appointment) {
+        Customer customer = customerRepository.findById(appointment.getCustomerId()).orElse(null);
+        if (customer == null) {
+            return;
+        }
+
+        String when = appointment.getStartAt().format(WHEN_FORMAT);
+        String message = "Seu agendamento em " + when + " foi confirmado.";
+        String html = "<p>" + message + "</p>";
+
+        notificationService.notifyCustomer(
+                tenantId, customer, NotificationType.APPOINTMENT_CONFIRMED,
+                "Agendamento confirmado", message,
+                "Agendamento confirmado — LINEUP", html,
+                "APPOINTMENT", appointment.getId()
+        );
+    }
+
+    private void notifyAppointmentCanceled(UUID tenantId, Appointment appointment) {
+        Customer customer = customerRepository.findById(appointment.getCustomerId()).orElse(null);
+        String when = appointment.getStartAt().format(WHEN_FORMAT);
+
+        if (customer != null) {
+            String message = "Seu agendamento em " + when + " foi cancelado.";
+            String html = "<p>" + message + "</p>";
+
+            notificationService.notifyCustomer(
+                    tenantId, customer, NotificationType.APPOINTMENT_CANCELED,
+                    "Agendamento cancelado", message,
+                    "Agendamento cancelado — LINEUP", html,
+                    "APPOINTMENT", appointment.getId()
+            );
+        }
+
+        barberRepository.findById(appointment.getBarberId()).ifPresent(barber ->
+                notificationService.notifyUser(
+                        tenantId, barber.getUser().getId(), NotificationType.APPOINTMENT_CANCELED,
+                        "Horário liberado",
+                        "Uma vaga foi liberada em " + when + ".",
+                        "APPOINTMENT", appointment.getId()
+                ));
     }
 
     private AppointmentStatus resolveTarget(String action) {

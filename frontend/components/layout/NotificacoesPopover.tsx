@@ -31,9 +31,11 @@ const toneDot: Record<NonNullable<Notificacao["tone"]>, string> = {
 export function NotificacoesPopover({
   notificacoes,
   verTudoHref,
+  onMarcarTodas,
 }: {
   notificacoes: Notificacao[];
   verTudoHref?: string;
+  onMarcarTodas?: () => void;
 }) {
   const [aberto, setAberto] = useState(false);
   const [lidas, setLidas] = useState<string[]>([]);
@@ -98,7 +100,10 @@ export function NotificacoesPopover({
             {naoLidas.length > 0 && (
               <button
                 type="button"
-                onClick={() => setLidas(notificacoes.map((n) => n.id))}
+                onClick={() => {
+                  setLidas(notificacoes.map((n) => n.id));
+                  onMarcarTodas?.();
+                }}
                 className="flex items-center gap-1 text-xs font-bold text-accent-strong transition hover:text-accent"
               >
                 <Check size={13} strokeWidth={2.5} />

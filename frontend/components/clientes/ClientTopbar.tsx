@@ -4,32 +4,9 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useSession, signOut } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
-import { NotificacoesPopover, type Notificacao } from "@/components/layout/NotificacoesPopover";
-
-const notificacoes: Notificacao[] = [
-  {
-    id: "c1",
-    titulo: "Seu horário está confirmado",
-    detalhe: "Sábado, 22 de agosto às 15:00 com João Pereira.",
-    quando: "há 30 min",
-    tone: "positivo",
-  },
-  {
-    id: "c2",
-    titulo: "Faltam 80 pontos",
-    detalhe: "Você está perto de R$ 50 de desconto no programa de fidelidade.",
-    quando: "há 2 dias",
-    tone: "neutro",
-  },
-  {
-    id: "c3",
-    titulo: "Lembrete de agendamento",
-    detalhe: "Seu corte é amanhã. Precisa remarcar?",
-    quando: "há 3 dias",
-    tone: "atencao",
-    lida: true,
-  },
-];
+import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
+import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
+import { apiFetch } from "@/lib/api";
 
 type ClientTopbarProps = {
   title: string;
@@ -47,6 +24,11 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const nome = session?.user?.name ?? session?.user?.email ?? "";
   const iniciais = initialsFor(nome);
+  const [notificacoes, setNotificacoes] = useState<NotificationResponse[]>([]);
+
+  useEffect(() => {
+    apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -68,7 +50,10 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <NotificacoesPopover notificacoes={notificacoes} />
+        <NotificacoesPopover
+          notificacoes={notificacoes.map(toNotificacao)}
+          onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}
+        />
 
         <span className="h-8 w-px bg-[#e6e4df]" />
 

@@ -43,10 +43,18 @@ public class EmailService {
         send(to, subject, html);
     }
 
-    private void send(String to, String subject, String html) {
+    // Ponto de entrada genérico para e-mails de notificação (RF-NOT-001) —
+    // o conteúdo é montado por quem dispara o evento, este serviço só sabe
+    // fazer a chamada HTTP pro Resend. Retorna se o envio foi bem-sucedido
+    // pra quem chama poder registrar o status real da notificação.
+    public boolean sendNotificationEmail(String to, String subject, String html) {
+        return send(to, subject, html);
+    }
+
+    private boolean send(String to, String subject, String html) {
         if (apiKey == null || apiKey.isBlank()) {
             log.warn("RESEND_API_KEY não configurada — e-mail para {} não foi enviado (assunto: {})", to, subject);
-            return;
+            return false;
         }
 
         try {
@@ -63,11 +71,13 @@ public class EmailService {
                     .retrieve()
                     .toBodilessEntity();
             log.info("E-mail enviado via Resend para {} (assunto: {})", to, subject);
+            return true;
         } catch (Exception e) {
             // Falha de entrega não deve quebrar o fluxo pra quem pediu a
             // recuperação — RN-NOT-001/002 tratam isso como best-effort
             // neste incremento (sem fila/retry automático ainda).
             log.error("Falha ao enviar e-mail via Resend para {}: {}", to, e.getMessage());
+            return false;
         }
     }
 }
