@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { CheckCircle2, ChevronLeft, Mail } from "lucide-react";
 import { useState, type FormEvent } from "react";
-import { AuthTopBar } from "@/components/auth/AuthTopBar";
+import { Logo } from "@/components/brand/Logo";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,7 +30,6 @@ export function ForgotPasswordPage() {
 
   return (
     <main className="flex min-h-screen flex-col">
-      <AuthTopBar />
       <div className="mx-auto flex w-full max-w-[420px] flex-1 flex-col justify-center px-6 py-16">
         {status === "success" ? (
           <div className="flex flex-col items-start gap-4">
@@ -55,18 +54,22 @@ export function ForgotPasswordPage() {
             </Link>
           </div>
         ) : (
-          <>
-            <Link
-              aria-label="Voltar para o login"
-              className="mb-6 inline-flex size-9 items-center justify-center self-start rounded-full border border-[#d9dce5] text-[#4b5468] transition hover:border-[#b8bdcd] hover:text-[#1c1c26]"
-              href="/login"
-            >
-              <ChevronLeft size={18} strokeWidth={2} />
+          <div className="rounded-2xl border border-[#e3e5eb] bg-white px-6 py-7 sm:px-8">
+            <Link href="/" aria-label="LINEUP - Página inicial" className="mb-5 inline-flex self-start">
+              <Logo variant="horizontal" height={26} className="text-ink" />
             </Link>
-
-            <h1 className="text-[22px] font-bold text-[#1c1c26]">
-              Encontre sua conta
-            </h1>
+            <div className="flex items-center gap-3">
+              <Link
+                aria-label="Voltar para o login"
+                className="inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[#d9dce5] text-[#4b5468] transition hover:border-[#b8bdcd] hover:text-[#1c1c26]"
+                href="/login"
+              >
+                <ChevronLeft size={18} strokeWidth={2} />
+              </Link>
+              <h1 className="text-[22px] font-bold text-[#1c1c26]">
+                Encontre sua conta
+              </h1>
+            </div>
             <p className="mt-2 text-[13px] leading-6 text-[#667085]">
               Digite o e-mail cadastrado na sua conta para receber um link de
               redefinição de senha.
@@ -140,7 +143,7 @@ export function ForgotPasswordPage() {
                 </Link>
               </p>
             </form>
-          </>
+          </div>
         )}
       </div>
 
