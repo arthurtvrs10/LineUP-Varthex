@@ -137,6 +137,9 @@ public class SecurityConfig {
                         .requestMatchers("/commissions/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
+                        .requestMatchers("/dashboard/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
                 )
