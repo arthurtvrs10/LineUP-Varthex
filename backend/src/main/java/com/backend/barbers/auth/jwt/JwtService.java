@@ -23,7 +23,10 @@ public class JwtService {
         JwtClaimsSet.Builder claimsBuilder = JwtClaimsSet.builder()
                 .issuer("varthex-barber")
                 .issuedAt(now)
-                .expiresAt(now.plus(1, ChronoUnit.HOURS))
+                // Ainda não existe fluxo de refresh token — o token de acesso
+                // precisa durar o suficiente para cobrir uma sessão de trabalho
+                // sem exigir novo login no meio do expediente.
+                .expiresAt(now.plus(12, ChronoUnit.HOURS))
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("role", user.getRole().name());

@@ -1,4 +1,4 @@
-import { getSession } from "next-auth/react";
+import { getSession, signOut } from "next-auth/react";
 
 export class ApiError extends Error {
   status: number;
@@ -31,6 +31,15 @@ export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): 
   });
 
   if (!res.ok) {
+    // Sessão do NextAuth dura 30 dias, mas o token de acesso do backend
+    // expira antes disso — sem isso, toda chamada depois do vencimento
+    // falharia em silêncio mostrando "Erro 401" na tela em vez de pedir
+    // login novamente.
+    if (res.status === 401 && session?.user) {
+      await signOut({ callbackUrl: "/login" });
+      throw new ApiError(401, "Sessão expirada. Faça login novamente.");
+    }
+
     let message = `Erro ${res.status}`;
     try {
       const body = await res.json();
