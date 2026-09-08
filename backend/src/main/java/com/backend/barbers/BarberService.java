@@ -86,6 +86,15 @@ public class BarberService {
         return toResponse(findEntityById(barberId));
     }
 
+    public BarberResponse findByUserId(UUID userId) {
+        return barberRepository.findByUser_Id(userId)
+                .map(this::toResponse)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Este usuário não tem um perfil de barbeiro"
+                ));
+    }
+
     @Transactional
     public BarberResponse updateBarber(
             UUID barberId,

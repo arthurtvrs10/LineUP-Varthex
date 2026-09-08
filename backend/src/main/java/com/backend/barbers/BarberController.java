@@ -7,6 +7,7 @@ import com.backend.barbers.dto.UpdateBarberStatusRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -32,6 +33,14 @@ public class BarberController {
             @RequestParam("unitId") UUID unitId
     ) {
         return barberService.listByUnit(unitId);
+    }
+
+    @GetMapping("/me")
+    public BarberResponse getMyBarberProfile(
+            JwtAuthenticationToken authentication
+    ) {
+        UUID userId = UUID.fromString(authentication.getToken().getSubject());
+        return barberService.findByUserId(userId);
     }
 
     @GetMapping("/{id}")

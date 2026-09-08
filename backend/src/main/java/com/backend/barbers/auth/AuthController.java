@@ -46,6 +46,7 @@ public class AuthController {
         return new MeResponse(
                 UUID.fromString(jwt.getSubject()),
                 jwt.getClaimAsString("email"),
+                jwt.getClaimAsString("name"),
                 Role.valueOf(jwt.getClaimAsString("role")),
                 tenantId
         );
