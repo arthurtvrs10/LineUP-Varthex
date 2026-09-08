@@ -1,0 +1,28 @@
+meta {
+  name: Update Customer
+  type: http
+  seq: 4
+}
+
+patch {
+  url: {{baseUrl}}/customers/{{customerId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "fullName": "Cliente Real Atualizado",
+    "email": "cliente@real.dev",
+    "phone": "11988887777",
+    "version": 0
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

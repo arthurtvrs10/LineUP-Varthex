@@ -1,0 +1,19 @@
+meta {
+  name: Activate User
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/users/{{userId}}/activate
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

@@ -1,0 +1,19 @@
+meta {
+  name: Get User By Email
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/users/by-email?email=barbeiro.um@e2e.dev
+  body: none
+  auth: none
+}
+
+params:query {
+  email: barbeiro.um@e2e.dev
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

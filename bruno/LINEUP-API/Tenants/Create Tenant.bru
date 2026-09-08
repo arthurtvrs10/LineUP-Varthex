@@ -1,0 +1,41 @@
+meta {
+  name: Create Tenant
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/tenants
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "tradeName": "Barbearia Teste E2E",
+    "defaultTimeZone": "America/Sao_Paulo",
+    "locale": "pt-BR",
+    "currency": "BRL",
+    "admin": {
+      "email": "teste@gmail.com",
+      "fullName": "Admin E2E",
+      "role": "ADMIN"
+    },
+    "initialUnit": {
+      "name": "Unidade Principal",
+      "timeZone": "America/Sao_Paulo",
+      "country": "BR",
+      "active": true
+    }
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
+
+script:post-response {
+  if (res.body.id) {
+    bru.setVar("tenantId", res.body.id);
+  }
+}

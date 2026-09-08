@@ -1,0 +1,15 @@
+meta {
+  name: Block User
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/users/{{userId}}/block
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

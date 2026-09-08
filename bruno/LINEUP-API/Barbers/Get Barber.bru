@@ -1,0 +1,19 @@
+meta {
+  name: Get Barber
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/barbers/{{barberId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

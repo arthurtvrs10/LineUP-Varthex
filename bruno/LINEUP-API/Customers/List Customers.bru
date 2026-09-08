@@ -1,0 +1,21 @@
+meta {
+  name: List Customers
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/customers?page=0&size=20
+  body: none
+  auth: none
+}
+
+params:query {
+  page: 0
+  size: 20
+  query: ~
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}

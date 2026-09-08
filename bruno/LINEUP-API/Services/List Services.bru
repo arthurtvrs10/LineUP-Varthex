@@ -1,0 +1,23 @@
+meta {
+  name: List Services
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/services
+  body: none
+  auth: none
+}
+
+params:query {
+  active: ~true
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

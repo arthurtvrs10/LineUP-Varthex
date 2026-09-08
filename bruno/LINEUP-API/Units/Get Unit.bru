@@ -1,0 +1,25 @@
+meta {
+  name: Get Unit
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/unit
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
+
+script:post-response {
+  if (res.body.id) {
+    bru.setVar("unitId", res.body.id);
+  }
+}

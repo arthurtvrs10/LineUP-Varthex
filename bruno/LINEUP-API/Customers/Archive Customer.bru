@@ -1,0 +1,19 @@
+meta {
+  name: Archive Customer
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/customers/{{customerId}}
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

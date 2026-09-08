@@ -1,0 +1,41 @@
+meta {
+  name: Create Service
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/services
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "categoryId": "{{categoryId}}",
+    "serviceType": "SERVICE",
+    "name": "Corte Masculino",
+    "description": "Corte na tesoura e máquina",
+    "durationMinutes": 30,
+    "bufferBeforeMinutes": 0,
+    "bufferAfterMinutes": 5,
+    "price": "49.90",
+    "sortOrder": 0,
+    "active": true,
+    "version": 0
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
+
+script:post-response {
+  if (res.body.id) {
+    bru.setVar("serviceId", res.body.id);
+  }
+}

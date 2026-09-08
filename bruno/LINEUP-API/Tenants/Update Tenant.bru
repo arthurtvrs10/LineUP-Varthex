@@ -1,0 +1,31 @@
+meta {
+  name: Update Tenant
+  type: http
+  seq: 3
+}
+
+patch {
+  url: {{baseUrl}}/tenant
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "tradeName": "Barbearia Teste E2E — Atualizada",
+    "defaultTimeZone": "America/Sao_Paulo",
+    "locale": "pt-BR",
+    "currency": "BRL",
+    "email": "contato@e2e.dev",
+    "phone": "11999999999",
+    "version": 0
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

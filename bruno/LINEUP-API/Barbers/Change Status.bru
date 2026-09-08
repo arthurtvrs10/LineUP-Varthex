@@ -1,0 +1,25 @@
+meta {
+  name: Change Status
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/barbers/{{barberId}}/status
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "status": "VACATION"
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}

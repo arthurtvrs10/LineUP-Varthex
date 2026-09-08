@@ -1,0 +1,35 @@
+meta {
+  name: Update Service
+  type: http
+  seq: 5
+}
+
+patch {
+  url: {{baseUrl}}/services/{{serviceId}}
+  body: json
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+
+body:json {
+  {
+    "categoryId": "{{categoryId}}",
+    "serviceType": "SERVICE",
+    "name": "Corte Masculino Premium",
+    "description": "Corte na tesoura e máquina, com toalha quente",
+    "durationMinutes": 40,
+    "bufferBeforeMinutes": 0,
+    "bufferAfterMinutes": 5,
+    "price": "59.90",
+    "sortOrder": 0,
+    "active": true,
+    "version": 0
+  }
+}
+
+vars:pre-request {
+  baseUrl: http://localhost:3000
+}
