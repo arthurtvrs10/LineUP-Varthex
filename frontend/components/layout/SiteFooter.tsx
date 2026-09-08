@@ -48,6 +48,7 @@ export function SiteFooter({ simple = false }: SiteFooterProps) {
         <strong className="mb-1 text-[13px] font-bold text-[#0d1831]">Legal</strong>
         <Link href="/privacidade">Privacidade</Link>
         <Link href="/termos">Termos de uso</Link>
+        <Link href="/mapa-do-site">Mapa do site</Link>
       </div>
       <div className="flex flex-col gap-3 border-t border-[#eef0f4] pt-6 text-[10px] text-[#8d97a7] sm:col-span-2 sm:flex-row sm:items-center sm:justify-between lg:col-span-4">
         <small>
