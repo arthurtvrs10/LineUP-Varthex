@@ -74,6 +74,8 @@ class AppointmentControllerTest {
     private ServiceOfferingRepository serviceOfferingRepository;
 
     private String token;
+    private String clientToken;
+    private String otherClientToken;
     private UUID unitId;
     private UUID customerId;
     private UUID barberId;
@@ -125,6 +127,29 @@ class AppointmentControllerTest {
                 null, null, null
         ));
         token = jwtService.generateTokemn(admin);
+
+        User clientUser = userRepository.save(new User(
+                null, "Cliente Teste", "cliente@agenda.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, tenant.getId(),
+                null, null, null
+        ));
+        customer.setUserId(clientUser.getId());
+        customerRepository.save(customer);
+        clientToken = jwtService.generateTokemn(clientUser);
+
+        Customer outraPessoa = customerRepository.save(new Customer(
+                null, tenant.getId(), "Outro Cliente", "outro.cliente@agenda.dev", "11988888888", null, null
+        ));
+        User outroClientUser = userRepository.save(new User(
+                null, "Outro Cliente", "outro.cliente@agenda.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, tenant.getId(),
+                null, null, null
+        ));
+        outraPessoa.setUserId(outroClientUser.getId());
+        customerRepository.save(outraPessoa);
+        otherClientToken = jwtService.generateTokemn(outroClientUser);
     }
 
     private String createAppointmentBody(String startAt) {
@@ -312,5 +337,84 @@ class AppointmentControllerTest {
                                 {"version": 99}
                                 """))
                 .andExpect(status().isConflict());
+    }
+
+    @Test
+    void clienteCriaAgendamentoIgnorandoCustomerIdDoCorpo() throws Exception {
+        mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + clientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "unitId": "%s",
+                                  "customerId": "%s",
+                                  "barberId": "%s",
+                                  "startAt": "2026-10-01T10:00:00",
+                                  "channel": "CLIENT_WEB",
+                                  "items": [{"serviceId": "%s"}]
+                                }
+                                """.formatted(unitId, UUID.randomUUID(), barberId, serviceId)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.customerId").value(customerId.toString()));
+    }
+
+    @Test
+    void clienteVeSomenteOsProprosAgendamentos() throws Exception {
+        mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + clientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createAppointmentBody("2026-10-01T10:00:00")))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + otherClientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createAppointmentBody("2026-10-02T10:00:00")))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(get("/appointments")
+                        .header("Authorization", "Bearer " + clientToken)
+                        .param("from", "2026-10-01T00:00:00")
+                        .param("to", "2026-10-05T00:00:00"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].customerId").value(customerId.toString()));
+    }
+
+    @Test
+    void clienteNaoConsegueConfirmarSoCancelar() throws Exception {
+        String response = mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + clientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createAppointmentBody("2026-10-01T10:00:00")))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        String id = objectMapper.readTree(response).get("id").asText();
+
+        mockMvc.perform(post("/appointments/{id}/confirm", id)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(post("/appointments/{id}/cancel", id)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("CANCELED"));
+    }
+
+    @Test
+    void clienteNaoVeAgendamentoDeOutroCliente() throws Exception {
+        String response = mockMvc.perform(post("/appointments")
+                        .header("Authorization", "Bearer " + clientToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(createAppointmentBody("2026-10-01T10:00:00")))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        String id = objectMapper.readTree(response).get("id").asText();
+
+        mockMvc.perform(get("/appointments/{id}", id)
+                        .header("Authorization", "Bearer " + otherClientToken))
+                .andExpect(status().isNotFound());
     }
 }

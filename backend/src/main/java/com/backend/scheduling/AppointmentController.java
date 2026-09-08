@@ -1,5 +1,6 @@
 package com.backend.scheduling;
 
+import com.backend.customers.CustomerRepository;
 import com.backend.scheduling.dto.AppointmentActionRequest;
 import com.backend.scheduling.dto.AppointmentCreateRequest;
 import com.backend.scheduling.dto.AppointmentResponse;
@@ -17,9 +18,11 @@ import java.util.UUID;
 public class AppointmentController {
 
     private final AppointmentService appointmentService;
+    private final CustomerRepository customerRepository;
 
-    public AppointmentController(AppointmentService appointmentService) {
+    public AppointmentController(AppointmentService appointmentService, CustomerRepository customerRepository) {
         this.appointmentService = appointmentService;
+        this.customerRepository = customerRepository;
     }
 
     @PostMapping
@@ -28,7 +31,9 @@ public class AppointmentController {
             @RequestBody AppointmentCreateRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.createAppointment(currentTenantId(authentication), request);
+        return appointmentService.createAppointment(
+                currentTenantId(authentication), request, restrictToOwnCustomer(authentication)
+        );
     }
 
     @GetMapping
@@ -39,7 +44,9 @@ public class AppointmentController {
             @RequestParam(required = false) AppointmentStatus status,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.listAppointments(currentTenantId(authentication), from, to, barberId, status);
+        return appointmentService.listAppointments(
+                currentTenantId(authentication), from, to, barberId, status, restrictToOwnCustomer(authentication)
+        );
     }
 
     @GetMapping("/{appointmentId}")
@@ -47,7 +54,9 @@ public class AppointmentController {
             @PathVariable UUID appointmentId,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.getAppointment(currentTenantId(authentication), appointmentId);
+        return appointmentService.getAppointment(
+                currentTenantId(authentication), appointmentId, restrictToOwnCustomer(authentication)
+        );
     }
 
     @PostMapping("/{appointmentId}/confirm")
@@ -56,7 +65,7 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "confirm", request);
+        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "confirm", request, null);
     }
 
     @PostMapping("/{appointmentId}/check-in")
@@ -65,7 +74,7 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "check-in", request);
+        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "check-in", request, null);
     }
 
     @PostMapping("/{appointmentId}/start")
@@ -74,7 +83,7 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "start", request);
+        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "start", request, null);
     }
 
     @PostMapping("/{appointmentId}/complete")
@@ -83,7 +92,7 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "complete", request);
+        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "complete", request, null);
     }
 
     @PostMapping("/{appointmentId}/cancel")
@@ -92,7 +101,9 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "cancel", request);
+        return appointmentService.transitionAppointment(
+                currentTenantId(authentication), appointmentId, "cancel", request, restrictToOwnCustomer(authentication)
+        );
     }
 
     @PostMapping("/{appointmentId}/no-show")
@@ -101,7 +112,7 @@ public class AppointmentController {
             @RequestBody(required = false) AppointmentActionRequest request,
             JwtAuthenticationToken authentication
     ) {
-        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "no-show", request);
+        return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "no-show", request, null);
     }
 
     private UUID currentTenantId(JwtAuthenticationToken authentication) {
@@ -115,5 +126,25 @@ public class AppointmentController {
         }
 
         return UUID.fromString(claim);
+    }
+
+    // Para CLIENT, toda operação de agendamento é restrita ao próprio
+    // Customer vinculado — nunca ao que o corpo/query da requisição diz.
+    // Para as demais roles (staff), retorna null, ou seja, sem restrição.
+    private UUID restrictToOwnCustomer(JwtAuthenticationToken authentication) {
+        String role = authentication.getToken().getClaimAsString("role");
+
+        if (!"CLIENT".equals(role)) {
+            return null;
+        }
+
+        UUID userId = UUID.fromString(authentication.getToken().getSubject());
+
+        return customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Você ainda não é cliente de nenhuma barbearia"
+                ))
+                .getId();
     }
 }

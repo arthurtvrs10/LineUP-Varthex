@@ -16,6 +16,9 @@ public class Customer {
     @Column(name = "tenant_id", nullable = false)
     private UUID tenantId;
 
+    @Column(name = "user_id")
+    private UUID userId;
+
     @Column(name = "full_name", nullable = false, length = 160)
     private String fullName;
 
@@ -82,6 +85,14 @@ public class Customer {
 
     public UUID getTenantId() {
         return tenantId;
+    }
+
+    public UUID getUserId() {
+        return userId;
+    }
+
+    public void setUserId(UUID userId) {
+        this.userId = userId;
     }
 
     public String getFullName() {

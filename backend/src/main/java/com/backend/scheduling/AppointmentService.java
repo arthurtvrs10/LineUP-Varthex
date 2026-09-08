@@ -52,12 +52,18 @@ public class AppointmentService {
     }
 
     @Transactional
-    public AppointmentResponse createAppointment(UUID tenantId, AppointmentCreateRequest request) {
+    public AppointmentResponse createAppointment(UUID tenantId, AppointmentCreateRequest request, UUID restrictCustomerId) {
         if (request.items() == null || request.items().isEmpty()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe ao menos um serviço");
         }
+
+        // Cliente autenticado nunca escolhe por quem está reservando —
+        // mesmo que envie outro customerId no corpo, ele é ignorado aqui,
+        // igual ao padrão já usado para tenantId em outros serviços.
+        UUID customerId = restrictCustomerId != null ? restrictCustomerId : request.customerId();
+
         if (request.startAt() == null || request.unitId() == null
-                || request.customerId() == null || request.barberId() == null || request.channel() == null) {
+                || customerId == null || request.barberId() == null || request.channel() == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dados obrigatórios faltando");
         }
 
@@ -65,7 +71,7 @@ public class AppointmentService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unidade não encontrada"));
         requireSameTenant(unit.getTenant().getId(), tenantId, "Unidade não encontrada");
 
-        Customer customer = customerRepository.findById(request.customerId())
+        Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado"));
         requireSameTenant(customer.getTenantId(), tenantId, "Cliente não encontrado");
 
@@ -74,7 +80,7 @@ public class AppointmentService {
         requireSameTenant(barber.getUnit().getTenant().getId(), tenantId, "Barbeiro não encontrado");
 
         Appointment appointment = new Appointment(
-                tenantId, request.unitId(), request.customerId(), request.barberId(),
+                tenantId, request.unitId(), customerId, request.barberId(),
                 request.channel(), request.startAt(), request.startAt(), request.notes()
         );
 
@@ -102,25 +108,30 @@ public class AppointmentService {
     }
 
     public List<AppointmentResponse> listAppointments(UUID tenantId, LocalDateTime from, LocalDateTime to,
-                                                        UUID barberId, AppointmentStatus status) {
+                                                        UUID barberId, AppointmentStatus status, UUID restrictCustomerId) {
         List<Appointment> appointments = barberId != null
                 ? appointmentRepository.findAllByTenantIdAndBarberIdAndStartAtLessThanAndEndAtGreaterThan(tenantId, barberId, to, from)
                 : appointmentRepository.findAllByTenantIdAndStartAtLessThanAndEndAtGreaterThan(tenantId, to, from);
 
         return appointments.stream()
                 .filter(a -> status == null || a.getStatus() == status)
+                .filter(a -> restrictCustomerId == null || restrictCustomerId.equals(a.getCustomerId()))
                 .map(this::toResponse)
                 .toList();
     }
 
-    public AppointmentResponse getAppointment(UUID tenantId, UUID appointmentId) {
-        return toResponse(findByIdAndTenant(tenantId, appointmentId));
+    public AppointmentResponse getAppointment(UUID tenantId, UUID appointmentId, UUID restrictCustomerId) {
+        return toResponse(findByIdAndTenant(tenantId, appointmentId, restrictCustomerId));
     }
 
     @Transactional
     public AppointmentResponse transitionAppointment(UUID tenantId, UUID appointmentId, String action,
-                                                       AppointmentActionRequest request) {
-        Appointment appointment = findByIdAndTenant(tenantId, appointmentId);
+                                                       AppointmentActionRequest request, UUID restrictCustomerId) {
+        if (restrictCustomerId != null && !"cancel".equals(action)) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ação não permitida para clientes");
+        }
+
+        Appointment appointment = findByIdAndTenant(tenantId, appointmentId, restrictCustomerId);
 
         if (request != null && request.version() != null && !appointment.getVersion().equals(request.version())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "O agendamento foi modificado por outra requisição");
@@ -161,11 +172,15 @@ public class AppointmentService {
         };
     }
 
-    private Appointment findByIdAndTenant(UUID tenantId, UUID appointmentId) {
+    private Appointment findByIdAndTenant(UUID tenantId, UUID appointmentId, UUID restrictCustomerId) {
         Appointment appointment = appointmentRepository.findById(appointmentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado"));
 
         if (!appointment.getTenantId().equals(tenantId)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado");
+        }
+
+        if (restrictCustomerId != null && !restrictCustomerId.equals(appointment.getCustomerId())) {
             throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Agendamento não encontrado");
         }
 

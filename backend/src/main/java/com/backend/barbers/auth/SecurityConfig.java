@@ -65,6 +65,10 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PATCH, "/tenants/*/status")
                         .hasRole("SUPER_ADMIN")
 
+                        // Autoatendimento do próprio perfil — qualquer role autenticada.
+                        .requestMatchers(HttpMethod.PATCH, "/users/me")
+                        .authenticated()
+
                         // Gestão de usuários
                         .requestMatchers("/users", "/users/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN")
@@ -77,6 +81,12 @@ public class SecurityConfig {
                                 "/unit/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN")
 
+                        // Leitura de barbeiros/serviços é liberada pro CLIENT também —
+                        // ele precisa disso pra montar a tela de agendamento. Escrita
+                        // continua só para staff (regra geral logo abaixo).
+                        .requestMatchers(HttpMethod.GET, "/barbers", "/barbers/**")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
+
                         .requestMatchers(
                                 "/barbers",
                                 "/barbers/**"
@@ -87,12 +97,30 @@ public class SecurityConfig {
                                 "/customers/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
+                        .requestMatchers(HttpMethod.GET,
+                                "/services",
+                                "/services/**",
+                                "/service-categories",
+                                "/service-categories/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
+
                         .requestMatchers(
                                 "/services",
                                 "/services/**",
                                 "/service-categories",
                                 "/service-categories/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
+                        // Agendamentos: CLIENT só lista/cria/cancela os próprios (o
+                        // escopo por customerId é aplicado em AppointmentService, o
+                        // JWT nunca é a fonte confiável do customerId). As demais
+                        // transições de estado (confirmar, check-in etc.) continuam
+                        // staff-only, cobertas pela regra geral logo abaixo.
+                        .requestMatchers(HttpMethod.GET, "/appointments", "/appointments/*")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
+
+                        .requestMatchers(HttpMethod.POST, "/appointments", "/appointments/*/cancel")
+                        .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
 
                         .requestMatchers(
                                 "/appointments",

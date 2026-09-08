@@ -2,6 +2,7 @@ package com.backend.users;
 
 import com.backend.users.UserService.RequesterContext;
 import com.backend.users.dto.CreateUserRequest;
+import com.backend.users.dto.UpdateOwnProfileRequest;
 import com.backend.users.dto.UserResponse;
 import com.backend.users.dto.UserSummaryResponse;
 import org.springframework.security.oauth2.jwt.Jwt;
@@ -35,6 +36,23 @@ public class UserController {
         UUID tenantId = tenantIdClaim != null ? UUID.fromString(tenantIdClaim) : null;
 
         return new RequesterContext(role, tenantId);
+    }
+
+    @PatchMapping("/me")
+    public UserResponse updateOwnProfile(@RequestBody UpdateOwnProfileRequest request,
+                                          JwtAuthenticationToken authentication) {
+        UUID userId = UUID.fromString(authentication.getToken().getSubject());
+        User user = userService.updateOwnName(userId, request.name());
+
+        return new UserResponse(
+                user.getId(),
+                user.getName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getStatus(),
+                user.getTenantId(),
+                user.getCreatedAt()
+        );
     }
 
     @PostMapping

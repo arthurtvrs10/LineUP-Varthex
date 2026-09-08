@@ -70,6 +70,16 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    public User updateOwnName(UUID userId, String name) {
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("O nome é obrigatório");
+        }
+
+        User user = findById(userId);
+        user.setName(name);
+        return userRepository.save(user);
+    }
+
     public User assignTenant(UUID userId, UUID tenantId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->

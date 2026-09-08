@@ -1,6 +1,10 @@
 package com.backend.barbers.auth;
 
 import com.backend.auth.jwt.JwtService;
+import com.backend.customers.Customer;
+import com.backend.customers.CustomerRepository;
+import com.backend.tenants.Tenant;
+import com.backend.tenants.TenantRepository;
 import com.backend.users.Role;
 import com.backend.users.User;
 import com.backend.users.UserRepository;
@@ -13,6 +17,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
+import tools.jackson.databind.ObjectMapper;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -35,6 +40,15 @@ class AuthControllerTest {
 
     @Autowired
     private JwtService jwtService;
+
+    @Autowired
+    private TenantRepository tenantRepository;
+
+    @Autowired
+    private CustomerRepository customerRepository;
+
+    @Autowired
+    private ObjectMapper objectMapper;
 
     @Test
     void loginComCredenciaisInvalidasRetorna401() throws Exception {
@@ -77,5 +91,60 @@ class AuthControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.name").value("Admin do Teste"))
                 .andExpect(jsonPath("$.email").value("admin.me@auth.dev"));
+    }
+
+    @Test
+    void loginDeClienteVinculaAutomaticamenteAoCustomerExistente() throws Exception {
+        Tenant tenant = tenantRepository.save(new Tenant(
+                null, "Barbearia do Link", null, null,
+                "America/Sao_Paulo", "pt-BR", "BRL", null, null
+        ));
+
+        Customer customer = customerRepository.save(new Customer(
+                null, tenant.getId(), "Cliente Vinculável", "vinculavel@auth.dev", "11999998888", null, null
+        ));
+
+        userRepository.save(new User(
+                null, "Cliente Vinculável", "vinculavel@auth.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, null,
+                null, null, null
+        ));
+
+        String response = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"email":"vinculavel@auth.dev","password":"senha-correta"}
+                                """))
+                .andExpect(status().isOk())
+                .andReturn().getResponse().getContentAsString();
+
+        String clientToken = objectMapper.readTree(response).get("accessToken").asText();
+
+        mockMvc.perform(get("/auth/me")
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.tenantId").value(tenant.getId().toString()));
+
+        mockMvc.perform(get("/me/customer")
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.customerId").value(customer.getId().toString()))
+                .andExpect(jsonPath("$.tenantName").value("Barbearia do Link"));
+    }
+
+    @Test
+    void meCustomerSemVinculoRetorna404() throws Exception {
+        User clientSemCustomer = userRepository.save(new User(
+                null, "Cliente Sem Barbearia", "solto@auth.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, null,
+                null, null, null
+        ));
+        String token = jwtService.generateTokemn(clientSemCustomer);
+
+        mockMvc.perform(get("/me/customer")
+                        .header("Authorization", "Bearer " + token))
+                .andExpect(status().isNotFound());
     }
 }

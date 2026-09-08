@@ -3,6 +3,8 @@ package com.backend.barbers.auth;
 import com.backend.auth.jwt.JwtService;
 import com.backend.barbers.auth.dto.LoginRequest;
 import com.backend.barbers.auth.dto.LoginResponse;
+import com.backend.customers.Customer;
+import com.backend.customers.CustomerRepository;
 import com.backend.users.AuthProvider;
 import com.backend.users.Role;
 import com.backend.users.User;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.jwt.JwtException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
@@ -25,21 +28,25 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
+    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenDecoder googleIdTokenDecoder;
 
     public AuthService(AuthenticationManager authenticationManager,
                        JwtService jwtService,
                        UserRepository userRepository,
+                       CustomerRepository customerRepository,
                        PasswordEncoder passwordEncoder,
                        GoogleIdTokenDecoder googleIdTokenDecoder) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
+        this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
         this.googleIdTokenDecoder = googleIdTokenDecoder;
     }
 
+    @Transactional
     public LoginResponse login(LoginRequest request){
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -50,7 +57,7 @@ public class AuthService {
 
         AuthUserDetails authUserDetails = (AuthUserDetails) authentication.getPrincipal();
 
-        User user = authUserDetails.getUser();
+        User user = linkCustomerIfNeeded(authUserDetails.getUser());
         String accessToken = jwtService.generateTokemn(user);
 
         return new LoginResponse(
@@ -65,6 +72,7 @@ public class AuthService {
 
     }
 
+    @Transactional
     public LoginResponse processSocialLogin(String idToken) {
         Jwt googleToken;
         try {
@@ -93,6 +101,7 @@ public class AuthService {
             return userRepository.save(newUser);
         });
 
+        user = linkCustomerIfNeeded(user);
         String accessToken = jwtService.generateTokemn(user);
 
         return new LoginResponse(
@@ -104,5 +113,25 @@ public class AuthService {
                 "Bearer",
                 "Login com Google realizado com sucesso"
         );
+    }
+
+    // Conecta a conta de login de um CLIENT ao registro de Customer que o
+    // staff já cadastrou com o mesmo e-mail (ex.: Admin > Clientes) — sem
+    // isso, User (login) e Customer (CRM) nunca se encontram e o cliente
+    // fica sem tenant, incapaz de ver ou reservar qualquer coisa própria.
+    private User linkCustomerIfNeeded(User user) {
+        if (user.getRole() != Role.CLIENT || user.getTenantId() != null) {
+            return user;
+        }
+
+        return customerRepository.findFirstByEmailIgnoreCaseAndUserIdIsNull(user.getEmail())
+                .map(customer -> {
+                    customer.setUserId(user.getId());
+                    customerRepository.save(customer);
+
+                    user.assignTenantId(customer.getTenantId());
+                    return userRepository.save(user);
+                })
+                .orElse(user);
     }
 }

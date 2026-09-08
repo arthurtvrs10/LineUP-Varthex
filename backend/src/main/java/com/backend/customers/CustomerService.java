@@ -3,7 +3,10 @@ package com.backend.customers;
 import com.backend.customers.dto.CustomerPageResponse;
 import com.backend.customers.dto.CustomerRequest;
 import com.backend.customers.dto.CustomerResponse;
+import com.backend.customers.dto.MeCustomerResponse;
 import com.backend.customers.dto.PageMetaResponse;
+import com.backend.tenants.Tenant;
+import com.backend.tenants.TenantRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -17,9 +20,35 @@ import java.util.UUID;
 public class CustomerService {
 
     private final CustomerRepository customerRepository;
+    private final TenantRepository tenantRepository;
 
-    public CustomerService(CustomerRepository customerRepository) {
+    public CustomerService(CustomerRepository customerRepository, TenantRepository tenantRepository) {
         this.customerRepository = customerRepository;
+        this.tenantRepository = tenantRepository;
+    }
+
+    public MeCustomerResponse getMyCustomer(UUID userId) {
+        Customer customer = customerRepository.findByUserId(userId)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Você ainda não é cliente de nenhuma barbearia"
+                ));
+
+        Tenant tenant = tenantRepository.findById(customer.getTenantId())
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Barbearia não encontrada"
+                ));
+
+        return new MeCustomerResponse(
+                customer.getId(),
+                tenant.getId(),
+                tenant.getTradeName(),
+                customer.getFullName(),
+                customer.getEmail(),
+                customer.getPhone(),
+                customer.getStatus()
+        );
     }
 
     @Transactional
