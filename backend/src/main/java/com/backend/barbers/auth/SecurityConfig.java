@@ -94,6 +94,11 @@ public class SecurityConfig {
                                 "/service-categories/**"
                         ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
 
+                        .requestMatchers(
+                                "/appointments",
+                                "/appointments/**"
+                        ).hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER")
+
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
                 )
