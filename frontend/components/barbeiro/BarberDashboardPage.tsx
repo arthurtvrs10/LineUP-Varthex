@@ -16,10 +16,16 @@ const monthFormatter = new Intl.DateTimeFormat("pt-BR", { month: "short" });
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED" | "CANCELED" | "NO_SHOW";
 type AppointmentResponse = { status: AppointmentStatus; totalAmount: string };
 type BarberMeResponse = { id: string };
+type CommissionSummaryResponse = { provisionedAmount: string; approvedAmount: string; paidAmount: string };
 
 function toLocalDateTime(date: Date) {
   const pad = (n: number) => String(n).padStart(2, "0");
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}:00`;
+}
+
+function toLocalDate(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
 function startOfWeek(date: Date) {
@@ -31,6 +37,10 @@ function startOfWeek(date: Date) {
   return monday;
 }
 
+function somaComissao(resumo: CommissionSummaryResponse) {
+  return Number(resumo.provisionedAmount) + Number(resumo.approvedAmount) + Number(resumo.paidAmount);
+}
+
 const shortcuts = [
   { href: "/barbeiro/agenda", title: "Abrir agenda", subtitle: "Ver sua agenda e atendimentos", icon: Calendar },
   { href: "/barbeiro/comissoes", title: "Consultar comissões", subtitle: "Ver somente seus lançamentos", icon: Wallet },
@@ -40,7 +50,8 @@ export function BarberDashboardPage() {
   const { data: session } = useSession();
   const [barber, setBarber] = useState<BarberMeResponse>();
   const [semana, setSemana] = useState<AppointmentResponse[]>([]);
-  const [historicoMensal, setHistoricoMensal] = useState<{ label: string; faturamento: number; atendimentos: number }[]>([]);
+  const [comissaoSemana, setComissaoSemana] = useState<number>();
+  const [historicoMensal, setHistoricoMensal] = useState<{ label: string; comissao: number; atendimentos: number }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
 
@@ -55,23 +66,36 @@ export function BarberDashboardPage() {
     try {
       const weekStart = startOfWeek(new Date());
       const weekEnd = new Date(weekStart.getTime() + 7 * 24 * 60 * 60 * 1000);
-      const semanaAtual = await apiFetch<AppointmentResponse[]>(
-        `/appointments?${new URLSearchParams({ barberId, from: toLocalDateTime(weekStart), to: toLocalDateTime(weekEnd) })}`,
-      );
+      const weekEndInclusive = new Date(weekEnd.getTime() - 24 * 60 * 60 * 1000);
+      const [semanaAtual, resumoComissaoSemana] = await Promise.all([
+        apiFetch<AppointmentResponse[]>(
+          `/appointments?${new URLSearchParams({ barberId, from: toLocalDateTime(weekStart), to: toLocalDateTime(weekEnd) })}`,
+        ),
+        apiFetch<CommissionSummaryResponse>(
+          `/commissions/summary?${new URLSearchParams({ barberId, from: toLocalDate(weekStart), to: toLocalDate(weekEndInclusive) })}`,
+        ),
+      ]);
       setSemana(semanaAtual);
+      setComissaoSemana(somaComissao(resumoComissaoSemana));
 
-      const meses: { label: string; faturamento: number; atendimentos: number }[] = [];
+      const meses: { label: string; comissao: number; atendimentos: number }[] = [];
       const now = new Date();
       for (let i = 5; i >= 0; i--) {
         const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
         const monthEnd = new Date(now.getFullYear(), now.getMonth() - i + 1, 1);
-        const items = await apiFetch<AppointmentResponse[]>(
-          `/appointments?${new URLSearchParams({ barberId, from: toLocalDateTime(monthStart), to: toLocalDateTime(monthEnd) })}`,
-        );
+        const monthEndInclusive = new Date(monthEnd.getTime() - 24 * 60 * 60 * 1000);
+        const [items, resumoComissaoMes] = await Promise.all([
+          apiFetch<AppointmentResponse[]>(
+            `/appointments?${new URLSearchParams({ barberId, from: toLocalDateTime(monthStart), to: toLocalDateTime(monthEnd) })}`,
+          ),
+          apiFetch<CommissionSummaryResponse>(
+            `/commissions/summary?${new URLSearchParams({ barberId, from: toLocalDate(monthStart), to: toLocalDate(monthEndInclusive) })}`,
+          ),
+        ]);
         const concluidos = items.filter((a) => a.status === "COMPLETED");
         meses.push({
           label: monthFormatter.format(monthStart),
-          faturamento: concluidos.reduce((sum, a) => sum + Number(a.totalAmount), 0),
+          comissao: somaComissao(resumoComissaoMes),
           atendimentos: concluidos.length,
         });
       }
@@ -99,11 +123,11 @@ export function BarberDashboardPage() {
     { label: "Cancelados", value: loading ? "…" : String(cancelados.length), tone: "negativo" },
     { label: "Faltas", value: loading ? "…" : String(faltas.length), tone: "atencao" },
     { label: "Valor bruto", value: loading ? "…" : brl.format(valorBruto) },
-    { label: "Minha comissão", value: "Em breve" },
+    { label: "Minha comissão", value: loading || comissaoSemana === undefined ? "…" : brl.format(comissaoSemana), tone: "positivo" },
   ];
 
-  const faturamentoData = historicoMensal.map((m) => ({ label: m.label, value: m.faturamento, detalhe: `${m.atendimentos} atendimentos` }));
-  const atendimentosData = historicoMensal.map((m) => ({ label: m.label, value: m.atendimentos, detalhe: brl.format(m.faturamento) }));
+  const comissaoData = historicoMensal.map((m) => ({ label: m.label, value: m.comissao, detalhe: `${m.atendimentos} atendimentos` }));
+  const atendimentosData = historicoMensal.map((m) => ({ label: m.label, value: m.atendimentos, detalhe: brl.format(m.comissao) }));
 
   return (
     <div className="flex flex-col gap-5">
@@ -160,15 +184,15 @@ export function BarberDashboardPage() {
 
         <div className="mt-3 grid grid-cols-1 gap-3 xl:grid-cols-2">
           <div className="min-w-0 rounded-[12px] border border-[#e6e4df] bg-white p-5">
-            <h3 className="text-base font-bold text-[#0d1831]">Faturamento por mês</h3>
-            <p className="mt-1 text-xs text-[#5f6f87]">Comissão ainda não está disponível — em breve.</p>
+            <h3 className="text-base font-bold text-[#0d1831]">Comissão por mês</h3>
+            <p className="mt-1 text-xs text-[#5f6f87]">Soma dos lançamentos de comissão em cada mês do período.</p>
             <div className="mt-5">
               <AreaTrendChart
-                data={faturamentoData}
+                data={comissaoData}
                 height={216}
                 yWidth={56}
                 format="moedaCompacta"
-                label={`Faturamento por mês. ${faturamentoData.map((d) => `${d.label}: ${brl.format(d.value)}`).join(", ")}.`}
+                label={`Comissão por mês. ${comissaoData.map((d) => `${d.label}: ${brl.format(d.value)}`).join(", ")}.`}
               />
             </div>
           </div>

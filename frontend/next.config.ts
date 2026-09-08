@@ -27,6 +27,11 @@ const nextConfig: NextConfig = {
       { source: "/appointments", destination: `${backendUrl}/appointments` },
       { source: "/appointments/:path*", destination: `${backendUrl}/appointments/:path*` },
       { source: "/me/:path*", destination: `${backendUrl}/me/:path*` },
+      { source: "/commission-rules", destination: `${backendUrl}/commission-rules` },
+      { source: "/commission-rules/:path*", destination: `${backendUrl}/commission-rules/:path*` },
+      { source: "/commission-adjustments", destination: `${backendUrl}/commission-adjustments` },
+      { source: "/commissions/:path*", destination: `${backendUrl}/commissions/:path*` },
+      { source: "/dashboard/:path*", destination: `${backendUrl}/dashboard/:path*` },
     ];
   },
 };
