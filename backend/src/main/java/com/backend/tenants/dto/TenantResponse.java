@@ -2,6 +2,7 @@ package com.backend.tenants.dto;
 
 import com.backend.tenants.TenantStatus;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 public record TenantResponse(
@@ -17,6 +18,7 @@ public record TenantResponse(
         String phone,
         String logoUrl,
         String slug,
-        Long version
+        Long version,
+        LocalDateTime createdAt
 ) {
 }

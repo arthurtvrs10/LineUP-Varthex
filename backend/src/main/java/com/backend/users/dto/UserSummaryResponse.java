@@ -10,6 +10,7 @@ public record UserSummaryResponse(
         String name,
         String email,
         Role role,
-        UserStatus status
+        UserStatus status,
+        UUID tenantId
 ) {
 }

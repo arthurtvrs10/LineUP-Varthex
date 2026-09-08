@@ -56,6 +56,15 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/tenants")
                         .permitAll()
 
+                        // Listagem e suspensão/reativação de tenants são operação
+                        // de plataforma — só SUPER_ADMIN, nunca ADMIN de uma
+                        // barbearia específica.
+                        .requestMatchers(HttpMethod.GET, "/tenants")
+                        .hasRole("SUPER_ADMIN")
+
+                        .requestMatchers(HttpMethod.PATCH, "/tenants/*/status")
+                        .hasRole("SUPER_ADMIN")
+
                         // Gestão de usuários
                         .requestMatchers("/users", "/users/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN")

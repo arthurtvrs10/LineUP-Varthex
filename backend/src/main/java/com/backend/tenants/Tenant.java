@@ -170,6 +170,10 @@ public class Tenant {
         return slug;
     }
 
+    public LocalDateTime getCreatedAt() {
+        return createdAt;
+    }
+
     public Long getVersion() {
         return version;
     }

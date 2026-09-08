@@ -1,8 +1,10 @@
 package com.backend.tenants;
 
 import com.backend.auth.jwt.JwtService;
+import com.backend.users.Role;
 import com.backend.users.User;
 import com.backend.users.UserRepository;
+import com.backend.users.UserStatus;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -116,5 +118,60 @@ class TenantControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("{}"))
                 .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void superAdminListaTenantsEAtualizaStatus() throws Exception {
+        String response = mockMvc.perform(post("/tenants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(CREATE_BODY))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        String tenantId = objectMapper.readTree(response).get("id").asText();
+
+        User superAdmin = userRepository.save(new User(
+                null, "Super Admin", "super@tenants.dev", "x",
+                Role.SUPER_ADMIN, UserStatus.ACTIVE, null,
+                null, null, null
+        ));
+        String token = jwtService.generateTokemn(superAdmin);
+
+        mockMvc.perform(get("/tenants").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$[?(@.id == '" + tenantId + "')]").isNotEmpty());
+
+        mockMvc.perform(patch("/tenants/{id}/status", tenantId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status":"SUSPENDED"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("SUSPENDED"));
+    }
+
+    @Test
+    void adminNaoConsegueListarTenantsNemMudarStatus() throws Exception {
+        String response = mockMvc.perform(post("/tenants")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(CREATE_BODY))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+
+        String tenantId = objectMapper.readTree(response).get("id").asText();
+        User admin = userRepository.findByEmail("ze@barbearia.dev").orElseThrow();
+        String token = jwtService.generateTokemn(admin);
+
+        mockMvc.perform(get("/tenants").header("Authorization", "Bearer " + token))
+                .andExpect(status().isForbidden());
+
+        mockMvc.perform(patch("/tenants/{id}/status", tenantId)
+                        .header("Authorization", "Bearer " + token)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"status":"SUSPENDED"}
+                                """))
+                .andExpect(status().isForbidden());
     }
 }

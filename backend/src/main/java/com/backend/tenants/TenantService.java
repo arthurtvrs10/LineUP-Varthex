@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -113,6 +114,17 @@ public class TenantService {
         return toResponse(findById(tenantId));
     }
 
+    public List<TenantResponse> listTenants() {
+        return tenantRepository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Transactional
+    public TenantResponse updateStatus(UUID tenantId, TenantStatus status) {
+        Tenant tenant = findById(tenantId);
+        tenant.setStatus(status);
+        return toResponse(tenantRepository.save(tenant));
+    }
+
     @Transactional
     public TenantResponse updateCurrentTenant(UUID tenantId, TenantUpdateRequest request) {
         Tenant tenant = findById(tenantId);
@@ -156,7 +168,8 @@ public class TenantService {
                 tenant.getPhone(),
                 tenant.getLogoUrl(),
                 tenant.getSlug(),
-                tenant.getVersion()
+                tenant.getVersion(),
+                tenant.getCreatedAt()
         );
     }
 }

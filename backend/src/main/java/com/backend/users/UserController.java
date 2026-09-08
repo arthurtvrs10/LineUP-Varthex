@@ -1,15 +1,15 @@
 package com.backend.users;
 
+import com.backend.users.UserService.RequesterContext;
 import com.backend.users.dto.CreateUserRequest;
 import com.backend.users.dto.UserResponse;
 import com.backend.users.dto.UserSummaryResponse;
-import jakarta.websocket.server.PathParam;
+import org.springframework.security.oauth2.jwt.Jwt;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
-
-import static com.backend.users.UserStatus.BLOCKED;
 
 @RestController
 @RequestMapping("/users")
@@ -27,10 +27,21 @@ public class UserController {
         this.userService = userService;
     }
 
+    private RequesterContext requesterContext(JwtAuthenticationToken authentication) {
+        Jwt jwt = authentication.getToken();
+
+        Role role = Role.valueOf(jwt.getClaimAsString("role"));
+        String tenantIdClaim = jwt.getClaimAsString("tenantId");
+        UUID tenantId = tenantIdClaim != null ? UUID.fromString(tenantIdClaim) : null;
+
+        return new RequesterContext(role, tenantId);
+    }
+
     @PostMapping
-    public UserResponse createUser(@RequestBody // serve para
-                                            CreateUserRequest request) {
+    public UserResponse createUser(@RequestBody CreateUserRequest request,
+                                    JwtAuthenticationToken authentication) {
         User createdUser = userService.createUser(
+                requesterContext(authentication),
                 request.name(),
                 request.email(),
                 request.password(),
@@ -38,7 +49,7 @@ public class UserController {
                 request.tenantId()
         );
 
-        UserResponse response = new UserResponse(
+        return new UserResponse(
                 createdUser.getId(),
                 createdUser.getName(),
                 createdUser.getEmail(),
@@ -47,12 +58,11 @@ public class UserController {
                 createdUser.getTenantId(),
                 createdUser.getCreatedAt()
         );
-        return response;
     }
 
     @GetMapping
-    public List<UserSummaryResponse> getUsers(){
-        List<User> users = userService.listUsers();
+    public List<UserSummaryResponse> getUsers(JwtAuthenticationToken authentication){
+        List<User> users = userService.listUsers(requesterContext(authentication));
 
         return users.stream()
                 .map(user -> new UserSummaryResponse(
@@ -60,14 +70,15 @@ public class UserController {
                         user.getName(),
                         user.getEmail(),
                         user.getRole(),
-                        user.getStatus()
+                        user.getStatus(),
+                        user.getTenantId()
                 ))
                 .toList();
     }
 
     @GetMapping("/{id}")
-    public UserResponse getUserById(@PathVariable UUID id){
-        User user = userService.findById(id);
+    public UserResponse getUserById(@PathVariable UUID id, JwtAuthenticationToken authentication){
+        User user = userService.findById(id, requesterContext(authentication));
         return new UserResponse(
                 user.getId(),
                 user.getName(),
@@ -80,8 +91,8 @@ public class UserController {
     }
 
     @GetMapping("/by-email")
-    public UserResponse getUserByEmail(@RequestParam String email){
-        User user = userService.findByEmail(email);
+    public UserResponse getUserByEmail(@RequestParam String email, JwtAuthenticationToken authentication){
+        User user = userService.findByEmail(email, requesterContext(authentication));
 
         return new UserResponse(
                 user.getId(),
@@ -95,8 +106,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/block")
-    public UserResponse patchBlockUser(@PathVariable UUID id){
-        User user = userService.blockUser(id);
+    public UserResponse patchBlockUser(@PathVariable UUID id, JwtAuthenticationToken authentication){
+        User user = userService.blockUser(id, requesterContext(authentication));
         return new UserResponse(
                 user.getId(),
                 user.getName(),
@@ -109,8 +120,8 @@ public class UserController {
     }
 
     @PatchMapping("/{id}/activate")
-    public UserResponse patchActivateUser(@PathVariable UUID id){
-        User user = userService.activateUser(id);
+    public UserResponse patchActivateUser(@PathVariable UUID id, JwtAuthenticationToken authentication){
+        User user = userService.activateUser(id, requesterContext(authentication));
         return new UserResponse(
                 user.getId(),
                 user.getName(),

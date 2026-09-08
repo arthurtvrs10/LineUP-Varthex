@@ -1,39 +1,45 @@
 package com.backend.users;
 
-import com.backend.users.dto.UserResponse;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
-import static com.backend.users.UserStatus.*;
-import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
-
-//* Aqui ficam regras como:
-
-//  buscar usuário por e-mail;
-//  validar se usuário existe;
-//  verificar se está ativo;
-//  registrar último login;
-//  bloquear usuário;
-//  ativar usuário.
-// *//
+import static com.backend.users.UserStatus.ACTIVE;
 
 @Service
 public class UserService {
 
+    public record RequesterContext(Role role, UUID tenantId) {
+        public boolean isSuperAdmin() {
+            return role == Role.SUPER_ADMIN;
+        }
+    }
+
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
-    public  UserService(UserRepository userRepository,
+    public UserService(UserRepository userRepository,
                         PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
-    public List<User> listUsers(){
-        return userRepository.findAll();
+    public List<User> listUsers(RequesterContext requester) {
+        if (requester.isSuperAdmin()) {
+            return userRepository.findAll();
+        }
+        return userRepository.findAll().stream()
+                .filter(user -> requester.tenantId().equals(user.getTenantId()))
+                .toList();
+    }
+
+    public User findById(UUID id, RequesterContext requester) {
+        User user = findById(id);
+        requireSameTenant(user, requester);
+        return user;
     }
 
     public User findById(UUID id) {
@@ -41,19 +47,25 @@ public class UserService {
                 .orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
     }
 
+    public User findByEmail(String email, RequesterContext requester) {
+        User user = findByEmail(email);
+        requireSameTenant(user, requester);
+        return user;
+    }
+
     public User findByEmail(String email){
         return userRepository.findByEmail(email)
                 .orElseThrow(() -> new UserNotFoundException("Email não encontrado"));
     }
 
-    public User blockUser(UUID id){
-        User user = findById(id);
+    public User blockUser(UUID id, RequesterContext requester){
+        User user = findById(id, requester);
         user.setStatus(UserStatus.BLOCKED);
         return userRepository.save(user);
     }
 
-    public User activateUser(UUID id){
-        User user = findById(id);
+    public User activateUser(UUID id, RequesterContext requester){
+        User user = findById(id, requester);
         user.setStatus(UserStatus.ACTIVE);
         return userRepository.save(user);
     }
@@ -68,22 +80,30 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    // 1 - recebe dados
-    public User createUser(String name, String email, String password, Role role, UUID tenantId) {
-        // 2 - verifica se faltou algo
+    public User createUser(RequesterContext requester, String name, String email, String password, Role role, UUID tenantId) {
         if (name == null || email == null || password == null || role == null){
             throw new RuntimeException("Dados obrigatórios faltando");
         }
-        // 3 - verifica se o e-mail ja existe
+
+        UUID resolvedTenantId = tenantId;
+
+        if (!requester.isSuperAdmin()) {
+            if (role == Role.SUPER_ADMIN || role == Role.ADMIN) {
+                throw new AccessDeniedException("Perfil não pode criar usuários com este papel");
+            }
+            // Nunca confia no tenantId vindo do cliente para quem não é
+            // SUPER_ADMIN — sempre usa a barbearia do próprio requisitante,
+            // mesmo que o corpo da requisição não informe nenhum.
+            resolvedTenantId = requester.tenantId();
+        }
+
         boolean emailAlreadyExists = userRepository.existsByEmail(email);
-        // Se existir bloqueia
         if (emailAlreadyExists) {
             throw new RuntimeException("E-mail já cadastrado");
         }
 
         String passwordHash = passwordEncoder.encode(password);
 
-        // 4 - Cria o object User
         User user = new User(
                 UUID.randomUUID(),
                 name,
@@ -91,13 +111,20 @@ public class UserService {
                 passwordHash,
                 role,
                 ACTIVE,
-                tenantId,
+                resolvedTenantId,
                 null,
                 null,
                 null
         );
-        // 5 - Salva no banco
         return userRepository.save(user);
     }
 
+    private void requireSameTenant(User user, RequesterContext requester) {
+        if (requester.isSuperAdmin()) {
+            return;
+        }
+        if (!requester.tenantId().equals(user.getTenantId())) {
+            throw new AccessDeniedException("Usuário fora da barbearia do requisitante");
+        }
+    }
 }
