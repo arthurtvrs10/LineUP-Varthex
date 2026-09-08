@@ -122,6 +122,10 @@ public class User {
         return passwordHash;
     }
 
+    public void setPasswordHash(String passwordHash) {
+        this.passwordHash = passwordHash;
+    }
+
     public Role getRole() {
         return role;
     }

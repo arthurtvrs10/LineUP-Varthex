@@ -48,8 +48,14 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         // Público
-                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login")
+                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login",
+                                "/auth/password-recovery", "/auth/password-recovery/complete")
                         .permitAll()
+
+                        // Trocar a própria senha exige estar logado, mas não tem
+                        // regra de role — qualquer perfil autenticado pode.
+                        .requestMatchers(HttpMethod.PATCH, "/auth/password")
+                        .authenticated()
 
                         // Criação de um novo tenant (cadastro da barbearia) é pública —
                         // ainda não existe usuário autenticado nesse momento.

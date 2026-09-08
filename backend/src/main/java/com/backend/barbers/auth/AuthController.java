@@ -1,11 +1,15 @@
 package com.backend.barbers.auth;
 
+import com.backend.barbers.auth.dto.ChangePasswordRequest;
 import com.backend.barbers.auth.dto.LoginRequest;
 import com.backend.barbers.auth.dto.LoginResponse;
 import com.backend.barbers.auth.dto.MeResponse;
+import com.backend.barbers.auth.dto.PasswordRecoveryCompleteRequest;
+import com.backend.barbers.auth.dto.PasswordRecoveryRequest;
 import com.backend.barbers.auth.dto.SocialLoginRequest;
 import com.backend.users.Role;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +34,25 @@ public class AuthController {
     @PostMapping("/social-login")
     public LoginResponse socialLogin(@RequestBody SocialLoginRequest request){
         return authService.processSocialLogin(request.idToken());
+    }
+
+    @PostMapping("/password-recovery")
+    @ResponseStatus(HttpStatus.OK)
+    public void requestPasswordRecovery(@RequestBody PasswordRecoveryRequest request) {
+        authService.requestPasswordRecovery(request.email());
+    }
+
+    @PostMapping("/password-recovery/complete")
+    @ResponseStatus(HttpStatus.OK)
+    public void completePasswordRecovery(@RequestBody PasswordRecoveryCompleteRequest request) {
+        authService.completePasswordRecovery(request.token(), request.newPassword());
+    }
+
+    @PatchMapping("/password")
+    @ResponseStatus(HttpStatus.OK)
+    public void changePassword(@RequestBody ChangePasswordRequest request, JwtAuthenticationToken authentication) {
+        UUID userId = UUID.fromString(authentication.getToken().getSubject());
+        authService.changePassword(userId, request.currentPassword(), request.newPassword());
     }
 
     @GetMapping("/me")
