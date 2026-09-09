@@ -10,6 +10,7 @@ import {
   type NovoAgendamentoPayload,
   type ServiceOption,
 } from "./modals/NovoAgendamentoModal";
+import { AppointmentDetailModal, type AppointmentDetail } from "./modals/AppointmentDetailModal";
 
 const WEEKDAY_LABELS = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -58,16 +59,6 @@ const statusStyles: Record<
   NO_SHOW: { bg: "bg-[#fdecee]", border: "border-l-4 border-[#e0333f]", label: "FALTA", labelColor: "text-[#e0333f]" },
 };
 
-const NEXT_ACTIONS: Record<AppointmentStatus, { action: string; label: string }[]> = {
-  PENDING: [{ action: "confirm", label: "Confirmar" }, { action: "cancel", label: "Cancelar" }],
-  CONFIRMED: [{ action: "check-in", label: "Check-in" }, { action: "cancel", label: "Cancelar" }, { action: "no-show", label: "Falta" }],
-  CHECKED_IN: [{ action: "start", label: "Iniciar" }, { action: "cancel", label: "Cancelar" }],
-  IN_PROGRESS: [{ action: "complete", label: "Concluir" }],
-  COMPLETED: [],
-  CANCELED: [],
-  NO_SHOW: [],
-};
-
 function toMinutes(iso: string) {
   const d = new Date(iso);
   return d.getHours() * 60 + d.getMinutes();
@@ -106,6 +97,7 @@ export function BarberAgendaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [novoAberto, setNovoAberto] = useState(false);
+  const [detalhe, setDetalhe] = useState<AppointmentResponse | null>(null);
   const toast = useToast();
 
   const today = useMemo(() => new Date(), []);
@@ -190,6 +182,7 @@ export function BarberAgendaPage() {
       if (barber) await carregarAgenda(barber.id);
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+      throw err;
     }
   }
 
@@ -353,12 +346,13 @@ export function BarberAgendaPage() {
                       const style = statusStyles[item.status];
                       const clientName = customersById[item.customerId] ?? "Cliente";
                       const serviceNames = item.items.map((i) => i.name).join(" + ");
-                      const actions = NEXT_ACTIONS[item.status];
 
                       return (
-                        <div
+                        <button
                           key={item.id}
-                          className={`absolute inset-x-1 overflow-hidden rounded-md ${style.bg} ${style.border} px-2 py-1`}
+                          type="button"
+                          onClick={() => setDetalhe(item)}
+                          className={`absolute inset-x-1 overflow-hidden rounded-md ${style.bg} ${style.border} px-2 py-1 text-left transition hover:brightness-95`}
                           style={{ top, height: Math.max(height, 46) }}
                         >
                           <p className={`text-[9px] font-bold ${style.labelColor}`}>
@@ -368,21 +362,7 @@ export function BarberAgendaPage() {
                             {clientName}
                             {serviceNames && ` • ${serviceNames}`}
                           </p>
-                          {actions.length > 0 && (
-                            <div className="mt-0.5 flex flex-wrap gap-1">
-                              {actions.map(({ action, label }) => (
-                                <button
-                                  key={action}
-                                  type="button"
-                                  onClick={() => executarAcao(item.id, action)}
-                                  className="rounded bg-white/70 px-1.5 py-0.5 text-[8px] font-bold text-[#0d1831] transition hover:bg-white"
-                                >
-                                  {label}
-                                </button>
-                              ))}
-                            </div>
-                          )}
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
@@ -421,6 +401,25 @@ export function BarberAgendaPage() {
           barberId={barber.id}
         />
       )}
+      <AppointmentDetailModal
+        open={detalhe !== null}
+        onClose={() => setDetalhe(null)}
+        appointment={
+          detalhe && {
+            id: detalhe.id,
+            status: detalhe.status,
+            channel: detalhe.channel,
+            startAt: detalhe.startAt,
+            endAt: detalhe.endAt,
+            totalAmount: detalhe.totalAmount,
+            notes: detalhe.notes,
+            items: detalhe.items,
+            clientName: customersById[detalhe.customerId] ?? "Cliente",
+          }
+        }
+        onAction={executarAcao}
+      />
+
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
