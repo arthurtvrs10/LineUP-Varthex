@@ -318,6 +318,60 @@ class WaitlistControllerTest {
     }
 
     @Test
+    void recusaReofertaAutomaticamenteParaProximoDaFila() throws Exception {
+        String primeiraEntryId = criarEntrada(adminToken, customerId.toString());
+
+        User outroCliente = userRepository.save(new User(
+                null, "Segundo Cliente", "segundo@fila.dev",
+                passwordEncoder.encode("senha-correta"),
+                Role.CLIENT, UserStatus.ACTIVE, unitRepository.findById(unitId).orElseThrow().getTenant().getId(),
+                null, null, null
+        ));
+        Customer outroCustomer = customerRepository.save(new Customer(
+                null, outroCliente.getTenantId(), "Segundo Cliente", "segundo@fila.dev", "11977777777", null, null
+        ));
+        outroCustomer.setUserId(outroCliente.getId());
+        String segundoCustomerId = customerRepository.save(outroCustomer).getId().toString();
+        String segundoToken = jwtService.generateTokemn(outroCliente);
+        String segundaEntryId = criarEntrada(adminToken, segundoCustomerId);
+
+        LocalDate amanha = LocalDate.now().plusDays(1);
+        String offerResponse = mockMvc.perform(post("/waitlist-entries/{id}/offers", primeiraEntryId)
+                        .header("Authorization", "Bearer " + adminToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"barberId":"%s","slotStartAt":"%sT11:00:00","slotEndAt":"%sT11:30:00"}
+                                """.formatted(barberId, amanha, amanha)))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+        String offerId = objectMapper.readTree(offerResponse).get("id").asText();
+
+        mockMvc.perform(post("/waitlist-offers/{id}/reject", offerId)
+                        .header("Authorization", "Bearer " + clientToken))
+                .andExpect(status().isNoContent());
+
+        // A vaga recusada pelo primeiro vira uma oferta nova pro segundo da fila.
+        mockMvc.perform(get("/waitlist-entries/{id}/offers", segundaEntryId)
+                        .header("Authorization", "Bearer " + adminToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].status").value("PENDING"))
+                .andExpect(jsonPath("$[0].barberId").value(barberId.toString()));
+
+        // O segundo cliente consegue aceitar a vaga reofertada automaticamente.
+        String segundaOfferId = objectMapper.readTree(
+                mockMvc.perform(get("/waitlist-entries/{id}/offers", segundaEntryId)
+                                .header("Authorization", "Bearer " + adminToken))
+                        .andReturn().getResponse().getContentAsString()
+        ).get(0).get("id").asText();
+
+        mockMvc.perform(post("/waitlist-offers/{id}/accept", segundaOfferId)
+                        .header("Authorization", "Bearer " + segundoToken))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.barberId").value(barberId.toString()));
+    }
+
+    @Test
     void clienteNaoOfertaVagaParaSiMesmo() throws Exception {
         String entryId = criarEntrada(adminToken, customerId.toString());
         LocalDate amanha = LocalDate.now().plusDays(1);

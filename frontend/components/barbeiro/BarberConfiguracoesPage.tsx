@@ -144,7 +144,7 @@ export function BarberConfiguracoesPage() {
       </SectionCard>
 
       <SectionCard icon={Bell} title="Notificações">
-        <EmBreve text="Preferências de notificação ainda não estão disponíveis." />
+        <EmBreve text="Você já é avisado no app a cada novo agendamento ou horário liberado. Aviso por e-mail para a equipe ainda não existe — por enquanto não há nada pra configurar aqui." />
       </SectionCard>
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />

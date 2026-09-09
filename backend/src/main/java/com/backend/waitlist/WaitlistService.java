@@ -149,16 +149,23 @@ public class WaitlistService {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Esse horário não está livre para o profissional");
         }
 
+        WaitlistOffer offer = createOfferAndNotify(tenantId, entry, request.barberId(), request.slotStartAt(), request.slotEndAt());
+        return toOfferResponse(offer);
+    }
+
+    private WaitlistOffer createOfferAndNotify(UUID tenantId, WaitlistEntry entry, UUID barberId,
+                                                LocalDateTime slotStartAt, LocalDateTime slotEndAt) {
         WaitlistOffer offer = new WaitlistOffer(
-                entryId, request.barberId(), request.slotStartAt(), request.slotEndAt(),
+                entry.getId(), barberId, slotStartAt, slotEndAt,
                 LocalDateTime.now().plusMinutes(OFFER_VALID_MINUTES)
         );
         waitlistOfferRepository.save(offer);
 
         Customer customer = customerRepository.findById(entry.getCustomerId()).orElse(null);
+        String barberName = barberRepository.findById(barberId).map(BarberProfile::getDisplayName).orElse("");
         if (customer != null) {
-            String when = request.slotStartAt().format(WHEN_FORMAT);
-            String message = "Uma vaga abriu em " + when + " com " + barber.getDisplayName()
+            String when = slotStartAt.format(WHEN_FORMAT);
+            String message = "Uma vaga abriu em " + when + " com " + barberName
                     + ". Você tem " + OFFER_VALID_MINUTES + " minutos para confirmar.";
             String html = "<p>" + message + "</p>";
 
@@ -170,7 +177,34 @@ public class WaitlistService {
             );
         }
 
-        return toOfferResponse(offer);
+        return offer;
+    }
+
+    // RN-FIL-003/004, extensão: quando o cliente recusa, a vaga não fica
+    // parada — reoferta pro próximo da fila (FIFO) que espera o mesmo
+    // serviço na mesma unidade e aceita esse profissional. Sem job/fila:
+    // só reage a uma recusa explícita (expiração por tempo é passiva, sem
+    // gatilho pra reagir — mesma simplificação de "expiração preguiçosa"
+    // já usada em WaitlistOffer.isPending()).
+    private void reofertarProximoDaFila(UUID tenantId, WaitlistEntry entryRejeitada, WaitlistOffer offerRejeitada) {
+        if (appointmentRepository.hasConflict(offerRejeitada.getBarberId(), offerRejeitada.getSlotStartAt(),
+                offerRejeitada.getSlotEndAt(), null)) {
+            return;
+        }
+
+        List<WaitlistEntry> candidatos = waitlistEntryRepository
+                .findAllByTenantIdAndStatusOrderByCreatedAtAsc(tenantId, WaitlistStatus.ACTIVE);
+
+        candidatos.stream()
+                .filter(c -> !c.getId().equals(entryRejeitada.getId()))
+                .filter(c -> c.getUnitId().equals(entryRejeitada.getUnitId()))
+                .filter(c -> c.getServiceId().equals(entryRejeitada.getServiceId()))
+                .filter(c -> c.getPreferredBarberId() == null || c.getPreferredBarberId().equals(offerRejeitada.getBarberId()))
+                .findFirst()
+                .ifPresent(proximo -> createOfferAndNotify(
+                        tenantId, proximo, offerRejeitada.getBarberId(),
+                        offerRejeitada.getSlotStartAt(), offerRejeitada.getSlotEndAt()
+                ));
     }
 
     // RN-FIL-004: primeira aceitação transacional válida vira agendamento —
@@ -211,7 +245,7 @@ public class WaitlistService {
     public void rejectOffer(UUID tenantId, UUID offerId, UUID restrictCustomerId) {
         WaitlistOffer offer = waitlistOfferRepository.findById(offerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Oferta não encontrada"));
-        findEntryForTenant(tenantId, offer.getWaitlistEntryId(), restrictCustomerId);
+        WaitlistEntry entry = findEntryForTenant(tenantId, offer.getWaitlistEntryId(), restrictCustomerId);
 
         if (!offer.isPending()) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "Esta oferta expirou ou já foi respondida");
@@ -219,6 +253,8 @@ public class WaitlistService {
 
         offer.setStatus(WaitlistOfferStatus.REJECTED);
         waitlistOfferRepository.save(offer);
+
+        reofertarProximoDaFila(tenantId, entry, offer);
     }
 
     @Transactional(readOnly = true)
