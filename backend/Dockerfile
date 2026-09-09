@@ -38,6 +38,12 @@ FROM eclipse-temurin:21-jre-alpine AS runtime
 # Define a pasta da aplicação
 WORKDIR /app
 
+# Sem isso o container roda em UTC (padrão da imagem base) enquanto todo o
+# resto do sistema assume horário local de Brasília em campos ingênuos
+# (LocalDateTime sem timezone) — LocalDateTime.now() ficava ~3h à frente do
+# horário real, então a disponibilidade calculava "agora" errado.
+ENV TZ=America/Sao_Paulo
+
 # Cria um usuário sem privilégios de administrador
 RUN addgroup -S spring && adduser -S spring -G spring
 

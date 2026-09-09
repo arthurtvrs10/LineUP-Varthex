@@ -147,6 +147,10 @@ public class AvailabilityService {
 
         List<AvailabilitySlotResponse> slots = new ArrayList<>();
 
+        // RF-DIS-005: não oferece horário que já passou — relevante só pra
+        // hoje (dias futuros nunca caem antes de "agora").
+        LocalDateTime now = LocalDateTime.now();
+
         for (WorkSchedule range : ranges) {
             LocalDateTime rangeStart = LocalDateTime.of(date, range.getStartTime());
             LocalDateTime rangeEnd = LocalDateTime.of(date, range.getEndTime());
@@ -156,7 +160,8 @@ public class AvailabilityService {
                 final LocalDateTime candidate = cursor;
                 final LocalDateTime candidateEnd = cursor.plusMinutes(durationMinutes);
 
-                boolean blocked = exceptions.stream().anyMatch(e -> candidate.isBefore(e.getEndsAt()) && candidateEnd.isAfter(e.getStartsAt()))
+                boolean blocked = candidate.isBefore(now)
+                        || exceptions.stream().anyMatch(e -> candidate.isBefore(e.getEndsAt()) && candidateEnd.isAfter(e.getStartsAt()))
                         || appointments.stream().anyMatch(a -> candidate.isBefore(a.getEndAt()) && candidateEnd.isAfter(a.getStartAt()));
 
                 if (!blocked) {
