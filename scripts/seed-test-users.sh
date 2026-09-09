@@ -17,10 +17,10 @@
 # terminal e escolha "Git Bash".
 #
 # Cria:
-#   admin.teste@lineup.dev      senha123   (ADMIN da "Barbearia Teste")
-#   barbeiro.teste@lineup.dev   senha123   (BARBER)
-#   cliente.teste@lineup.dev    senha123   (CLIENT, já vinculado a um Customer)
-#   superadmin.teste@lineup.dev senha123   (SUPER_ADMIN da plataforma)
+#   admin@gmail.com      admin123   (ADMIN da "Barbearia Teste")
+#   barbeiro@gmail.com   admin123   (BARBER)
+#   cliente@gmail.com    admin123   (CLIENT, já vinculado a um Customer)
+#   superadmin@gmail.com admin123   (SUPER_ADMIN da plataforma)
 #
 # Opcional: promove um e-mail extra (ex.: sua própria conta Google) a
 # SUPER_ADMIN — só funciona se você já tiver feito login uma vez com essa
@@ -30,7 +30,7 @@
 set -euo pipefail
 
 API="http://localhost:8080"
-SENHA="senha123"
+SENHA="admin123"
 PROMOTE_EMAIL="${1:-}"
 
 # Roda um comando sem valor de retorno relevante (DDL/DML simples).
@@ -68,7 +68,7 @@ CREATE_TENANT_STATUS=$(curl -s -o /tmp/tenant_resp.json -w "%{http_code}" -X POS
         "defaultTimeZone": "America/Sao_Paulo",
         "locale": "pt-BR",
         "currency": "BRL",
-        "admin": { "email": "admin.teste@lineup.dev", "fullName": "Admin Teste", "role": "ADMIN" },
+        "admin": { "email": "admin@gmail.com", "fullName": "Admin Teste", "role": "ADMIN" },
         "initialUnit": {
           "name": "Unidade Principal",
           "document": null, "email": null, "phone": null,
@@ -82,7 +82,7 @@ CREATE_TENANT_STATUS=$(curl -s -o /tmp/tenant_resp.json -w "%{http_code}" -X POS
 if [ "$CREATE_TENANT_STATUS" = "201" ]; then
   echo "    tenant criado."
 elif [ "$CREATE_TENANT_STATUS" = "409" ]; then
-  echo "    admin.teste@lineup.dev já existe, pulando criação do tenant."
+  echo "    admin@gmail.com já existe, pulando criação do tenant."
 else
   echo "Falha ao criar tenant (HTTP $CREATE_TENANT_STATUS):" >&2
   cat /tmp/tenant_resp.json >&2
@@ -90,12 +90,12 @@ else
 fi
 
 echo "==> Definindo senha de admin.teste (POST /tenants gera senha aleatória)..."
-psql_exec "UPDATE users SET password_hash = '{bcrypt}' || crypt('$SENHA', gen_salt('bf')) WHERE email = 'admin.teste@lineup.dev';"
+psql_exec "UPDATE users SET password_hash = '{bcrypt}' || crypt('$SENHA', gen_salt('bf')) WHERE email = 'admin@gmail.com';"
 
 echo "==> Login como admin.teste..."
 LOGIN_JSON=$(curl -s -X POST "$API/auth/login" \
   -H "Content-Type: application/json" \
-  -d "{\"email\":\"admin.teste@lineup.dev\",\"password\":\"$SENHA\"}")
+  -d "{\"email\":\"admin@gmail.com\",\"password\":\"$SENHA\"}")
 ADMIN_TOKEN=$(echo "$LOGIN_JSON" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 
 if [ -z "$ADMIN_TOKEN" ]; then
@@ -123,9 +123,9 @@ create_user() {
 }
 
 echo "==> Criando barbeiro.teste (BARBER)..."
-create_user "barbeiro.teste@lineup.dev" "Barbeiro Teste" "BARBER"
+create_user "barbeiro@gmail.com" "Barbeiro Teste" "BARBER"
 
-BARBER_USER_ID=$(psql_query "SELECT id FROM users WHERE email = 'barbeiro.teste@lineup.dev';")
+BARBER_USER_ID=$(psql_query "SELECT id FROM users WHERE email = 'barbeiro@gmail.com';")
 
 if [ -n "$BARBER_USER_ID" ]; then
   BARBER_EXISTS=$(psql_query "SELECT count(*) FROM barber_profiles WHERE user_id = '$BARBER_USER_ID';")
@@ -140,30 +140,30 @@ if [ -n "$BARBER_USER_ID" ]; then
 fi
 
 echo "==> Criando cliente.teste (CLIENT)..."
-create_user "cliente.teste@lineup.dev" "Cliente Teste" "CLIENT"
+create_user "cliente@gmail.com" "Cliente Teste" "CLIENT"
 
-CLIENT_USER_ID=$(psql_query "SELECT id FROM users WHERE email = 'cliente.teste@lineup.dev';")
+CLIENT_USER_ID=$(psql_query "SELECT id FROM users WHERE email = 'cliente@gmail.com';")
 
-CUSTOMER_EXISTS=$(psql_query "SELECT count(*) FROM customers WHERE email = 'cliente.teste@lineup.dev';")
+CUSTOMER_EXISTS=$(psql_query "SELECT count(*) FROM customers WHERE email = 'cliente@gmail.com';")
 if [ "$CUSTOMER_EXISTS" = "0" ]; then
   echo "==> Criando registro de cliente (Customer)..."
   curl -s -o /tmp/customer_resp.json -w "    HTTP %{http_code}\n" -X POST "$API/customers" \
     -H "Content-Type: application/json" -H "Authorization: Bearer $ADMIN_TOKEN" \
-    -d '{"fullName":"Cliente Teste","email":"cliente.teste@lineup.dev","phone":"11999990000","birthDate":null,"notes":null,"version":0}'
+    -d '{"fullName":"Cliente Teste","email":"cliente@gmail.com","phone":"11999990000","birthDate":null,"notes":null,"version":0}'
 else
   echo "==> Registro de cliente já existe, pulando."
 fi
 
 if [ -n "$CLIENT_USER_ID" ]; then
   echo "==> Vinculando o Customer ao User de cliente.teste..."
-  psql_exec "UPDATE customers SET user_id = '$CLIENT_USER_ID' WHERE email = 'cliente.teste@lineup.dev' AND user_id IS NULL;"
+  psql_exec "UPDATE customers SET user_id = '$CLIENT_USER_ID' WHERE email = 'cliente@gmail.com' AND user_id IS NULL;"
 fi
 
 echo "==> Garantindo superadmin.teste (SUPER_ADMIN)..."
 psql_exec "
 INSERT INTO users (id, name, email, password_hash, role, status, tenant_id, created_at, updated_at, provider, failed_login_attempts)
-SELECT gen_random_uuid(), 'Super Admin Teste', 'superadmin.teste@lineup.dev', '{bcrypt}' || crypt('$SENHA', gen_salt('bf')), 'SUPER_ADMIN', 'ACTIVE', NULL, now(), now(), 'LOCAL', 0
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'superadmin.teste@lineup.dev');
+SELECT gen_random_uuid(), 'Super Admin Teste', 'superadmin@gmail.com', '{bcrypt}' || crypt('$SENHA', gen_salt('bf')), 'SUPER_ADMIN', 'ACTIVE', NULL, now(), now(), 'LOCAL', 0
+WHERE NOT EXISTS (SELECT 1 FROM users WHERE email = 'superadmin@gmail.com');
 "
 
 if [ -n "$PROMOTE_EMAIL" ]; then
@@ -179,7 +179,7 @@ fi
 
 echo ""
 echo "==> Pronto! Contas de teste (senha para todas: $SENHA):"
-echo "    admin.teste@lineup.dev      (ADMIN)"
-echo "    barbeiro.teste@lineup.dev   (BARBER)"
-echo "    cliente.teste@lineup.dev    (CLIENT)"
-echo "    superadmin.teste@lineup.dev (SUPER_ADMIN)"
+echo "    admin@gmail.com      (ADMIN)"
+echo "    barbeiro@gmail.com   (BARBER)"
+echo "    cliente@gmail.com    (CLIENT)"
+echo "    superadmin@gmail.com (SUPER_ADMIN)"
