@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { AdminBloquearHorarioModal, AdminNovoAgendamentoModal } from "./modals/AdminAgendaModals";
+import { AppointmentDetailModal } from "@/components/ui/AppointmentDetailModal";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Plus, ChevronLeft, ChevronRight, Search } from "lucide-react";
 
@@ -16,9 +17,11 @@ type AppointmentResponse = {
   customerId: string;
   barberId: string;
   status: AppointmentStatus;
+  channel: string;
   startAt: string;
   endAt: string;
   totalAmount: string;
+  notes: string | null;
   items: { serviceId: string; name: string }[];
 };
 
@@ -35,16 +38,6 @@ const statusStyles: Record<AppointmentStatus, { bg: string; border: string; labe
   COMPLETED: { bg: "bg-[#f0efea]", border: "border border-[#98a2b3]/30", label: "Concluído", labelColor: "text-[#686a73]" },
   CANCELED: { bg: "bg-[#f0efea]", border: "border border-dashed border-[#98a2b3]/40", label: "Cancelado", labelColor: "text-[#98a2b3]" },
   NO_SHOW: { bg: "bg-[#fdecee]", border: "border border-[#e0333f]/30", label: "Falta", labelColor: "text-[#e0333f]" },
-};
-
-const NEXT_ACTIONS: Record<AppointmentStatus, { action: string; label: string }[]> = {
-  PENDING: [{ action: "confirm", label: "Confirmar" }, { action: "cancel", label: "Cancelar" }],
-  CONFIRMED: [{ action: "check-in", label: "Check-in" }, { action: "cancel", label: "Cancelar" }, { action: "no-show", label: "Falta" }],
-  CHECKED_IN: [{ action: "start", label: "Iniciar" }, { action: "cancel", label: "Cancelar" }],
-  IN_PROGRESS: [{ action: "complete", label: "Concluir" }],
-  COMPLETED: [],
-  CANCELED: [],
-  NO_SHOW: [],
 };
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -79,8 +72,10 @@ export function AdminAgendaPage() {
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [detalhe, setDetalhe] = useState<AppointmentResponse | null>(null);
 
   const customersById = Object.fromEntries(customers.map((c) => [c.id, c.fullName]));
+  const barbersById = Object.fromEntries(barbers.map((b) => [b.id, b.displayName]));
 
   useEffect(() => {
     async function carregarBase() {
@@ -124,9 +119,10 @@ export function AdminAgendaPage() {
     try {
       await apiFetch(`/appointments/${appointmentId}/${action}`, { method: "POST" });
       toast.mostrar("Agendamento atualizado.");
-      carregarAgenda();
+      await carregarAgenda();
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+      throw err;
     }
   }
 
@@ -302,9 +298,13 @@ export function AdminAgendaPage() {
                       <div key={barber.id} className="flex flex-col gap-1 border-l border-[#e6e4df] p-1">
                         {appts.map((appt) => {
                           const style = statusStyles[appt.status];
-                          const actions = NEXT_ACTIONS[appt.status];
                           return (
-                            <div key={appt.id} className={`rounded-[8px] ${style.border} ${style.bg} p-2`}>
+                            <button
+                              key={appt.id}
+                              type="button"
+                              onClick={() => setDetalhe(appt)}
+                              className={`rounded-[8px] ${style.border} ${style.bg} p-2 text-left transition hover:brightness-95`}
+                            >
                               <p className={`text-[9px] font-semibold uppercase ${style.labelColor}`}>
                                 {timeFormatter.format(new Date(appt.startAt))} · {style.label}
                               </p>
@@ -312,21 +312,7 @@ export function AdminAgendaPage() {
                                 {customersById[appt.customerId] ?? "Cliente"}
                               </p>
                               <p className="truncate text-[11px] text-[#686a73]">{appt.items.map((i) => i.name).join(" + ")}</p>
-                              {actions.length > 0 && (
-                                <div className="mt-1 flex flex-wrap gap-1">
-                                  {actions.map(({ action, label }) => (
-                                    <button
-                                      key={action}
-                                      type="button"
-                                      onClick={() => executarAcao(appt.id, action)}
-                                      className="rounded bg-white/70 px-1.5 py-0.5 text-[8px] font-bold text-[#0d1831] transition hover:bg-white"
-                                    >
-                                      {label}
-                                    </button>
-                                  ))}
-                                </div>
-                              )}
-                            </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -376,6 +362,27 @@ export function AdminAgendaPage() {
         onConcluir={toast.mostrar}
         barbers={barbers}
       />
+
+      <AppointmentDetailModal
+        open={detalhe !== null}
+        onClose={() => setDetalhe(null)}
+        appointment={
+          detalhe && {
+            id: detalhe.id,
+            status: detalhe.status,
+            channel: detalhe.channel,
+            startAt: detalhe.startAt,
+            endAt: detalhe.endAt,
+            totalAmount: detalhe.totalAmount,
+            notes: detalhe.notes,
+            items: detalhe.items,
+            clientName: customersById[detalhe.customerId] ?? "Cliente",
+            barberName: barbersById[detalhe.barberId] ?? "Profissional",
+          }
+        }
+        onAction={executarAcao}
+      />
+
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );

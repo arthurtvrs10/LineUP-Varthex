@@ -15,6 +15,7 @@ import {
   type NovoClientePayload,
 } from "./modals/CadastroModals";
 import { apiFetch, ApiError } from "@/lib/api";
+import { AppointmentDetailModal } from "@/components/ui/AppointmentDetailModal";
 import { ChevronRight, Plus, CalendarPlus, UserPlus, UserCog, Clock } from "lucide-react";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
@@ -37,9 +38,11 @@ type AppointmentResponse = {
   customerId: string;
   barberId: string;
   status: AppointmentStatus;
+  channel: string;
   startAt: string;
   endAt: string;
   totalAmount: string;
+  notes: string | null;
   items: { name: string }[];
 };
 
@@ -95,6 +98,7 @@ export function AdminDashboardPage() {
   const [chartData, setChartData] = useState<{ label: string; value: number; detalhe: string }[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
+  const [detalhe, setDetalhe] = useState<AppointmentResponse | null>(null);
 
   const customersById = Object.fromEntries(customers.map((c) => [c.id, c.fullName]));
   const barbersById = Object.fromEntries(barbers.map((b) => [b.id, b.displayName]));
@@ -172,6 +176,17 @@ export function AdminDashboardPage() {
   }, []);
 
   const fechar = () => setModalAberto(null);
+
+  async function executarAcao(appointmentId: string, action: string) {
+    try {
+      await apiFetch(`/appointments/${appointmentId}/${action}`, { method: "POST" });
+      toast.mostrar("Agendamento atualizado.");
+      await carregar();
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+      throw err;
+    }
+  }
 
   async function criarCliente(payload: NovoClientePayload) {
     await apiFetch("/customers", {
@@ -276,7 +291,12 @@ export function AdminDashboardPage() {
               appointments.map((apt) => {
                 const style = statusLabels[apt.status];
                 return (
-                  <div key={apt.id} className="flex items-center gap-3 py-3">
+                  <button
+                    key={apt.id}
+                    type="button"
+                    onClick={() => setDetalhe(apt)}
+                    className="flex w-full items-center gap-3 py-3 text-left transition hover:bg-[#f7f6f2]"
+                  >
                     <span className="grid size-8 shrink-0 place-items-center rounded-full bg-[#f7f6f2] text-xs font-semibold text-[#5f6f87]">
                       {(customersById[apt.customerId] ?? "?").slice(0, 2).toUpperCase()}
                     </span>
@@ -296,7 +316,7 @@ export function AdminDashboardPage() {
                       </p>
                     </div>
                     <p className="shrink-0 text-sm font-semibold text-[#0d1831]">{brl.format(Number(apt.totalAmount))}</p>
-                  </div>
+                  </button>
                 );
               })
             )}
@@ -396,6 +416,26 @@ export function AdminDashboardPage() {
         onClose={fechar}
         onConcluir={toast.mostrar}
         barbers={barbers}
+      />
+
+      <AppointmentDetailModal
+        open={detalhe !== null}
+        onClose={() => setDetalhe(null)}
+        appointment={
+          detalhe && {
+            id: detalhe.id,
+            status: detalhe.status,
+            channel: detalhe.channel,
+            startAt: detalhe.startAt,
+            endAt: detalhe.endAt,
+            totalAmount: detalhe.totalAmount,
+            notes: detalhe.notes,
+            items: detalhe.items,
+            clientName: customersById[detalhe.customerId] ?? "Cliente",
+            barberName: barbersById[detalhe.barberId] ?? "Profissional",
+          }
+        }
+        onAction={executarAcao}
       />
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />

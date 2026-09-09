@@ -10,7 +10,7 @@ import {
   type NovoAgendamentoPayload,
   type ServiceOption,
 } from "./modals/NovoAgendamentoModal";
-import { AppointmentDetailModal, type AppointmentDetail } from "./modals/AppointmentDetailModal";
+import { AppointmentDetailModal, type AppointmentDetail } from "@/components/ui/AppointmentDetailModal";
 
 const WEEKDAY_LABELS = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -83,6 +83,7 @@ function toLocalDateTime(date: Date) {
 }
 
 const rangeFormatter = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
+const dayLabelFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
 const yearFormatter = new Intl.DateTimeFormat("pt-BR", { year: "numeric" });
 const timeFormatter = new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" });
 
@@ -98,6 +99,11 @@ export function BarberAgendaPage() {
   const [error, setError] = useState<string>();
   const [novoAberto, setNovoAberto] = useState(false);
   const [detalhe, setDetalhe] = useState<AppointmentResponse | null>(null);
+  const [selectedDay, setSelectedDay] = useState(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
   const toast = useToast();
 
   const today = useMemo(() => new Date(), []);
@@ -112,7 +118,15 @@ export function BarberAgendaPage() {
     [weekStart],
   );
 
-  const rangeLabel = `${rangeFormatter.format(weekDays[0])} — ${rangeFormatter.format(weekDays[6])} ${yearFormatter.format(weekDays[6])}`;
+  const rangeLabel =
+    view === "dia"
+      ? dayLabelFormatter.format(selectedDay)
+      : `${rangeFormatter.format(weekDays[0])} — ${rangeFormatter.format(weekDays[6])} ${yearFormatter.format(weekDays[6])}`;
+
+  const dayAppointments = useMemo(
+    () => appointments.filter((item) => isSameDay(new Date(item.startAt), selectedDay)),
+    [appointments, selectedDay],
+  );
 
   useEffect(() => {
     async function carregarBase() {
@@ -194,8 +208,20 @@ export function BarberAgendaPage() {
     });
   }
 
+  function goToDay(offset: number) {
+    setSelectedDay((current) => {
+      const next = new Date(current);
+      next.setDate(current.getDate() + offset);
+      setWeekStart(startOfWeek(next));
+      return next;
+    });
+  }
+
   function goToToday() {
-    setWeekStart(startOfWeek(new Date()));
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+    setWeekStart(startOfWeek(now));
+    setSelectedDay(now);
   }
 
   return (
@@ -230,21 +256,21 @@ export function BarberAgendaPage() {
         </button>
         <button
           type="button"
-          onClick={() => goToWeek(-1)}
-          aria-label="Semana anterior"
+          onClick={() => (view === "dia" ? goToDay(-1) : goToWeek(-1))}
+          aria-label={view === "dia" ? "Dia anterior" : "Semana anterior"}
           className="grid size-9 place-items-center rounded-[10px] border border-[#e6e4df] text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <ChevronLeft size={16} strokeWidth={2} />
         </button>
         <button
           type="button"
-          onClick={() => goToWeek(1)}
-          aria-label="Próxima semana"
+          onClick={() => (view === "dia" ? goToDay(1) : goToWeek(1))}
+          aria-label={view === "dia" ? "Próximo dia" : "Próxima semana"}
           className="grid size-9 place-items-center rounded-[10px] border border-[#e6e4df] text-[#0d1831] transition hover:bg-[#f7f6f2]"
         >
           <ChevronRight size={16} strokeWidth={2} />
         </button>
-        <p className="text-base font-bold text-[#0d1831]">{rangeLabel}</p>
+        <p className="text-base font-bold capitalize text-[#0d1831]">{rangeLabel}</p>
 
         <div className="ml-auto flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2.5 rounded-[10px] border border-[#e6e4df] px-3.5 py-2">
@@ -281,8 +307,98 @@ export function BarberAgendaPage() {
       </div>
 
       {view === "dia" ? (
-        <div className="grid place-items-center rounded-[12px] border border-[#e6e4df] bg-white p-16 text-center">
-          <p className="text-sm text-[#98a2b3]">A visualização por dia chega em breve. Use a visualização Semana por enquanto.</p>
+        <div className="overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">
+          <div className="min-w-[420px]">
+            <div className="grid grid-cols-[64px_1fr] border-b border-[#e6e4df]">
+              <div className="flex items-end justify-center pb-2 text-[11px] text-[#98a2b3]">GMT−3</div>
+              <div className="flex flex-col items-center gap-1 border-l border-[#e6e4df] py-3">
+                <span className="text-xs font-bold text-[#5f6f87]">{WEEKDAY_LABELS[(selectedDay.getDay() + 6) % 7]}</span>
+                <span
+                  className={`grid size-8 place-items-center rounded-full text-lg font-bold ${
+                    isSameDay(selectedDay, today) ? "bg-accent text-on-accent" : "text-[#0d1831]"
+                  }`}
+                >
+                  {selectedDay.getDate()}
+                </span>
+                {isSameDay(selectedDay, today) && <span className="text-[10px] font-bold text-accent-strong">HOJE</span>}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-[64px_1fr]">
+              <div>
+                {HOURS.map((hour) => (
+                  <div
+                    key={hour}
+                    style={{ height: ROW_HEIGHT }}
+                    className="flex items-start justify-end border-b border-[#eef0f3] pr-2 text-[11px] text-[#98a2b3]"
+                  >
+                    {String(hour).padStart(2, "0")}:00
+                  </div>
+                ))}
+              </div>
+
+              <div className="relative border-l border-[#e6e4df]" style={{ height: ROW_HEIGHT * (HOURS.length - 1) }}>
+                {HOURS.slice(0, -1).map((hour) => (
+                  <div key={hour} className="border-b border-[#eef0f3]" style={{ height: ROW_HEIGHT }} />
+                ))}
+
+                {selectedDay.getDay() === 0 && dayAppointments.length === 0 && (
+                  <div className="absolute inset-2 grid place-items-center rounded-[10px] bg-[#f7f6f2]">
+                    <span className="text-[11px] font-bold text-[#5f6f87]">Fechado</span>
+                  </div>
+                )}
+
+                {selectedDay.getDay() !== 0 && !loading && dayAppointments.length === 0 && (
+                  <div className="absolute inset-0 grid place-items-center">
+                    <span className="text-xs text-[#98a2b3]">Nenhum agendamento nesse dia.</span>
+                  </div>
+                )}
+
+                {dayAppointments.map((item) => {
+                  const top = ((toMinutes(item.startAt) - DAY_START_MINUTES) / 60) * ROW_HEIGHT;
+                  const height = ((toMinutes(item.endAt) - toMinutes(item.startAt)) / 60) * ROW_HEIGHT;
+                  const style = statusStyles[item.status];
+                  const clientName = customersById[item.customerId] ?? "Cliente";
+                  const serviceNames = item.items.map((i) => i.name).join(" + ");
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setDetalhe(item)}
+                      className={`absolute inset-x-2 overflow-hidden rounded-md ${style.bg} ${style.border} px-3 py-1.5 text-left transition hover:brightness-95`}
+                      style={{ top, height: Math.max(height, 46) }}
+                    >
+                      <p className={`text-[10px] font-bold ${style.labelColor}`}>
+                        {timeFormatter.format(new Date(item.startAt))} • {style.label}
+                      </p>
+                      <p className="truncate text-xs font-bold text-[#0d1831]">
+                        {clientName}
+                        {serviceNames && ` • ${serviceNames}`}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-5 border-t border-[#e6e4df] px-4 py-3 text-xs text-[#5f6f87]">
+              <span className="font-bold text-[#5f6f87]">Legenda</span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-[#d28b27]" /> Pendente
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-accent" /> Confirmado
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-[#27865b]" /> Check-in / Atendimento
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="size-2.5 rounded-full bg-[#e0333f]" /> Falta
+              </span>
+              {loading && <span className="ml-auto text-[#98a2b3]">Carregando…</span>}
+            </div>
+          </div>
         </div>
       ) : (
         <div className="overflow-x-auto rounded-[12px] border border-[#e6e4df] bg-white">

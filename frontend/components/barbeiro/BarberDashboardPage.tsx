@@ -9,7 +9,7 @@ import { StatCard, type StatTone } from "@/components/ui/StatCard";
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { apiFetch, ApiError } from "@/lib/api";
-import { AppointmentDetailModal } from "./modals/AppointmentDetailModal";
+import { AppointmentDetailModal } from "@/components/ui/AppointmentDetailModal";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" });

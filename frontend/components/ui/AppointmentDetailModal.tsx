@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Calendar, Clock, MessageSquare, Tag, User, Wallet } from "lucide-react";
+import { Calendar, Clock, MessageSquare, Scissors, Tag, User, Wallet } from "lucide-react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
 
 export type AppointmentStatus =
@@ -23,6 +23,9 @@ export type AppointmentDetail = {
   notes: string | null;
   items: { name: string }[];
   clientName: string;
+  /** Só relevante pra quem gerencia vários profissionais (Admin) — o
+   * Barbeiro vendo a própria agenda já sabe de quem é. */
+  barberName?: string;
 };
 
 const statusStyles: Record<AppointmentStatus, { bg: string; text: string; label: string }> = {
@@ -57,7 +60,7 @@ const NEXT_ACTIONS: Record<AppointmentStatus, { action: string; label: string; t
 
 const channelLabels: Record<string, string> = {
   CLIENT: "Agendado pelo cliente",
-  BARBER: "Agendado por você",
+  BARBER: "Agendado pelo barbeiro",
   ADMIN: "Agendado pela administração",
 };
 
@@ -142,6 +145,7 @@ export function AppointmentDetailModal({
         </div>
 
         <div className="flex flex-col gap-4">
+          {appointment.barberName && <Row icon={Scissors}>{appointment.barberName}</Row>}
           <Row icon={Calendar}>
             <span className="capitalize">{dateFormatter.format(new Date(appointment.startAt))}</span>
           </Row>
