@@ -6,6 +6,16 @@
 #   docker compose up -d
 #   ./scripts/seed-test-users.sh
 #
+# No Windows, o jeito mais simples é rodar o wrapper (acha o Git Bash
+# sozinho, não importa onde foi instalado) direto do PowerShell:
+#   .\scripts\seed-test-users.ps1
+#
+# Se preferir rodar este arquivo direto, precisa ser num terminal Git Bash
+# de verdade — não no PowerShell/cmd nem num terminal "bash" que caia no
+# WSL (dá erro tipo "execvpe(/bin/bash) failed"). No VS Code: abra o
+# terminal (Ctrl+`), clique na seta ao lado do "+" no canto do painel do
+# terminal e escolha "Git Bash".
+#
 # Cria:
 #   admin.teste@lineup.dev      senha123   (ADMIN da "Barbearia Teste")
 #   barbeiro.teste@lineup.dev   senha123   (BARBER)
