@@ -44,9 +44,14 @@ export function PassoProfissional({
                 : "border-[#e6e4df] bg-white hover:bg-[#f7f6f2]"
             }`}
           >
-            <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-bold text-accent-strong">
-              {p.iniciais}
-            </span>
+            {p.fotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={p.fotoUrl} alt="" className="size-10 shrink-0 rounded-full object-cover" />
+            ) : (
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-subtle text-sm font-bold text-accent-strong">
+                {p.iniciais}
+              </span>
+            )}
 
             <span className="min-w-0 flex-1">
               <span className="truncate text-sm font-bold text-[#0d1831]">{p.nome}</span>

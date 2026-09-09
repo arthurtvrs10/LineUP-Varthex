@@ -7,6 +7,8 @@ import com.backend.customers.dto.MeCustomerResponse;
 import com.backend.customers.dto.PageMetaResponse;
 import com.backend.tenants.Tenant;
 import com.backend.tenants.TenantRepository;
+import com.backend.users.User;
+import com.backend.users.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -14,6 +16,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 
 @Service
@@ -21,10 +27,13 @@ public class CustomerService {
 
     private final CustomerRepository customerRepository;
     private final TenantRepository tenantRepository;
+    private final UserRepository userRepository;
 
-    public CustomerService(CustomerRepository customerRepository, TenantRepository tenantRepository) {
+    public CustomerService(CustomerRepository customerRepository, TenantRepository tenantRepository,
+                            UserRepository userRepository) {
         this.customerRepository = customerRepository;
         this.tenantRepository = tenantRepository;
+        this.userRepository = userRepository;
     }
 
     public MeCustomerResponse getMyCustomer(UUID userId) {
@@ -157,6 +166,14 @@ public class CustomerService {
     }
 
     private CustomerResponse toResponse(Customer customer) {
+        String photoData = customer.getUserId() == null
+                ? null
+                : userRepository.findById(customer.getUserId()).map(User::getPhotoData).orElse(null);
+
+        return toResponse(customer, photoData);
+    }
+
+    private CustomerResponse toResponse(Customer customer, String photoData) {
         return new CustomerResponse(
                 customer.getId(),
                 customer.getFullName(),
@@ -166,13 +183,28 @@ public class CustomerService {
                 customer.getNotes(),
                 customer.getVersion(),
                 customer.getStatus(),
-                customer.getCreatedAt()
+                customer.getCreatedAt(),
+                photoData
         );
     }
 
     private CustomerPageResponse toPageResponse(Page<Customer> page) {
+        List<UUID> userIds = page.getContent().stream()
+                .map(Customer::getUserId)
+                .filter(Objects::nonNull)
+                .toList();
+
+        Map<UUID, String> photoByUserId = new HashMap<>();
+        if (!userIds.isEmpty()) {
+            for (User user : userRepository.findAllById(userIds)) {
+                photoByUserId.put(user.getId(), user.getPhotoData());
+            }
+        }
+
         return new CustomerPageResponse(
-                page.getContent().stream().map(this::toResponse).toList(),
+                page.getContent().stream()
+                        .map(customer -> toResponse(customer, photoByUserId.get(customer.getUserId())))
+                        .toList(),
                 new PageMetaResponse(
                         page.getNumber(),
                         page.getSize(),

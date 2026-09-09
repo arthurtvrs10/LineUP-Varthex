@@ -14,6 +14,7 @@ public record BarberResponse(
         int defaultCommissionPercent,
         BarberStatus status,
         LocalDateTime createdAt,
-        LocalDateTime updatedAt
+        LocalDateTime updatedAt,
+        String photoData
 ) {
 }

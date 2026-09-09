@@ -66,6 +66,7 @@ public class BarberService {
         return toResponse(savedBarber);
     }
 
+    @Transactional
     public List<BarberResponse> listByUnit(UUID unitId) {
 
         if (!unitRepository.existsById(unitId)) {
@@ -86,6 +87,7 @@ public class BarberService {
     // agendamento) não tem como saber o unitId de antemão — Customer não
     // tem unidade própria, só tenant. Lista todos os barbeiros do tenant,
     // de qualquer unidade.
+    @Transactional
     public List<BarberResponse> listByTenant(UUID tenantId) {
         return barberRepository
                 .findAllByUnit_Tenant_Id(tenantId)
@@ -94,10 +96,12 @@ public class BarberService {
                 .toList();
     }
 
+    @Transactional
     public BarberResponse findById(UUID barberId) {
         return toResponse(findEntityById(barberId));
     }
 
+    @Transactional
     public BarberResponse findByUserId(UUID userId) {
         return barberRepository.findByUser_Id(userId)
                 .map(this::toResponse)
@@ -210,7 +214,8 @@ public class BarberService {
                 barber.getDefaultCommissionPercent(),
                 barber.getStatus(),
                 barber.getCreateAt(),
-                barber.getUpdatedAt()
+                barber.getUpdatedAt(),
+                barber.getUser().getPhotoData()
         );
     }
 }

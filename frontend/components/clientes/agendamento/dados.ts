@@ -21,6 +21,7 @@ export type Profissional = {
   iniciais: string;
   especialidade: string;
   unitId: string;
+  fotoUrl: string | null;
 };
 
 /**

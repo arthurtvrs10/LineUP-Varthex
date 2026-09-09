@@ -29,6 +29,7 @@ type BarberResponse = {
   displayName: string;
   bio: string | null;
   status: "ACTIVE" | "INACTIVE" | "VACATION" | "BLOCKED";
+  photoData: string | null;
 };
 
 function initialsFor(name: string) {
@@ -81,6 +82,7 @@ export function AgendamentoFlow() {
               iniciais: initialsFor(b.displayName),
               especialidade: b.bio ?? "",
               unitId: b.unitId,
+              fotoUrl: b.photoData,
             })),
         );
       } catch {

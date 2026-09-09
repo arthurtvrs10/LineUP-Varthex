@@ -15,6 +15,7 @@ public record CustomerResponse(
         String notes,
         Long version,
         CustomerStatus status,
-        LocalDateTime createdAt
+        LocalDateTime createdAt,
+        String photoData
 ) {
 }

@@ -17,6 +17,7 @@ type CustomerResponse = {
   version: number;
   status: "ACTIVE" | "ARCHIVED";
   createdAt: string;
+  photoData: string | null;
 };
 
 type CustomerPageResponse = {
@@ -160,11 +161,20 @@ export function AdminClientesPage() {
                   <tr key={cliente.id} className="border-b border-[#e6e4df] last:border-b-0">
                     <td className="sticky left-0 z-10 bg-white px-4 py-3">
                       <div className="flex items-center gap-3">
-                        <span
-                          className={`grid size-8 shrink-0 place-items-center rounded-full ${avatar.bg} text-xs font-semibold ${avatar.text}`}
-                        >
-                          {initialsFor(cliente.fullName)}
-                        </span>
+                        {cliente.photoData ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={cliente.photoData}
+                            alt=""
+                            className="size-8 shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span
+                            className={`grid size-8 shrink-0 place-items-center rounded-full ${avatar.bg} text-xs font-semibold ${avatar.text}`}
+                          >
+                            {initialsFor(cliente.fullName)}
+                          </span>
+                        )}
                         <div>
                           <p className="text-sm font-medium text-[#0d1831]">{cliente.fullName}</p>
                           <p className="text-xs text-[#686a73]">{cliente.email ?? "—"}</p>
