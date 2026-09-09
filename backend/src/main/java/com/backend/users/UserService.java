@@ -1,8 +1,10 @@
 package com.backend.users;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.UUID;
@@ -72,7 +74,7 @@ public class UserService {
 
     public User updateOwnProfile(UUID userId, String name, String photoData) {
         if (name == null || name.isBlank()) {
-            throw new RuntimeException("O nome é obrigatório");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome é obrigatório");
         }
 
         User user = findById(userId);
@@ -95,7 +97,7 @@ public class UserService {
 
     public User createUser(RequesterContext requester, String name, String email, String password, Role role, UUID tenantId) {
         if (name == null || email == null || password == null || role == null){
-            throw new RuntimeException("Dados obrigatórios faltando");
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dados obrigatórios faltando");
         }
 
         UUID resolvedTenantId = tenantId;
@@ -112,7 +114,7 @@ public class UserService {
 
         boolean emailAlreadyExists = userRepository.existsByEmail(email);
         if (emailAlreadyExists) {
-            throw new RuntimeException("E-mail já cadastrado");
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado");
         }
 
         String passwordHash = passwordEncoder.encode(password);
