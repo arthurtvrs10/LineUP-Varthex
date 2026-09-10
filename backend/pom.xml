@@ -115,6 +115,13 @@
 			<version>1.18.36</version>
 			<scope>provided</scope>
 		</dependency>
+
+		<!-- Swagger UI / OpenAPI gerado a partir dos controllers -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>3.1.0</version>
+		</dependency>
 	</dependencies>
 
 	<build>

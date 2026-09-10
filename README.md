@@ -50,6 +50,7 @@ docker-compose up --build
 
 - **Painel Web**: `http://localhost:3000`
 - **Backend API**: `http://localhost:8080`
+- **Swagger UI** (documentação interativa da API): `http://localhost:8080/swagger-ui/index.html`
 
 ---
 

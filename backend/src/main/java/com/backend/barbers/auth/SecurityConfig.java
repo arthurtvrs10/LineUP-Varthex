@@ -47,6 +47,13 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
+                        // Documentação da API (Swagger UI) — pública, só leitura do contrato.
+                        .requestMatchers(
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
+
                         // Público
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login",
                                 "/auth/password-recovery", "/auth/password-recovery/complete",
