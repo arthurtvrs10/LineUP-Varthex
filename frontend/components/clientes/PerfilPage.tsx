@@ -57,8 +57,10 @@ function initialsFor(name: string) {
 export function PerfilPage() {
   const { data: session, update: updateSession } = useSession();
   const { customer, reload: reloadCustomer } = useMyCustomer();
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
+  const [nameDraft, setName] = useState<string>();
+  const name = nameDraft ?? session?.user?.name ?? "";
+  const [phoneDraft, setPhone] = useState<string>();
+  const phone = phoneDraft ?? customer?.phone ?? "";
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -123,13 +125,7 @@ export function PerfilPage() {
     }
   }
 
-  useEffect(() => {
-    if (session?.user?.name) setName(session.user.name);
-  }, [session?.user?.name]);
 
-  useEffect(() => {
-    if (customer?.phone) setPhone(customer.phone);
-  }, [customer?.phone]);
 
   useEffect(() => {
     apiFetch<MeResponse>("/users/me")

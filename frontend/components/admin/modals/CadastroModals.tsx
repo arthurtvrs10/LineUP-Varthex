@@ -1,4 +1,5 @@
 "use client";
+import { useResource } from "@/components/commercial/Primitives";
 
 import { useState } from "react";
 import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Modal";
@@ -100,6 +101,7 @@ type NovoBarbeiroModalProps = ModalBaseProps & {
 };
 
 export function NovoBarbeiroModal({ open, onClose, onConcluir, onCriar }: NovoBarbeiroModalProps) {
+  const settings = useResource<{defaultCommissionPercent:number}>("/commercial/settings");
   const [enviando, setEnviando] = useState(false);
 
   async function submeter(event: React.FormEvent<HTMLFormElement>) {
@@ -164,7 +166,8 @@ export function NovoBarbeiroModal({ open, onClose, onConcluir, onCriar }: NovoBa
             name="commission"
             label="Comissão (%)"
             type="number"
-            defaultValue="40"
+            key={settings.data?.defaultCommissionPercent ?? 40}
+            defaultValue={String(settings.data?.defaultCommissionPercent ?? 40)}
             hint="Percentual sobre serviços concluídos."
           />
         </FieldGrid>

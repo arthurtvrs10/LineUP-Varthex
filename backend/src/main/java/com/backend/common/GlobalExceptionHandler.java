@@ -19,6 +19,16 @@ import java.util.Map;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String,Object>> invalidBody(Exception exception) {
+        return ResponseEntity.badRequest().body(Map.of("status",400,"message","Dados inválidos: confira os campos e use quantidades inteiras"));
+    }
+
+    @ExceptionHandler({org.springframework.dao.DataIntegrityViolationException.class, org.springframework.orm.ObjectOptimisticLockingFailureException.class})
+    public ResponseEntity<Map<String,Object>> conflict(Exception exception) {
+        return ResponseEntity.status(409).body(Map.of("status",409,"message","Registro duplicado ou alterado por outra operação; recarregue os dados"));
+    }
+
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<Map<String, Object>> handleResponseStatusException(ResponseStatusException exception) {
         HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());

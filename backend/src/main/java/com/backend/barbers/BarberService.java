@@ -23,6 +23,7 @@ public class BarberService {
     private final BarberRepository barberRepository;
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
+    private final com.backend.commercial.EntitlementService entitlements;
 
     @Transactional
     public BarberResponse createBarber(CreateBarberRequest request) {
@@ -49,6 +50,8 @@ public class BarberService {
                         HttpStatus.NOT_FOUND,
                         "Unidade não encontrada"
                 ));
+
+        entitlements.requireBarberCapacity(unit.getTenant().getId());
 
         BarberProfile barber = new BarberProfile();
 

@@ -1,6 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
+import { TeamEditor } from "@/components/commercial/TeamEditor";
+import { Modal } from "@/components/ui/Modal";
+import { useResource, brl, type Row } from "@/components/commercial/Primitives";
 import { Plus } from "lucide-react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { NovoBarbeiroModal, type NovoBarbeiroPayload } from "./modals/CadastroModals";
@@ -58,6 +61,14 @@ export function AdminEquipePage() {
   const [error, setError] = useState<string>();
   const [novoAberto, setNovoAberto] = useState(false);
   const toast = useToast();
+  const [editing,setEditing]=useState<string>();
+  const [month] = useState(()=>{const d=new Date();return {from:new Date(d.getFullYear(),d.getMonth(),1),to:new Date(d.getFullYear(),d.getMonth()+1,1)};});
+  const formatDate=(d:Date)=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-01T00:00:00`;
+  const appointments=useResource<Row[]>(`/appointments?from=${formatDate(month.from)}&to=${formatDate(month.to)}`);
+  const reviews=useResource<Row[]>('/commercial/reviews');
+  const completed=(appointments.data??[]).filter(a=>a.status==='COMPLETED');
+  const total=completed.reduce((sum,a)=>sum+Number(a.totalAmount),0);
+  const ratings=(reviews.data??[]).filter(r=>completed.some(a=>a.id===r.appointmentId));
 
   async function carregar() {
     try {
@@ -79,8 +90,12 @@ export function AdminEquipePage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   async function criarBarbeiro(payload: NovoBarbeiroPayload) {
@@ -114,11 +129,9 @@ export function AdminEquipePage() {
 
   const metrics = [
     { label: "Total de profissionais", value: loading ? "…" : String(barbers.length) },
-    // Faturamento/avaliação/atendimentos dependem de Scheduling e
-    // Commissions, que ainda não existem — sem dado real pra mostrar.
-    { label: "Faturamento médio", value: "—" },
-    { label: "Avaliação média", value: "—" },
-    { label: "Atendimentos", value: "—" },
+    { label: "Serviços concluídos no mês", value: appointments.data ? brl(total) : "…" },
+    { label: "Avaliação média do mês", value: ratings.length ? (ratings.reduce((sum,r)=>sum+Number(r.rating),0)/ratings.length).toFixed(1) : "Sem avaliações" },
+    { label: "Atendimentos concluídos", value: appointments.data ? String(completed.length) : "…" },
   ];
 
   return (
@@ -185,17 +198,13 @@ export function AdminEquipePage() {
                     </span>
                   </div>
                   <p className="truncate pt-1 text-sm text-[#686a73]">{usuario?.email ?? "—"}</p>
-                  {/* Avaliação/atendimentos dependem de Scheduling — sem dado ainda */}
                 </div>
               </div>
 
-              {/* Especialidades dependem do vínculo barbeiro↔serviço
-                  (PUT /barbers/{id}/services), ainda não construído. */}
-
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 border-t border-[#e6e4df] pt-4 mt-4">
                 <div>
-                  <p className="text-xs text-[#686a73]">Faturamento</p>
-                  <p className="font-['Manrope',sans-serif] text-base font-bold text-[#0d1831]">—</p>
+                  <p className="text-xs text-[#686a73]">Serviços concluídos no mês</p>
+                  <p className="font-['Manrope',sans-serif] text-base font-bold text-[#0d1831]">{appointments.data ? brl(completed.filter(a=>a.barberId===barbeiro.id).reduce((sum,a)=>sum+Number(a.totalAmount),0)) : "…"}</p>
                 </div>
                 <div>
                   <p className="text-xs text-[#686a73]">Comissão</p>
@@ -205,7 +214,7 @@ export function AdminEquipePage() {
                 </div>
               </div>
 
-              {/* Jornada semanal (work-schedules) ainda não existe no backend */}
+              <button className="mt-4 text-sm font-semibold text-accent-strong" onClick={()=>setEditing(barbeiro.id)}>Gerenciar profissional e serviços</button>
             </div>
           );
         })}
@@ -216,6 +225,8 @@ export function AdminEquipePage() {
         )}
       </div>
 
+      {(appointments.error||reviews.error)&&<p role="alert" className="text-danger">{appointments.error||reviews.error}</p>}
+      {editing&&<Modal open title="Gerenciar profissional" onClose={()=>setEditing(undefined)}><TeamEditor barberId={editing} onSaved={carregar}/></Modal>}
       <NovoBarbeiroModal
         open={novoAberto}
         onClose={() => setNovoAberto(false)}

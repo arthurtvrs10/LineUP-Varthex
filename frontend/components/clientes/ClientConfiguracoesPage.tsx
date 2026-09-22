@@ -1,9 +1,9 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, KeyRound, ShieldCheck, UserRound } from "lucide-react";
+import { Bell, KeyRound, UserRound } from "lucide-react";
 import { FieldInput, SectionCard } from "@/components/ui/SettingsPrimitives";
-import { EmBreve } from "@/components/ui/EmBreve";
+import { PrivacyPanel } from "@/components/commercial/Settings";
 import { useMyCustomer } from "./MyCustomerContext";
 
 export function ClientConfiguracoesPage() {
@@ -47,9 +47,7 @@ export function ClientConfiguracoesPage() {
         </p>
       </SectionCard>
 
-      <SectionCard icon={ShieldCheck} title="Privacidade">
-        <EmBreve text="Controles de privacidade ainda não estão disponíveis." />
-      </SectionCard>
+      <PrivacyPanel />
     </div>
   );
 }

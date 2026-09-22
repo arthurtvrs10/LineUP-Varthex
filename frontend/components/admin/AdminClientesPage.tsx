@@ -1,11 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { NovoClienteModal, type NovoClientePayload } from "./modals/CadastroModals";
-import { Plus, Search, MoreVertical } from "lucide-react";
+import { Plus, Search, Pencil } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
+import { fetchAllPages } from "@/lib/paginated";
+import { Modal } from "@/components/ui/Modal";
+import { ConfirmModal } from "@/components/ui/ConfirmModal";
+import { useResource, brl, date } from "@/components/commercial/Primitives";
 
 type CustomerResponse = {
   id: string;
@@ -20,10 +24,6 @@ type CustomerResponse = {
   photoData: string | null;
 };
 
-type CustomerPageResponse = {
-  items: CustomerResponse[];
-  page: { number: number; size: number; totalElements: number; totalPages: number };
-};
 
 const avatarPalette = [
   { bg: "bg-[#fbf4e8]", text: "text-[#c8a86b]" },
@@ -51,11 +51,21 @@ export function AdminClientesPage() {
   const [novoAberto, setNovoAberto] = useState(false);
   const [filtroStatus, setFiltroStatus] = useState("Todos os status");
   const toast = useToast();
+  const [editing, setEditing] = useState<CustomerResponse>();
+  const [archiving, setArchiving] = useState<CustomerResponse>();
+  const [archiveBusy, setArchiveBusy] = useState(false);
+  const summary = useResource<Record<string,{visits:number;lastVisit:string|null;nextAppointment:string|null;paidAmount:number}>>("/commercial/customers/summary");
+  async function archive() {
+    if (!archiving || archiveBusy) return;
+    setArchiveBusy(true);
+    try { await apiFetch(`/customers/${archiving.id}`, {method:"DELETE"}); setArchiving(undefined); setEditing(undefined); await carregar(); }
+    catch (e) { toast.mostrar(e instanceof Error ? e.message : "Não foi possível arquivar.", "erro"); }
+    finally { setArchiveBusy(false); }
+  }
 
   async function carregar() {
     try {
-      const pagina = await apiFetch<CustomerPageResponse>("/customers?page=0&size=100");
-      setCustomers(pagina.items);
+      setCustomers(await fetchAllPages<CustomerResponse>("/customers"));
       setError(undefined);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Não foi possível carregar os clientes.");
@@ -64,8 +74,12 @@ export function AdminClientesPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   async function criarCliente(payload: NovoClientePayload) {
@@ -148,7 +162,7 @@ export function AdminClientesPage() {
                 <th className="px-4 py-3 font-medium">Telefone</th>
                 <th className="px-4 py-3 font-medium">Última visita</th>
                 <th className="px-4 py-3 font-medium">Próx. agendamento</th>
-                <th className="px-4 py-3 font-medium">Total gasto</th>
+                <th className="px-4 py-3 font-medium">Pagamentos registrados</th>
                 <th className="px-4 py-3 font-medium">Visitas</th>
                 <th className="px-4 py-3 font-medium">Status</th>
                 <th className="px-4 py-3" />
@@ -182,11 +196,10 @@ export function AdminClientesPage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 text-sm text-[#686a73]">{cliente.phone ?? "—"}</td>
-                    {/* Sem dado de agendamento/pagamento ainda (Scheduling não existe) */}
-                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
-                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
-                    <td className="px-4 py-3 text-sm font-medium text-[#0d1831]">—</td>
-                    <td className="px-4 py-3 text-sm text-[#686a73]">—</td>
+                    <td className="px-4 py-3 text-sm">{date(summary.data?.[cliente.id]?.lastVisit)}</td>
+                    <td className="px-4 py-3 text-sm">{date(summary.data?.[cliente.id]?.nextAppointment)}</td>
+                    <td className="px-4 py-3 text-sm">{summary.data ? brl(summary.data[cliente.id]?.paidAmount) : "…"}</td>
+                    <td className="px-4 py-3 text-sm">{summary.data?.[cliente.id]?.visits ?? "…"}</td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ${
@@ -201,10 +214,11 @@ export function AdminClientesPage() {
                     <td className="px-4 py-3 text-right">
                       <button
                         type="button"
-                        aria-label="Mais opções"
+                        aria-label={`Editar ${cliente.fullName}`}
+                        onClick={() => setEditing(cliente)}
                         className="text-[#b0afa8] transition hover:text-[#686a73]"
                       >
-                        <MoreVertical size={16} />
+                        <Pencil size={16} />
                       </button>
                     </td>
                   </tr>
@@ -220,6 +234,12 @@ export function AdminClientesPage() {
         </div>
       </div>
 
+      {summary.error && <p role="alert" className="mt-4 text-danger">{summary.error}</p>}
+      {editing && <Modal open title="Editar cliente" onClose={() => setEditing(undefined)}>
+        <CustomerEditor customer={editing} onSave={async body => { await apiFetch(`/customers/${editing.id}`, {method:"PATCH",body}); setEditing(undefined); await carregar(); }} />
+        {editing.status === "ACTIVE" && <button className="mt-4 text-danger" onClick={() => setArchiving(editing)}>Arquivar cliente</button>}
+      </Modal>}
+      <ConfirmModal open={!!archiving} title="Arquivar cliente" description={`Arquivar ${archiving?.fullName ?? ""}? O histórico será preservado.`} confirmLabel={archiveBusy ? "Arquivando…" : "Confirmar arquivamento"} onClose={() => { if (!archiveBusy) setArchiving(undefined); }} onConfirm={archive} />
       <NovoClienteModal
         open={novoAberto}
         onClose={() => setNovoAberto(false)}
@@ -229,4 +249,12 @@ export function AdminClientesPage() {
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );
+}
+
+function CustomerEditor({customer,onSave}:{customer:CustomerResponse;onSave:(body:unknown)=>Promise<void>}) {
+ const [form,setForm]=useState({fullName:customer.fullName,email:customer.email??"",phone:customer.phone??"",birthDate:customer.birthDate??"",notes:customer.notes??""});
+ const [busy,setBusy]=useState(false);const [error,setError]=useState<string>();
+ return <form className="space-y-3" onSubmit={async e=>{e.preventDefault();if(busy)return;setBusy(true);setError(undefined);try{await onSave({...form,email:form.email||null,phone:form.phone||null,birthDate:form.birthDate||null,version:customer.version});}catch(e){setError(e instanceof Error?e.message:"Falha ao salvar.");}finally{setBusy(false);}}}>
+ {([['fullName','Nome'],['email','E-mail'],['phone','Telefone'],['birthDate','Nascimento'],['notes','Observações']] as const).map(([key,label])=><label key={key} className="flex flex-col gap-1 text-sm">{label}<input className="h-11 border border-fog px-3" required={key==='fullName'} type={key==='email'?'email':key==='birthDate'?'date':'text'} value={form[key]} onChange={e=>setForm({...form,[key]:e.target.value})}/></label>)}
+ {error&&<p role="alert" className="text-danger">{error}</p>}<button disabled={busy} className="h-11 bg-accent px-5 text-on-accent">{busy?'Salvando…':'Salvar alterações'}</button></form>;
 }

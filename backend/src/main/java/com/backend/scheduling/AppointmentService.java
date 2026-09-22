@@ -44,6 +44,8 @@ public class AppointmentService {
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final CommissionService commissionService;
     private final NotificationService notificationService;
+    private final com.backend.commercial.BusinessSettingsRepository settings;
+    private final com.backend.commercial.BarberCatalogRepository catalogs;
 
     private static final DateTimeFormatter WHEN_FORMAT = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm");
 
@@ -53,7 +55,7 @@ public class AppointmentService {
                                UnitRepository unitRepository,
                                ServiceOfferingRepository serviceOfferingRepository,
                                CommissionService commissionService,
-                               NotificationService notificationService) {
+                               NotificationService notificationService, com.backend.commercial.BusinessSettingsRepository settings, com.backend.commercial.BarberCatalogRepository catalogs) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
         this.barberRepository = barberRepository;
@@ -61,6 +63,8 @@ public class AppointmentService {
         this.serviceOfferingRepository = serviceOfferingRepository;
         this.commissionService = commissionService;
         this.notificationService = notificationService;
+        this.settings = settings;
+        this.catalogs = catalogs;
     }
 
     @Transactional
@@ -79,17 +83,29 @@ public class AppointmentService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dados obrigatórios faltando");
         }
 
+        catalogs.findById(request.barberId()).filter(c->c.restricted).ifPresent(c->{
+            if(request.items().stream().anyMatch(i->!c.serviceIds.contains(i.serviceId())))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"O profissional não atende um dos serviços selecionados");
+        });
         Unit unit = unitRepository.findById(request.unitId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unidade não encontrada"));
         requireSameTenant(unit.getTenant().getId(), tenantId, "Unidade não encontrada");
 
+        if (restrictCustomerId != null) {
+            int hours=settings.findById(tenantId).map(s->s.minimumNoticeHours).orElse(0);
+            LocalDateTime earliest=LocalDateTime.now(java.time.ZoneId.of(unit.getTimeZone())).plusHours(hours);
+            if(request.startAt().isBefore(earliest))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Horário fora da antecedência mínima da barbearia");
+        }
         Customer customer = customerRepository.findById(customerId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cliente não encontrado"));
         requireSameTenant(customer.getTenantId(), tenantId, "Cliente não encontrado");
 
-        BarberProfile barber = barberRepository.findById(request.barberId())
+        // Serialize reservations for a professional before testing overlapping times.
+        BarberProfile barber = barberRepository.findLockedById(request.barberId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Barbeiro não encontrado"));
         requireSameTenant(barber.getUnit().getTenant().getId(), tenantId, "Barbeiro não encontrado");
+        if (!barber.getUnit().getId().equals(unit.getId()) || barber.getStatus()!=com.backend.barbers.BarberStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Profissional indisponível nesta unidade");
+        }
 
         Appointment appointment = new Appointment(
                 tenantId, request.unitId(), customerId, request.barberId(),
@@ -101,6 +117,7 @@ public class AppointmentService {
             ServiceOffering service = serviceOfferingRepository.findById(itemInput.serviceId())
                     .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Serviço não encontrado"));
             requireSameTenant(service.getTenantId(), tenantId, "Serviço não encontrado");
+            if(!service.isActive())throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Serviço inativo");
 
             totalMinutes += service.getDurationMinutes() + service.getBufferBeforeMinutes() + service.getBufferAfterMinutes();
 
@@ -168,6 +185,11 @@ public class AppointmentService {
             );
         }
 
+        if (restrictCustomerId != null && target == AppointmentStatus.CANCELED) {
+            int hours=settings.findById(tenantId).map(s->s.cancellationNoticeHours).orElse(0);
+            var unit=unitRepository.findById(appointment.getUnitId()).orElseThrow();
+            if(appointment.getStartAt().isBefore(LocalDateTime.now(java.time.ZoneId.of(unit.getTimeZone())).plusHours(hours)))throw new ResponseStatusException(HttpStatus.BAD_REQUEST,"Prazo de cancelamento encerrado; entre em contato com a barbearia");
+        }
         appointment.setStatus(target);
 
         if (target == AppointmentStatus.CANCELED) {

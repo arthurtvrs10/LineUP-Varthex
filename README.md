@@ -46,6 +46,16 @@ Catálogo de cortes, barba e combos com preço, duração e organização por ca
 - 🔐 **Autenticação & Segurança**: Controle de acesso seguro por roles com JWT e Spring Security.
 - 🐳 **Ambiente Unificado**: Suporte a execução de todos os módulos via Docker Compose.
 
+### Módulos comerciais
+
+Financeiro, estoque, fidelidade, CRM, avaliações, planos, assinaturas, métricas, auditoria e saúde do sistema possuem telas conectadas à API. O cadastro público agora cria uma conta real, e cada perfil tem acesso ao próprio portal.
+
+Pagamentos e assinaturas são geridos **manualmente**; campanhas são rascunhos. Cobrança recorrente e WhatsApp aguardam a escolha dos provedores. A implementação atual e as funcionalidades avançadas ainda pendentes estão descritas no [estado da implementação comercial](docs/12-roadmap/05-estado-implementacao-comercial.md).
+
+### Verificação automática
+
+O [workflow de validação](.github/workflows/ci.yml) reúne lint, TypeScript, testes e build do frontend, testes do backend e migrações em PostgreSQL descartável. O frontend requer Node.js 24 para executar os testes locais. As capturas acima ilustram as telas indicadas; não constituem uma galeria completa dos módulos.
+
 ---
 
 ## 🏗️ Estrutura do Ecossistema

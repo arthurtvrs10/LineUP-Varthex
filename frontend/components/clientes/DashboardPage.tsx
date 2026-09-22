@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { CustomerCommercialSummary } from "@/components/commercial/CustomerCommercial";
 import { useSession } from "next-auth/react";
-import { ArrowRight, CalendarDays, Clock, Gift, MapPin, Scissors, UserRound } from "lucide-react";
+import { ArrowRight, CalendarDays, Clock, MapPin, Scissors, UserRound } from "lucide-react";
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
 import { apiFetch, ApiError } from "@/lib/api";
 import { useMyCustomer } from "./MyCustomerContext";
@@ -154,19 +155,7 @@ export function DashboardPage() {
         </div>
       </section>
 
-      <section>
-        <h2 className="text-[17px] font-bold text-[#0d1831]">Minha fidelidade</h2>
-        <div className="mt-3 flex items-center gap-3 rounded-[12px] border border-dashed border-[#e6e4df] bg-white px-5 py-6">
-          <span className="grid size-10 shrink-0 place-items-center rounded-full bg-accent-subtle text-accent-strong">
-            <Gift size={18} strokeWidth={1.8} />
-          </span>
-          <p className="text-sm text-[#5f6f87]">O programa de fidelidade ainda não está disponível.</p>
-        </div>
-      </section>
-
-      <p className="border-t border-[#e6e4df] pt-5 text-[11px] text-[#98a2b3]">
-        Histórico de gastos ainda não está disponível.
-      </p>
+      <CustomerCommercialSummary />
     </div>
   );
 }

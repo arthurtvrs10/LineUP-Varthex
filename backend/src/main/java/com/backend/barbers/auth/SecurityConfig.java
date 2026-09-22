@@ -37,7 +37,7 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, com.backend.tenants.TenantRepository tenants, com.backend.commercial.SubscriptionRepository subscriptions) throws Exception {
         return http
                 .csrf(csrf -> csrf.disable())
 
@@ -180,6 +180,12 @@ public class SecurityConfig {
                         .requestMatchers("/waitlist-entries", "/waitlist-entries/**", "/waitlist-offers/**")
                         .hasAnyRole("SUPER_ADMIN", "ADMIN", "BARBER", "CLIENT")
 
+                        .requestMatchers("/platform", "/platform/**").hasRole("SUPER_ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/commercial/reviews").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/commercial/me").hasRole("CLIENT")
+                        .requestMatchers("/commercial/me/consent").authenticated()
+                        .requestMatchers("/commercial", "/commercial/**").hasRole("ADMIN")
+
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()
                 )
@@ -190,6 +196,7 @@ public class SecurityConfig {
                                         jwtAuthenticationConverter()
                                 ))
                 )
+                .addFilterAfter(new com.backend.commercial.TenantAccessFilter(tenants, subscriptions), org.springframework.security.oauth2.server.resource.web.authentication.BearerTokenAuthenticationFilter.class)
                 .build();
     }
 

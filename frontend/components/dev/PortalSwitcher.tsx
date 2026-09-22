@@ -69,7 +69,9 @@ const portais: Portal[] = [
 export function PortalSwitcher() {
   const router = useRouter();
   const pathname = usePathname();
-  const [open, setOpen] = useState(false);
+  const [openPath, setOpenPath] = useState<string | null>(null);
+  const open = openPath === pathname;
+  const setOpen = (value: boolean) => setOpenPath(value ? pathname : null);
   const [trocando, setTrocando] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
   const toast = useToast();
@@ -102,17 +104,15 @@ export function PortalSwitcher() {
     }
   }
 
-  useEffect(() => {
-    setOpen(false);
-  }, [pathname]);
+
 
   useEffect(() => {
     if (!open) return;
     function handleClickOutside(event: MouseEvent) {
-      if (ref.current && !ref.current.contains(event.target as Node)) setOpen(false);
+      if (ref.current && !ref.current.contains(event.target as Node)) setOpenPath(null);
     }
     function handleEscape(event: KeyboardEvent) {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") setOpenPath(null);
     }
     document.addEventListener("mousedown", handleClickOutside);
     document.addEventListener("keydown", handleEscape);
@@ -198,7 +198,7 @@ export function PortalSwitcher() {
 
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(!open)}
         aria-expanded={open}
         aria-haspopup="menu"
         title={atual ? `Painel ${atual.label} — trocar` : "Trocar de painel"}

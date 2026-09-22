@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
 import { AreaTrendChart } from "@/components/ui/TrendCharts";
 import { StatCard } from "@/components/ui/StatCard";
@@ -171,8 +171,12 @@ export function AdminDashboardPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   const fechar = () => setModalAberto(null);

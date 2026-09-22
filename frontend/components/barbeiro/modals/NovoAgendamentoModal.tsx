@@ -1,13 +1,13 @@
 "use client";
+import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 
-import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { X } from "lucide-react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { ApiError } from "@/lib/api";
 import { proximosDias, type DiaDisponivel } from "@/components/clientes/agendamento/dados";
 
 export type CustomerOption = { id: string; fullName: string };
 export type ServiceOption = { id: string; name: string; durationMinutes: number; price: string };
-type AvailabilitySlot = { startAt: string; endAt: string };
 
 export type NovoAgendamentoPayload = {
   customerId: string;
@@ -47,35 +47,12 @@ export function NovoAgendamentoModal({
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string>();
 
-  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [loadingSlots, setLoadingSlots] = useState(false);
+  const { slots, loading: loadingSlots } = useAvailableSlots(barberId, serviceId, dia?.iso);
 
   const [hoje] = useState(() => new Date());
   const dias = useMemo(() => proximosDias(hoje, 14), [hoje]);
 
-  useEffect(() => {
-    if (!dia || !serviceId) {
-      setSlots([]);
-      return;
-    }
-    let ativo = true;
-    setLoadingSlots(true);
-    apiFetch<AvailabilitySlot[]>(
-      `/barbers/${barberId}/availability?${new URLSearchParams({ date: dia.iso, serviceId })}`,
-    )
-      .then((items) => {
-        if (ativo) setSlots(items);
-      })
-      .catch(() => {
-        if (ativo) setSlots([]);
-      })
-      .finally(() => {
-        if (ativo) setLoadingSlots(false);
-      });
-    return () => {
-      ativo = false;
-    };
-  }, [dia, serviceId, barberId]);
+
 
   if (!open) return null;
 

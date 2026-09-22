@@ -44,14 +44,12 @@ const integracaoStyles: Record<Integracao["status"], { bg: string; color: string
 
 export function SuperAdminConfiguracoesPage() {
   const { data: session, update: updateSession } = useSession();
-  const [nome, setNome] = useState("");
+  const [nomeDraft, setNome] = useState<string>();
+  const nome = nomeDraft ?? session?.user?.name ?? "";
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [savingConta, setSavingConta] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    if (session?.user?.name) setNome(session.user.name);
-  }, [session?.user?.name]);
 
   useEffect(() => {
     apiFetch<MeResponse>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});

@@ -10,6 +10,7 @@ import {
   Lock,
   Mail,
   UserRound,
+  Store,
 } from "lucide-react";
 import {
   useState,
@@ -34,6 +35,9 @@ type AuthPageProps = {
 
 type FormValues = {
   name: string;
+  tradeName: string;
+  unitName: string;
+  timeZone: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -45,6 +49,9 @@ type FormErrors = Partial<Record<keyof FormValues, string>>;
 
 const initialValues: FormValues = {
   name: "",
+  tradeName: "",
+  unitName: "Unidade principal",
+  timeZone: "America/Sao_Paulo",
   email: "",
   password: "",
   confirmPassword: "",
@@ -61,12 +68,18 @@ function validate(values: FormValues, registering: boolean): FormErrors {
     errors.name = "Informe seu nome completo.";
   }
 
+  if (registering) {
+    if (!values.tradeName.trim() || values.tradeName.length > 120) errors.tradeName = "Informe o nome da barbearia (até 120 caracteres).";
+    if (!values.unitName.trim() || values.unitName.length > 120) errors.unitName = "Informe o nome da unidade (até 120 caracteres).";
+    try { new Intl.DateTimeFormat("pt-BR", { timeZone: values.timeZone }); } catch { errors.timeZone = "Informe um fuso válido, como America/Sao_Paulo."; }
+  }
+
   if (!emailPattern.test(values.email)) {
     errors.email = "Informe um e-mail válido.";
   }
 
-  if (values.password.length < 6) {
-    errors.password = "A senha deve ter pelo menos 6 caracteres.";
+  if (values.password.length < (registering ? 8 : 6) || (registering && new TextEncoder().encode(values.password).length > 72)) {
+    errors.password = registering ? "Use ao menos 8 caracteres e no máximo 72 bytes." : "A senha deve ter pelo menos 6 caracteres.";
   }
 
   if (registering && values.confirmPassword !== values.password) {
@@ -209,19 +222,32 @@ export function AuthPage({ mode }: AuthPageProps) {
     if (Object.keys(nextErrors).length > 0) return;
 
     if (registering) {
-      // Cadastro de uma barbearia nova ainda não está integrado: o
-      // backend (POST /tenants) exige mais dados do que este formulário
-      // coleta hoje (nome da barbearia, fuso, unidade inicial). Fica
-      // simulado até esse formulário ser refeito.
       setStatus("submitting");
-      await new Promise((resolve) => setTimeout(resolve, 900));
-      setStatus("success");
+      setLoginError(undefined);
+      try {
+        const response = await fetch("/tenants", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ tradeName: values.tradeName.trim(), defaultTimeZone: values.timeZone,
+            locale: "pt-BR", currency: "BRL",
+            admin: { fullName: values.name.trim(), email: values.email.trim(), password: values.password, role: "ADMIN" },
+            initialUnit: { name: values.unitName.trim(), timeZone: values.timeZone, country: "BR", active: true } }),
+        });
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível criar sua barbearia."));
+        }
+        setStatus("success");
+      } catch (error) {
+        setLoginError(error instanceof Error ? error.message : "Não foi possível concluir o cadastro. Tente novamente.");
+        setStatus("idle");
+      }
       return;
     }
 
     setStatus("submitting");
     setLoginError(undefined);
 
+    try {
     const result = await signIn("credentials", {
       email: values.email,
       password: values.password,
@@ -237,6 +263,10 @@ export function AuthPage({ mode }: AuthPageProps) {
     const session = await getSession();
     const destination = roleRedirect[session?.user?.role ?? ""] ?? "/clientes/dashboard";
     router.push(destination);
+    } catch {
+      setStatus("idle");
+      setLoginError("Não foi possível conectar. Tente novamente.");
+    }
   }
 
   async function handleGoogleAuth() {
@@ -263,7 +293,7 @@ export function AuthPage({ mode }: AuthPageProps) {
               </h1>
               <p className="mt-1.5 text-[12px] leading-6 text-[#667085]">
                 {registering
-                  ? "Enviamos um e-mail de confirmação para você concluir o cadastro."
+                  ? "Sua barbearia e a unidade inicial estão prontas. Entre com o e-mail e a senha cadastrados."
                   : "Você será redirecionado para o seu painel em instantes."}
               </p>
             </div>
@@ -293,7 +323,7 @@ export function AuthPage({ mode }: AuthPageProps) {
             </h1>
             <p className="mb-4 mt-1.5 text-[13px] text-[#667085]">
               {registering
-                ? "Preencha os dados abaixo para criar sua conta."
+                ? "Cadastre sua barbearia e sua conta de administrador."
                 : "Digite seu e-mail e senha para entrar."}
             </p>
 
@@ -316,6 +346,15 @@ export function AuthPage({ mode }: AuthPageProps) {
                   value={values.name}
                 />
               )}
+
+              {registering && <>
+                <AuthField id="register-trade-name" name="tradeName" label="Nome da barbearia" placeholder="Nome da barbearia" autoComplete="organization" type="text" icon={<Store size={16} />} value={values.tradeName} error={errors.tradeName} onChange={e => updateValue("tradeName", e.target.value)} />
+                <AuthField id="register-unit-name" name="unitName" label="Unidade inicial" placeholder="Unidade inicial" autoComplete="off" type="text" icon={<Store size={16} />} value={values.unitName} error={errors.unitName} onChange={e => updateValue("unitName", e.target.value)} />
+                <label className="text-xs text-secondary" htmlFor="register-time-zone">Fuso horário</label>
+                <select id="register-time-zone" className="h-11 border border-fog px-3 text-sm" value={values.timeZone} onChange={e => updateValue("timeZone", e.target.value)}>
+                  <option value="America/Sao_Paulo">Brasília</option><option value="America/Manaus">Manaus</option><option value="America/Rio_Branco">Rio Branco</option><option value="America/Noronha">Fernando de Noronha</option>
+                </select>
+              </>}
 
               <AuthField
                 autoComplete="email"
@@ -351,7 +390,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 value={values.password}
               />
 
-              {!registering && loginError && (
+              {loginError && (
                 <p className="rounded-lg bg-[#fdecee] px-3 py-2 text-[11px] font-medium text-[#e0333f]">
                   {loginError}
                 </p>
@@ -445,6 +484,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 )}
               </button>
 
+              {!registering && <>
               <div className="my-2 flex items-center gap-3.5 text-[10px] text-[#9298ad]">
                 <span className="h-px flex-1 bg-[#e3e5eb]" />
                 ou
@@ -467,6 +507,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 )}
               </button>
 
+              </>}
               <p className="mt-2 text-[11px] text-[#9da3b8]">
                 {registering
                   ? "Já tem uma conta? "

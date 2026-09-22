@@ -1,13 +1,16 @@
 import { withAuth } from "next-auth/middleware";
+import { NextResponse } from "next/server";
+import { portalForRole, canAccessPortal } from "./lib/portal-access";
 
-// Exige sessão pra qualquer rota dos 4 portais. Restrição por papel
-// específico (ex.: só SUPER_ADMIN em /superadmin) fica pra depois — por
-// enquanto só bloqueia visitante não-autenticado, redirecionando pro
-// /login configurado em pages.signIn (ver app/api/auth/[...nextauth]).
-export default withAuth({
-  pages: {
-    signIn: "/login",
-  },
+export default withAuth(function proxy(request) {
+  const role = request.nextauth.token?.role;
+  if (!canAccessPortal(role, request.nextUrl.pathname)) {
+    return NextResponse.redirect(new URL(portalForRole(role) ?? "/login?error=AccessDenied", request.url));
+  }
+  return NextResponse.next();
+}, {
+  pages: { signIn: "/login" },
+  callbacks: { authorized: ({ token }) => Boolean(token?.backendJwt && portalForRole(token.role)) },
 });
 
 export const config = {

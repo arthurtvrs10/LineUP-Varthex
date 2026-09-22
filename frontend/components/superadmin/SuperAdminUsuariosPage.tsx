@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 
@@ -69,8 +69,12 @@ export function SuperAdminUsuariosPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   const visiveis = users.filter(

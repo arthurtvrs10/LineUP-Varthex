@@ -27,6 +27,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class CustomerControllerTest {
+    @Autowired private com.backend.tenants.TenantRepository tenantRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -48,8 +49,8 @@ class CustomerControllerTest {
 
     @BeforeEach
     void seedAdmins() {
-        UUID tenantA = UUID.randomUUID();
-        UUID tenantB = UUID.randomUUID();
+        UUID tenantA = tenantRepository.save(new com.backend.tenants.Tenant(null, "Empresa Teste", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId();
+        UUID tenantB = tenantRepository.save(new com.backend.tenants.Tenant(null, "Empresa Teste", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId();
 
         User adminA = userRepository.save(new User(
                 null, "Admin A", "admin.a@customers.dev",

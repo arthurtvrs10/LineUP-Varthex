@@ -309,7 +309,7 @@ class AppointmentControllerTest {
         User otherAdmin = userRepository.save(new User(
                 null, "Outro Admin", "outro@agenda.dev",
                 passwordEncoder.encode("senha-correta"),
-                Role.ADMIN, UserStatus.ACTIVE, UUID.randomUUID(),
+                Role.ADMIN, UserStatus.ACTIVE, tenantRepository.save(new com.backend.tenants.Tenant(null, "Empresa Teste", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId(),
                 null, null, null
         ));
         String otherToken = jwtService.generateTokemn(otherAdmin);

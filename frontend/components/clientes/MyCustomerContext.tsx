@@ -30,7 +30,6 @@ export function MyCustomerProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let active = true;
-    setLoading(true);
     apiFetch<MeCustomerResponse>("/me/customer")
       .then((data) => {
         if (active) {
@@ -51,7 +50,7 @@ export function MyCustomerProvider({ children }: { children: ReactNode }) {
 
   return (
     <MyCustomerContext.Provider
-      value={{ customer, loading, error, reload: () => setReloadKey((k) => k + 1) }}
+      value={{ customer, loading, error, reload: () => { setLoading(true); setReloadKey((k) => k + 1); } }}
     >
       {children}
     </MyCustomerContext.Provider>

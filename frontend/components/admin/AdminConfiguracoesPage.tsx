@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
+import { BusinessSettingsPanel } from "@/components/commercial/Settings";
 import { useSession } from "next-auth/react";
-import { Bell, CalendarCog, Store, UserRound, Wallet } from "lucide-react";
+import { Store, UserRound } from "lucide-react";
 import {
   FieldInput,
   SectionCard,
-  ToggleRow,
 } from "@/components/ui/SettingsPrimitives";
 import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { Toast, useToast } from "@/components/ui/Toast";
@@ -65,7 +65,8 @@ type BarbeariaForm = {
 
 export function AdminConfiguracoesPage() {
   const { data: session, update: updateSession } = useSession();
-  const [nome, setNome] = useState("");
+  const [nomeDraft, setNome] = useState<string>();
+  const nome = nomeDraft ?? session?.user?.name ?? "";
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [savingConta, setSavingConta] = useState(false);
   const [tenant, setTenant] = useState<TenantResponse>();
@@ -84,9 +85,6 @@ export function AdminConfiguracoesPage() {
   const [error, setError] = useState<string>();
   const toast = useToast();
 
-  useEffect(() => {
-    if (session?.user?.name) setNome(session.user.name);
-  }, [session?.user?.name]);
 
   useEffect(() => {
     apiFetch<MeResponse>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
@@ -132,8 +130,12 @@ export function AdminConfiguracoesPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   function campo<K extends keyof BarbeariaForm>(chave: K) {
@@ -280,58 +282,7 @@ export function AdminConfiguracoesPage() {
         </div>
       </SectionCard>
 
-      <SectionCard icon={CalendarCog} title="Agendamento">
-        <p className="mb-4 text-sm text-secondary">
-          Essas regras ainda não são configuráveis por barbearia — os campos abaixo são só
-          visuais, sem endpoint de configuração por trás.
-        </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldInput
-            label="Antecedência mínima (horas)"
-            defaultValue="2"
-            hint="Tempo mínimo entre a reserva e o atendimento."
-            disabled
-          />
-          <FieldInput
-            label="Prazo de cancelamento (horas)"
-            defaultValue="12"
-            hint="Depois disso o cliente não cancela sozinho."
-            disabled
-          />
-        </div>
-      </SectionCard>
-
-      <SectionCard icon={Wallet} title="Financeiro e comissões">
-        <p className="mb-4 text-sm text-secondary">
-          Cada barbeiro já tem uma comissão definida no cadastro. Um percentual padrão por
-          barbearia e o dia de fechamento de caixa ainda não existem como configuração — os campos
-          abaixo são só visuais.
-        </p>
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <FieldInput
-            label="Comissão padrão do barbeiro (%)"
-            defaultValue="40"
-            hint="Aplicada a novos profissionais."
-            disabled
-          />
-          <FieldInput label="Dia de fechamento do caixa" defaultValue="Último dia do mês" disabled />
-        </div>
-      </SectionCard>
-
-      <SectionCard icon={Bell} title="Notificações">
-        <p className="mb-4 text-sm text-secondary">
-          O barbeiro já é avisado no app a cada novo agendamento. Desligar esses avisos por
-          barbearia ainda não é configurável — os toggles abaixo são só visuais.
-        </p>
-        <div className="flex flex-col opacity-60">
-          <ToggleRow
-            title="Novo agendamento"
-            hint="Avisa quando um cliente reserva um horário."
-            defaultOn
-          />
-          <ToggleRow title="Cancelamento" hint="Avisa quando um horário é liberado." defaultOn border={false} />
-        </div>
-      </SectionCard>
+      <BusinessSettingsPanel />
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>

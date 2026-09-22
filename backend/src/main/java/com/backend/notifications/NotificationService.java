@@ -36,13 +36,15 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final NotificationPreferenceRepository notificationPreferenceRepository;
     private final EmailService emailService;
+    private final com.backend.commercial.BusinessSettingsRepository settings;
 
     public NotificationService(NotificationRepository notificationRepository,
                                 NotificationPreferenceRepository notificationPreferenceRepository,
-                                EmailService emailService) {
+                                EmailService emailService, com.backend.commercial.BusinessSettingsRepository settings) {
         this.notificationRepository = notificationRepository;
         this.notificationPreferenceRepository = notificationPreferenceRepository;
         this.emailService = emailService;
+        this.settings = settings;
     }
 
     // Notificação de equipe (barbeiro/admin) — só in-app neste incremento
@@ -50,6 +52,7 @@ public class NotificationService {
     @Transactional
     public void notifyUser(UUID tenantId, UUID userId, NotificationType type, String title, String message,
                             String referenceType, UUID referenceId) {
+        if (!settings.findById(tenantId).map(s->s.staffNotifications).orElse(true)) return;
         Notification notification = new Notification(
                 tenantId, userId, null, NotificationChannel.IN_APP, type, title, message,
                 referenceType, referenceId, NotificationStatus.SENT

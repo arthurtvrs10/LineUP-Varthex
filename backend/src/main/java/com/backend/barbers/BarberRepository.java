@@ -15,4 +15,8 @@ public interface BarberRepository extends JpaRepository<BarberProfile, UUID> {
     List<BarberProfile> findAllByUnit_Tenant_Id(UUID tenantId);
 
     Optional<BarberProfile> findByUser_Id(UUID userId);
+
+    @org.springframework.data.jpa.repository.Lock(jakarta.persistence.LockModeType.PESSIMISTIC_WRITE)
+    @org.springframework.data.jpa.repository.Query("select b from BarberProfile b where b.id = :id")
+    Optional<BarberProfile> findLockedById(@org.springframework.data.repository.query.Param("id") UUID id);
 }

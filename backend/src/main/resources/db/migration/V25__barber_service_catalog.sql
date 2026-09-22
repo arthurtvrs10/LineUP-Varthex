@@ -1,0 +1,2 @@
+CREATE TABLE barber_catalogs (barber_id uuid PRIMARY KEY REFERENCES barber_profiles(id), tenant_id uuid NOT NULL REFERENCES tenants(id), version bigint NOT NULL DEFAULT 0, restricted boolean NOT NULL DEFAULT false);
+CREATE TABLE barber_catalog_services (barber_id uuid NOT NULL REFERENCES barber_catalogs(barber_id), service_id uuid NOT NULL REFERENCES services(id), PRIMARY KEY(barber_id,service_id));

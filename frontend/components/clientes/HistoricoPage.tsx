@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { CustomerReview } from "@/components/commercial/CustomerCommercial";
+import { useEffectEvent, useEffect, useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Toast, useToast } from "@/components/ui/Toast";
@@ -90,8 +91,12 @@ export function HistoricoPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   async function cancelar(id: string) {
@@ -256,6 +261,7 @@ export function HistoricoPage() {
                     {brl.format(Number(item.totalAmount))}
                   </td>
                   <td className="px-6 py-4 text-right">
+                    {item.status === "COMPLETED" && <CustomerReview appointmentId={item.id} />}
                     {CANCELAVEIS.includes(item.status) && (
                       <button
                         type="button"

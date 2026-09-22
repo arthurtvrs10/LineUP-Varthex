@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffectEvent, useEffect, useMemo, useState } from "react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { AdminBloquearHorarioModal, AdminNovoAgendamentoModal } from "./modals/AdminAgendaModals";
@@ -110,9 +110,12 @@ export function AdminAgendaPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregarAgenda);
   useEffect(() => {
-    carregarAgenda();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, [date]);
 
   async function executarAcao(appointmentId: string, action: string) {

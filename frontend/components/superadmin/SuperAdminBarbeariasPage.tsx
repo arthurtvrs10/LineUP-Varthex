@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { Search, FolderPlus } from "lucide-react";
 import { ConfirmModal } from "@/components/ui/ConfirmModal";
 import { FilterSelect } from "@/components/ui/FilterSelect";
@@ -74,8 +74,12 @@ export function SuperAdminBarbeariasPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, []);
 
   function responsavel(tenantId: string) {

@@ -32,19 +32,24 @@ public class AvailabilityService {
     private final WorkScheduleRepository workScheduleRepository;
     private final AvailabilityExceptionRepository availabilityExceptionRepository;
     private final BarberRepository barberRepository;
+    private final com.backend.commercial.BarberCatalogRepository catalogs;
     private final ServiceOfferingRepository serviceOfferingRepository;
     private final AppointmentRepository appointmentRepository;
+    private final com.backend.commercial.BusinessSettingsRepository settings;
 
     public AvailabilityService(WorkScheduleRepository workScheduleRepository,
                                 AvailabilityExceptionRepository availabilityExceptionRepository,
                                 BarberRepository barberRepository,
                                 ServiceOfferingRepository serviceOfferingRepository,
-                                AppointmentRepository appointmentRepository) {
+                                AppointmentRepository appointmentRepository, com.backend.commercial.BarberCatalogRepository catalogs,
+                                com.backend.commercial.BusinessSettingsRepository settings) {
         this.workScheduleRepository = workScheduleRepository;
         this.availabilityExceptionRepository = availabilityExceptionRepository;
         this.barberRepository = barberRepository;
         this.serviceOfferingRepository = serviceOfferingRepository;
         this.appointmentRepository = appointmentRepository;
+        this.catalogs = catalogs;
+        this.settings = settings;
     }
 
     // RF-DIS-001: jornada semanal. PUT substitui a semana inteira (mais simples
@@ -116,14 +121,17 @@ public class AvailabilityService {
     // RF-DIS-005/006: slots livres = jornada do dia - exceções - agendamentos
     // existentes, considerando a duração (+ buffers) do serviço pedido.
     @Transactional(readOnly = true)
-    public List<AvailabilitySlotResponse> computeAvailability(UUID tenantId, UUID barberId, LocalDate date, UUID serviceId) {
-        requireBarberInTenant(tenantId, barberId);
+    public List<AvailabilitySlotResponse> computeAvailability(UUID tenantId, UUID barberId, LocalDate date, UUID serviceId, boolean customerBooking) {
+        BarberProfile barber = requireBarberInTenant(tenantId, barberId);
+        if(barber.getStatus()!=com.backend.barbers.BarberStatus.ACTIVE)return List.of();
+        if(catalogs.findById(barberId).filter(c->c.restricted&&!c.serviceIds.contains(serviceId)).isPresent())return List.of();
 
         ServiceOffering service = serviceOfferingRepository.findById(serviceId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Serviço não encontrado"));
         if (!service.getTenantId().equals(tenantId)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Serviço não encontrado");
         }
+        if(!service.isActive())return List.of();
 
         int durationMinutes = service.getDurationMinutes() + service.getBufferBeforeMinutes() + service.getBufferAfterMinutes();
 
@@ -149,7 +157,10 @@ public class AvailabilityService {
 
         // RF-DIS-005: não oferece horário que já passou — relevante só pra
         // hoje (dias futuros nunca caem antes de "agora").
-        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime now = LocalDateTime.now(java.time.ZoneId.of(barber.getUnit().getTimeZone()));
+        if (customerBooking) {
+            now = now.plusHours(settings.findById(tenantId).map(s -> s.minimumNoticeHours).orElse(0));
+        }
 
         for (WorkSchedule range : ranges) {
             LocalDateTime rangeStart = LocalDateTime.of(date, range.getStartTime());

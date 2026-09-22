@@ -1,10 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { apiFetch, ApiError } from "@/lib/api";
+import { useMemo } from "react";
+import { useAvailableSlots } from "@/hooks/useAvailableSlots";
 import { proximosDias, type DiaDisponivel } from "./dados";
 
-type AvailabilitySlot = { startAt: string; endAt: string };
 
 function timeLabel(iso: string) {
   const d = new Date(iso);
@@ -42,33 +41,7 @@ export function PassoDataHora({
   onSelecionarHorario: (h: string) => void;
 }) {
   const dias = useMemo(() => proximosDias(hoje, 14), [hoje]);
-  const [slots, setSlots] = useState<AvailabilitySlot[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string>();
-
-  useEffect(() => {
-    if (!dia) return;
-    let ativo = true;
-    setLoading(true);
-    apiFetch<AvailabilitySlot[]>(
-      `/barbers/${barberId}/availability?${new URLSearchParams({ date: dia.iso, serviceId })}`,
-    )
-      .then((items) => {
-        if (ativo) {
-          setSlots(items);
-          setError(undefined);
-        }
-      })
-      .catch((err) => {
-        if (ativo) setError(err instanceof ApiError ? err.message : "Não foi possível carregar os horários.");
-      })
-      .finally(() => {
-        if (ativo) setLoading(false);
-      });
-    return () => {
-      ativo = false;
-    };
-  }, [dia, barberId, serviceId]);
+  const {slots, loading, error} = useAvailableSlots(barberId, serviceId, dia?.iso);
 
   return (
     <div className="flex flex-col gap-6">

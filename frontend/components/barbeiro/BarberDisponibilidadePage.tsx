@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Toast, useToast } from "@/components/ui/Toast";
@@ -65,9 +65,12 @@ export function BarberDisponibilidadePage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    if (barber) carregar(barber.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { if (barber) loadOnEffect(barber.id); } });
+    return () => { active = false; };
   }, [barber]);
 
   function adicionarTurno(weekday: number) {

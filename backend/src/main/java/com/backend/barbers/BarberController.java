@@ -16,15 +16,25 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/barbers")
 @RequiredArgsConstructor
+@org.springframework.transaction.annotation.Transactional
 public class BarberController {
 
     private final BarberService barberService;
+    private final BarberRepository barberRepository;
+    private final com.backend.units.UnitRepository unitRepository;
+    private final com.backend.users.UserRepository userRepository;
+    private UUID tenant(JwtAuthenticationToken auth){String id=auth.getToken().getClaimAsString("tenantId");if(id==null)throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN,"Perfil sem barbearia");return UUID.fromString(id);}
+    private BarberProfile scoped(UUID id,JwtAuthenticationToken auth){return barberRepository.findById(id).filter(b->tenant(auth).equals(b.getUnit().getTenant().getId())).orElseThrow(()->new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND,"Barbeiro não encontrado"));}
+    private void admin(JwtAuthenticationToken auth){if(!java.util.Set.of("ADMIN","SUPER_ADMIN").contains(auth.getToken().getClaimAsString("role")))throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN,"Ação restrita à administração");}
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public BarberResponse createBarber(
-            @Valid @RequestBody CreateBarberRequest request
+            @Valid @RequestBody CreateBarberRequest request, JwtAuthenticationToken authentication
     ) {
+        admin(authentication);
+        UUID tenantId=tenant(authentication);
+        if(unitRepository.findById(request.unitId()).filter(u->tenantId.equals(u.getTenant().getId())).isEmpty() || userRepository.findById(request.userId()).filter(u->tenantId.equals(u.getTenantId())&&u.getRole()==com.backend.users.Role.BARBER).isEmpty())throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND,"Unidade ou profissional não encontrado");
         return barberService.createBarber(request);
     }
 
@@ -34,6 +44,7 @@ public class BarberController {
             JwtAuthenticationToken authentication
     ) {
         if (unitId != null) {
+            if(unitRepository.findById(unitId).filter(u->tenant(authentication).equals(u.getTenant().getId())).isEmpty())throw new org.springframework.web.server.ResponseStatusException(HttpStatus.NOT_FOUND,"Unidade não encontrada");
             return barberService.listByUnit(unitId);
         }
 
@@ -58,24 +69,29 @@ public class BarberController {
 
     @GetMapping("/{id}")
     public BarberResponse getBarberById(
-            @PathVariable("id") UUID id
+            @PathVariable("id") UUID id, JwtAuthenticationToken authentication
     ) {
+        scoped(id,authentication);
         return barberService.findById(id);
     }
 
     @PatchMapping("/{id}")
     public BarberResponse updateBarber(
             @PathVariable("id") UUID id,
-            @Valid @RequestBody UpdateBarberRequest request
+            @Valid @RequestBody UpdateBarberRequest request, JwtAuthenticationToken authentication
     ) {
+        var barber=scoped(id,authentication);
+        if("BARBER".equals(authentication.getToken().getClaimAsString("role")) && (!barber.getUser().getId().toString().equals(authentication.getToken().getSubject()) || request.defaultCommissionPercent()!=null))throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN,"Você só pode editar seu nome e sua descrição");
         return barberService.updateBarber(id, request);
     }
 
     @PatchMapping("/{id}/status")
     public BarberResponse changeStatus(
             @PathVariable("id") UUID id,
-            @Valid @RequestBody UpdateBarberStatusRequest request
+            @Valid @RequestBody UpdateBarberStatusRequest request, JwtAuthenticationToken authentication
     ) {
+        admin(authentication);
+        scoped(id,authentication);
         return barberService.changeStatus(
                 id,
                 request.status()

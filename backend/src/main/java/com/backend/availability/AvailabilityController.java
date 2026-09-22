@@ -34,7 +34,8 @@ public class AvailabilityController {
             @RequestParam UUID serviceId,
             JwtAuthenticationToken authentication
     ) {
-        return availabilityService.computeAvailability(currentTenantId(authentication), barberId, date, serviceId);
+        return availabilityService.computeAvailability(currentTenantId(authentication), barberId, date, serviceId,
+                "CLIENT".equals(authentication.getToken().getClaimAsString("role")));
     }
 
     @GetMapping("/work-schedules")

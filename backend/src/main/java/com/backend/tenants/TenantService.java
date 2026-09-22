@@ -53,6 +53,23 @@ public class TenantService {
             );
         }
 
+        if (request.tradeName() == null || request.tradeName().isBlank() || request.tradeName().length() > 120
+                || request.admin().fullName() == null || request.admin().fullName().isBlank()
+                || request.admin().email() == null || !request.admin().email().matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")
+                || request.initialUnit().name() == null || request.initialUnit().name().isBlank()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome da barbearia, administrador, e-mail e unidade válidos");
+        }
+        try {
+            java.time.ZoneId.of(request.defaultTimeZone());
+            java.time.ZoneId.of(request.initialUnit().timeZone());
+        } catch (Exception exception) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Fuso horário inválido");
+        }
+        String password = request.admin().password();
+        if (password != null && (password.length() < 8 || password.getBytes(java.nio.charset.StandardCharsets.UTF_8).length > 72)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter ao menos 8 caracteres e no máximo 72 bytes");
+        }
+
         if (userRepository.existsByEmail(request.admin().email())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
@@ -89,15 +106,12 @@ public class TenantService {
         }
         unitRepository.save(unit);
 
-        // Sem sistema de convite/e-mail ainda: o admin é criado direto, com
-        // senha aleatória. Login inicial precisa passar pelo fluxo de
-        // "esqueci minha senha" assim que ele existir (auth-service ainda
-        // não implementa /auth/password-recovery).
+        // Cadastros públicos definem a senha; convites sem senha usam recuperação de acesso.
         User admin = new User(
                 UUID.randomUUID(),
                 request.admin().fullName(),
                 request.admin().email(),
-                passwordEncoder.encode(UUID.randomUUID().toString()),
+                passwordEncoder.encode(password == null ? UUID.randomUUID().toString() : password),
                 Role.ADMIN,
                 UserStatus.ACTIVE,
                 tenant.getId(),

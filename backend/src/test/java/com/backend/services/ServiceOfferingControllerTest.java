@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 @Transactional
 class ServiceOfferingControllerTest {
+    @Autowired private com.backend.tenants.TenantRepository tenantRepository;
 
     @Autowired
     private MockMvc mockMvc;
@@ -49,7 +50,7 @@ class ServiceOfferingControllerTest {
 
     @BeforeEach
     void seedAdmin() {
-        UUID tenantId = UUID.randomUUID();
+        UUID tenantId = tenantRepository.save(new com.backend.tenants.Tenant(null, "Empresa Teste", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId();
 
         User admin = userRepository.save(new User(
                 null, "Admin", "admin@services.dev",

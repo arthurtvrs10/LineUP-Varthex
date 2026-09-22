@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffectEvent, useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, Search } from "lucide-react";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { NovoClienteModal, type NovoClientePayload } from "@/components/admin/modals/CadastroModals";
@@ -65,9 +65,12 @@ export function BarberClientesPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregar);
   useEffect(() => {
-    carregar();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { loadOnEffect(); } });
+    return () => { active = false; };
   }, [page, pageSize, query]);
 
   async function criarCliente(payload: NovoClientePayload) {

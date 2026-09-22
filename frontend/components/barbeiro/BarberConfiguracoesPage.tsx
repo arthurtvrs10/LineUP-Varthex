@@ -31,14 +31,12 @@ export function BarberConfiguracoesPage() {
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>();
-  const [nome, setNome] = useState("");
+  const [nomeDraft, setNome] = useState<string>();
+  const nome = nomeDraft ?? session?.user?.name ?? "";
   const [photoData, setPhotoData] = useState<string | null>(null);
   const [savingConta, setSavingConta] = useState(false);
   const toast = useToast();
 
-  useEffect(() => {
-    if (session?.user?.name) setNome(session.user.name);
-  }, [session?.user?.name]);
 
   useEffect(() => {
     apiFetch<MeResponse>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});

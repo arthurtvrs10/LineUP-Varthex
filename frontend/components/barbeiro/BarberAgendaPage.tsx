@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffectEvent, useEffect, useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Plus, User } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Toast, useToast } from "@/components/ui/Toast";
@@ -10,7 +10,7 @@ import {
   type NovoAgendamentoPayload,
   type ServiceOption,
 } from "./modals/NovoAgendamentoModal";
-import { AppointmentDetailModal, type AppointmentDetail } from "@/components/ui/AppointmentDetailModal";
+import { AppointmentDetailModal } from "@/components/ui/AppointmentDetailModal";
 
 const WEEKDAY_LABELS = ["SEG", "TER", "QUA", "QUI", "SEX", "SÁB", "DOM"];
 const HOURS = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -163,9 +163,12 @@ export function BarberAgendaPage() {
     }
   }
 
+  const loadOnEffect = useEffectEvent(carregarAgenda);
   useEffect(() => {
-    if (barber) carregarAgenda(barber.id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let active = true;
+    // Start asynchronously; Strict Mode cleanup cancels an obsolete initial load.
+    Promise.resolve().then(() => { if (active) { if (barber) loadOnEffect(barber.id); } });
+    return () => { active = false; };
   }, [barber, weekStart]);
 
   async function criarAgendamento(payload: NovoAgendamentoPayload) {

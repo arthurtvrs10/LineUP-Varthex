@@ -2,6 +2,15 @@
 
 Todas as mudanças relevantes do projeto são documentadas aqui.
 
+## [Unreleased] — Módulos comerciais internos
+
+- Substituição das dez telas comerciais provisórias por fluxos conectados à API: caixa e recebimentos, estoque e venda de produtos, pontos e resgates, rascunhos de CRM, avaliações, planos, assinaturas manuais, métricas, auditoria e consulta de saúde.
+- Cadastro público real com senha; isolamento de portais por perfil e reforço de escopo nas rotas de profissionais.
+- Edição e resumo de clientes; indicadores e serviços por profissional; regras de agendamento, comissão sugerida e consentimento para promoções persistidos.
+- Comprovantes não fiscais, exportação financeira, estornos e proteção contra duplicação de operações; bloqueio de reservas concorrentes por profissional.
+- Migrações V23–V25, testes dos novos fluxos, correções de lint e pipeline de frontend, backend e validação de esquema PostgreSQL.
+- Integrações externas permanecem pendentes por decisão de escopo. Este incremento não conclui todos os requisitos avançados dos níveis 2 e 3; consulte o [estado detalhado](docs/12-roadmap/05-estado-implementacao-comercial.md).
+
 ## [v2.0.0] — 2026-09-09 — MVP completo
 
 Release que fecha o escopo do **Nível 1 (MVP)** definido em

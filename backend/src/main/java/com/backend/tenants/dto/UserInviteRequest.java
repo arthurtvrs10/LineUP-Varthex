@@ -5,6 +5,7 @@ import com.backend.users.Role;
 public record UserInviteRequest(
         String email,
         String fullName,
-        Role role
+        Role role,
+        String password
 ) {
 }

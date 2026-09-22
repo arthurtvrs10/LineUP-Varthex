@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google";
 
 type BackendUser = User & { backendJwt: string; backendRefreshToken: string; role: string };
 
-export const authOptions: NextAuthOptions = {
+const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
@@ -89,10 +89,11 @@ export const authOptions: NextAuthOptions = {
             token.backendRefreshToken = data.refreshToken;
             token.role = data.role;
           } else {
-            console.error("Falha ao comunicar com o backend:", res.status);
+            throw new Error("Falha ao validar login social");
           }
         } catch (error) {
           console.error("Erro no social login:", error);
+          throw new Error("Não foi possível validar o login social");
         }
       }
 
