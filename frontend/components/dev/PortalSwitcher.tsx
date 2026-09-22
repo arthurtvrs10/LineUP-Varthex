@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { signIn } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
 import { Check, LayoutGrid, Loader2, Scissors, ShieldCheck, Store, UserRound, X } from "lucide-react";
@@ -67,23 +67,34 @@ const portais: Portal[] = [
 ];
 
 export function PortalSwitcher() {
-  const router = useRouter();
+  const [enabled, setEnabled] = useState(false);
+  useEffect(() => {
+    const controller = new AbortController();
+    fetch("/api/demo-config", { cache: "no-store", signal: controller.signal })
+      .then(response => response.ok ? response.json() : null)
+      .then(config => { if (!controller.signal.aborted) setEnabled(config?.enabled === true); })
+      .catch(() => {});
+    return () => controller.abort();
+  }, []);
   const pathname = usePathname();
   const [openPath, setOpenPath] = useState<string | null>(null);
   const open = openPath === pathname;
   const setOpen = (value: boolean) => setOpenPath(value ? pathname : null);
   const [trocando, setTrocando] = useState<string | null>(null);
   const ref = useRef<HTMLDivElement>(null);
+  const switching = useRef(false);
   const toast = useToast();
 
   const atual = portais.find((p) => pathname?.startsWith(p.prefixo));
 
   async function trocarPara(portal: Portal) {
+    if (switching.current) return;
     if (portal.prefixo === atual?.prefixo) {
       setOpen(false);
       return;
     }
 
+    switching.current = true;
     setTrocando(portal.prefixo);
     try {
       const result = await signIn("credentials", {
@@ -93,13 +104,26 @@ export function PortalSwitcher() {
       });
 
       if (!result || result.error) {
-        toast.mostrar(`Não consegui logar como ${portal.label} (${portal.email}).`, "erro");
+        if (result?.error === "BackendUnavailable") {
+          toast.mostrar("A API de login está indisponível. Verifique se o backend e o banco estão ligados.", "erro");
+          return;
+        }
+        if (result?.error === "AccountTemporarilyLocked") {
+          toast.mostrar("Conta temporariamente bloqueada por tentativas de login. Aguarde antes de tentar novamente.", "erro");
+          return;
+        }
+        toast.mostrar(`Não foi possível entrar como ${portal.label}. Verifique se a conta de demonstração ${portal.email} existe e usa a senha de demonstração.`, "erro");
         return;
       }
 
       setOpen(false);
-      router.push(portal.href);
+      // A different identity needs a fresh page, without the previous portal's
+      // prefetched routes or customer/session state.
+      window.location.assign(portal.href);
+    } catch {
+      toast.mostrar("Não foi possível conectar para trocar de perfil. Tente novamente.", "erro");
     } finally {
+      switching.current = false;
       setTrocando(null);
     }
   }
@@ -121,6 +145,8 @@ export function PortalSwitcher() {
       document.removeEventListener("keydown", handleEscape);
     };
   }, [open]);
+
+  if (!enabled) return null;
 
   return (
     <div ref={ref} className="fixed right-4 top-1/2 z-40 -translate-y-1/2">
@@ -158,7 +184,7 @@ export function PortalSwitcher() {
                     type="button"
                     role="menuitem"
                     aria-current={ativo ? "page" : undefined}
-                    disabled={carregando}
+                    disabled={trocando !== null}
                     onClick={() => trocarPara(portal)}
                     className={`flex w-full items-center gap-2.5 rounded-[8px] px-2.5 py-2 text-left transition disabled:cursor-wait ${
                       ativo ? "bg-accent-subtle" : "hover:bg-[#f7f6f2]"

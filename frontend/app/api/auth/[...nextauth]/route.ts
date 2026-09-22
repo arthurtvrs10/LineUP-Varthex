@@ -1,6 +1,7 @@
 import NextAuth, { type NextAuthOptions, type User } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import GoogleProvider from "next-auth/providers/google";
+import { backendUrl } from "@/lib/backend-url";
 
 type BackendUser = User & { backendJwt: string; backendRefreshToken: string; role: string };
 
@@ -24,15 +25,18 @@ const authOptions: NextAuthOptions = {
           return null;
         }
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/login`, {
+        const res = await fetch(backendUrl("/auth/login"), {
           method: "POST",
+          signal: AbortSignal.timeout(5000),
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: credentials.email,
             password: credentials.password,
           }),
-        });
+        }).catch(() => { throw new Error("BackendUnavailable"); });
 
+        if (res.status === 429) throw new Error("AccountTemporarilyLocked");
+        if (res.status >= 500) throw new Error("BackendUnavailable");
         if (!res.ok) {
           return null;
         }
@@ -77,7 +81,7 @@ const authOptions: NextAuthOptions = {
 
       if (account?.provider === "google" && account.id_token) {
         try {
-          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/social-login`, {
+          const res = await fetch(backendUrl("/auth/social-login"), {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ idToken: account.id_token }),
@@ -133,7 +137,7 @@ const authOptions: NextAuthOptions = {
       const refreshToken = token?.backendRefreshToken as string | undefined;
       if (!refreshToken) return;
       try {
-        await fetch(`${process.env.NEXT_PUBLIC_API_URL}/auth/logout`, {
+        await fetch(backendUrl("/auth/logout"), {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ refreshToken }),

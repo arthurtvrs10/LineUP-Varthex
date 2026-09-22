@@ -17,7 +17,7 @@ export function SuperAdminShell({ title, breadcrumb, children }: SuperAdminShell
         <SuperAdminTopbar title={title} breadcrumb={breadcrumb} />
         <main className="max-w-full px-4 py-8 lg:pl-7 lg:pr-7">{children}</main>
       </div>
-      {process.env.NEXT_PUBLIC_DEMO_SWITCHER === "true" && <PortalSwitcher />}
+      <PortalSwitcher />
     </div>
   );
 }

@@ -22,7 +22,7 @@ export function ClientShell({ title, breadcrumb, children }: ClientShellProps) {
             <ClientPortalGate>{children}</ClientPortalGate>
           </main>
         </div>
-        {process.env.NEXT_PUBLIC_DEMO_SWITCHER === "true" && <PortalSwitcher />}
+        <PortalSwitcher />
       </div>
     </MyCustomerProvider>
   );
