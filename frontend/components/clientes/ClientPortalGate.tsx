@@ -1,37 +1,29 @@
 "use client";
 
-import type { ReactNode } from "react";
-import { AlertCircle } from "lucide-react";
+import { useEffect, type ReactNode } from "react";
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { useMyCustomer } from "./MyCustomerContext";
 
-// A conta de login (User) só vira um Customer de verdade quando o staff já
-// cadastrou esse e-mail em Admin > Clientes — sem isso não há tenant, não
-// há histórico, não há nada pra mostrar. Em vez de cada tela lidar com esse
-// 404 sozinha, o portal inteiro mostra um aviso único aqui.
 export function ClientPortalGate({ children }: { children: ReactNode }) {
-  const { customer, loading, error } = useMyCustomer();
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center py-24">
-        <span className="size-8 animate-spin rounded-full border-2 border-[#e6e4df] border-t-accent" />
-      </div>
-    );
-  }
-
-  if (error || !customer) {
-    return (
-      <div className="flex flex-col items-center justify-center rounded-[12px] border border-dashed border-[#e6e4df] bg-white px-8 py-24 text-center">
-        <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#fdecee]">
-          <AlertCircle className="h-6 w-6 text-[#e0333f]" />
-        </div>
-        <h1 className="mt-5 text-xl font-semibold text-[#0d1831]">Você ainda não é cliente de nenhuma barbearia</h1>
-        <p className="mt-2 max-w-md text-sm text-[#98a2b3]">
-          {error ?? "Peça para a barbearia cadastrar seu e-mail em Clientes — sua conta se conecta automaticamente no próximo login."}
-        </p>
-      </div>
-    );
-  }
-
+  const { customer, shop, loading, error, reload } = useMyCustomer();
+  const pathname = usePathname();
+  const router = useRouter();
+  const picker = pathname === "/clientes/barbearias";
+  useEffect(() => {
+    if (!picker && !loading && !shop) router.replace("/clientes/barbearias");
+  }, [picker, loading, shop, router]);
+  if (picker) return <>{children}</>;
+  if (loading || !shop) return <div role="status" className="flex justify-center py-24"><span className="size-8 animate-spin rounded-full border-2 border-[#e6e4df] border-t-accent" /><span className="sr-only">Carregando…</span></div>;
+  if (error || customer?.status === "ARCHIVED") return <div className="rounded-[12px] border border-[#e6e4df] bg-white p-8 text-center">
+    <p role="alert" className="text-sm text-[#5f6f87]">{error ?? "Seu cadastro nesta barbearia está arquivado. Entre em contato com ela ou escolha outra."}</p>
+    <button onClick={reload} className="mt-4 mr-4 text-sm font-semibold text-accent-strong">Tentar novamente</button>
+    <Link href="/clientes/barbearias" className="text-sm font-semibold text-accent-strong">Escolher outra barbearia</Link>
+  </div>;
+  if (!customer && pathname !== "/clientes/agendamento") return <div className="rounded-[12px] border border-[#e6e4df] bg-white p-8 text-center">
+    <h1 className="text-xl font-semibold text-[#0d1831]">Tudo pronto para seu primeiro agendamento</h1>
+    <p className="mt-2 text-sm text-[#5f6f87]">Você escolheu {shop.name}. Ao confirmar um horário, seu vínculo será criado automaticamente.</p>
+    <Link href="/clientes/agendamento" className="mt-6 inline-block rounded-[10px] bg-accent px-5 py-3 text-sm font-semibold text-on-accent">Agendar horário</Link>
+  </div>;
   return <>{children}</>;
 }

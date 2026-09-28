@@ -1,6 +1,9 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
+import { selectedShop, type BookingShop } from "@/lib/client-barbershop";
 import { apiFetch, ApiError } from "@/lib/api";
 
 export type MeCustomerResponse = {
@@ -15,6 +18,7 @@ export type MeCustomerResponse = {
 
 type MyCustomerState = {
   customer?: MeCustomerResponse;
+  shop?: BookingShop;
   loading: boolean;
   error?: string;
   reload: () => void;
@@ -23,34 +27,40 @@ type MyCustomerState = {
 const MyCustomerContext = createContext<MyCustomerState | undefined>(undefined);
 
 export function MyCustomerProvider({ children }: { children: ReactNode }) {
+  const { data: session, status } = useSession();
+  const pathname = usePathname();
+  const [shop, setShop] = useState<BookingShop>();
   const [customer, setCustomer] = useState<MeCustomerResponse>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
+    if (status !== "authenticated") return;
     let active = true;
-    apiFetch<MeCustomerResponse>("/me/customer")
-      .then((data) => {
-        if (active) {
-          setCustomer(data);
-          setError(undefined);
-        }
-      })
-      .catch((err) => {
-        if (active) setError(err instanceof ApiError ? err.message : "Não foi possível carregar seus dados.");
-      })
-      .finally(() => {
-        if (active) setLoading(false);
-      });
-    return () => {
-      active = false;
-    };
-  }, [reloadKey]);
+    const selected = selectedShop(session?.user?.email);
+    async function load() {
+      setLoading(true);
+      setCustomer(undefined);
+      setError(undefined);
+      setShop(selected);
+      try {
+        if (!selected || pathname === "/clientes/barbearias") return;
+        const data = await apiFetch<MeCustomerResponse>("/me/customer");
+        if (active) setCustomer(data);
+      } catch (err) {
+        // No membership yet is expected; booking remains available.
+        if (active && !(err instanceof ApiError && err.status === 404))
+          setError(err instanceof ApiError ? err.message : "Não foi possível carregar seus dados.");
+      } finally { if (active) setLoading(false); }
+    }
+    void load();
+    return () => { active = false; };
+  }, [reloadKey, session?.user?.email, status, pathname]);
 
   return (
     <MyCustomerContext.Provider
-      value={{ customer, loading, error, reload: () => { setLoading(true); setReloadKey((k) => k + 1); } }}
+      value={{ customer, shop, loading, error, reload: () => { setLoading(true); setReloadKey((k) => k + 1); } }}
     >
       {children}
     </MyCustomerContext.Provider>

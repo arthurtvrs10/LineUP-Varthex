@@ -55,7 +55,7 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Público
-                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login",
+                        .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login", "/auth/register-client",
                                 "/auth/password-recovery", "/auth/password-recovery/complete",
                                 "/auth/refresh", "/auth/logout")
                         .permitAll()
@@ -185,6 +185,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/commercial/me").hasRole("CLIENT")
                         .requestMatchers("/commercial/me/consent").authenticated()
                         .requestMatchers("/commercial", "/commercial/**").hasRole("ADMIN")
+
+                        .requestMatchers("/me/**").hasRole("CLIENT")
 
                         // Qualquer outro endpoint exige login
                         .anyRequest().authenticated()

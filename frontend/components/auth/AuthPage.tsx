@@ -14,12 +14,15 @@ import {
 } from "lucide-react";
 import {
   useState,
+  useEffect,
+  Suspense,
   type ChangeEvent,
   type FormEvent,
   type ReactNode,
 } from "react";
-import { useRouter } from "next/navigation";
-import { getSession, signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { getSession, signIn, useSession } from "next-auth/react";
+import { clientDestination } from "@/lib/client-barbershop";
 import { Logo } from "@/components/brand/Logo";
 
 const roleRedirect: Record<string, string> = {
@@ -31,6 +34,7 @@ const roleRedirect: Record<string, string> = {
 
 type AuthPageProps = {
   mode: "login" | "register";
+  clientRegistration?: boolean;
 };
 
 type FormValues = {
@@ -61,14 +65,14 @@ const initialValues: FormValues = {
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-function validate(values: FormValues, registering: boolean): FormErrors {
+function validate(values: FormValues, registering: boolean, clientRegistration: boolean): FormErrors {
   const errors: FormErrors = {};
 
   if (registering && values.name.trim().length < 2) {
     errors.name = "Informe seu nome completo.";
   }
 
-  if (registering) {
+  if (registering && !clientRegistration) {
     if (!values.tradeName.trim() || values.tradeName.length > 120) errors.tradeName = "Informe o nome da barbearia (até 120 caracteres).";
     if (!values.unitName.trim() || values.unitName.length > 120) errors.unitName = "Informe o nome da unidade (até 120 caracteres).";
     try { new Intl.DateTimeFormat("pt-BR", { timeZone: values.timeZone }); } catch { errors.timeZone = "Informe um fuso válido, como America/Sao_Paulo."; }
@@ -192,9 +196,21 @@ function PasswordToggle({
   );
 }
 
-export function AuthPage({ mode }: AuthPageProps) {
+export function AuthPage(props: AuthPageProps) {
+  return <Suspense fallback={<main className="p-8 text-center">Carregando…</main>}><AuthForm {...props} /></Suspense>;
+}
+
+function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
   const registering = mode === "register";
   const router = useRouter();
+  const linkedShop = useSearchParams().get("barbearia");
+  const shopQuery = linkedShop ? `?barbearia=${encodeURIComponent(linkedShop)}` : "";
+  const { data: currentSession, status: sessionStatus } = useSession();
+  useEffect(() => {
+    if (!registering && sessionStatus === "authenticated" && currentSession?.user?.role === "CLIENT") {
+      router.replace(clientDestination(currentSession.user.email, linkedShop));
+    }
+  }, [registering, sessionStatus, currentSession?.user?.role, currentSession?.user?.email, linkedShop, router]);
 
   const [values, setValues] = useState<FormValues>(initialValues);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -217,7 +233,7 @@ export function AuthPage({ mode }: AuthPageProps) {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
-    const nextErrors = validate(values, registering);
+    const nextErrors = validate(values, registering, clientRegistration);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -225,16 +241,24 @@ export function AuthPage({ mode }: AuthPageProps) {
       setStatus("submitting");
       setLoginError(undefined);
       try {
-        const response = await fetch("/tenants", {
+        const response = await fetch(clientRegistration ? "/auth/register-client" : "/tenants", {
           method: "POST", headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ tradeName: values.tradeName.trim(), defaultTimeZone: values.timeZone,
+          body: JSON.stringify(clientRegistration ? { fullName: values.name.trim(), email: values.email.trim().toLowerCase(), password: values.password } : { tradeName: values.tradeName.trim(), defaultTimeZone: values.timeZone,
             locale: "pt-BR", currency: "BRL",
             admin: { fullName: values.name.trim(), email: values.email.trim(), password: values.password, role: "ADMIN" },
             initialUnit: { name: values.unitName.trim(), timeZone: values.timeZone, country: "BR", active: true } }),
         });
         if (!response.ok) {
           const body = await response.json().catch(() => ({}));
-          throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível criar sua barbearia."));
+          throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível concluir o cadastro."));
+        }
+        if (clientRegistration) {
+          const login = await signIn("credentials", { email: values.email.trim().toLowerCase(), password: values.password, redirect: false });
+          if (login && !login.error) {
+            const session = await getSession();
+            router.replace(clientDestination(session?.user?.email, linkedShop));
+            return;
+          }
         }
         setStatus("success");
       } catch (error) {
@@ -261,7 +285,7 @@ export function AuthPage({ mode }: AuthPageProps) {
     }
 
     const session = await getSession();
-    const destination = roleRedirect[session?.user?.role ?? ""] ?? "/clientes/dashboard";
+    const destination = session?.user?.role === "CLIENT" ? clientDestination(session.user.email, linkedShop) : roleRedirect[session?.user?.role ?? ""] ?? "/login";
     router.push(destination);
     } catch {
       setStatus("idle");
@@ -274,7 +298,7 @@ export function AuthPage({ mode }: AuthPageProps) {
     // O NextAuth cuida do redirecionamento/popup do Google e da troca de
     // código; ao voltar, o backend já validou o ID token e emitiu o JWT
     // do LINEUP (ver app/api/auth/[...nextauth]/route.ts).
-    await signIn("google", { callbackUrl: "/auth/pos-login" });
+    await signIn("google", { callbackUrl: `/auth/pos-login${shopQuery}` });
   }
 
   return (
@@ -293,13 +317,13 @@ export function AuthPage({ mode }: AuthPageProps) {
               </h1>
               <p className="mt-1.5 text-[12px] leading-6 text-[#667085]">
                 {registering
-                  ? "Sua barbearia e a unidade inicial estão prontas. Entre com o e-mail e a senha cadastrados."
+                  ? clientRegistration ? "Sua conta está pronta. Entre para escolher uma barbearia e agendar." : "Sua barbearia e a unidade inicial estão prontas. Entre com o e-mail e a senha cadastrados."
                   : "Você será redirecionado para o seu painel em instantes."}
               </p>
             </div>
             <Link
               className="mt-1 text-[11px] font-semibold text-accent-strong hover:underline"
-              href={registering ? "/login" : "/clientes/dashboard"}
+              href={registering ? "/login" + shopQuery : "/clientes/dashboard"}
             >
               {registering ? "Ir para o login" : "Ir para o dashboard"}
             </Link>
@@ -323,7 +347,7 @@ export function AuthPage({ mode }: AuthPageProps) {
             </h1>
             <p className="mb-4 mt-1.5 text-[13px] text-[#667085]">
               {registering
-                ? "Cadastre sua barbearia e sua conta de administrador."
+                ? clientRegistration ? "Crie sua conta para escolher uma barbearia e agendar." : "Cadastre sua barbearia e sua conta de administrador."
                 : "Digite seu e-mail e senha para entrar."}
             </p>
 
@@ -347,7 +371,7 @@ export function AuthPage({ mode }: AuthPageProps) {
                 />
               )}
 
-              {registering && <>
+              {registering && !clientRegistration && <>
                 <AuthField id="register-trade-name" name="tradeName" label="Nome da barbearia" placeholder="Nome da barbearia" autoComplete="organization" type="text" icon={<Store size={16} />} value={values.tradeName} error={errors.tradeName} onChange={e => updateValue("tradeName", e.target.value)} />
                 <AuthField id="register-unit-name" name="unitName" label="Unidade inicial" placeholder="Unidade inicial" autoComplete="off" type="text" icon={<Store size={16} />} value={values.unitName} error={errors.unitName} onChange={e => updateValue("unitName", e.target.value)} />
                 <label className="text-xs text-secondary" htmlFor="register-time-zone">Fuso horário</label>
@@ -514,11 +538,12 @@ export function AuthPage({ mode }: AuthPageProps) {
                   : "Ainda não tem uma conta? "}
                 <Link
                   className="font-semibold text-accent-strong hover:underline"
-                  href={registering ? "/login" : "/cadastro"}
+                  href={registering ? "/login" + shopQuery : "/cadastro/cliente" + shopQuery}
                 >
                   {registering ? "Login" : "Registre-se"}
                 </Link>
               </p>
+              {!registering && <p className="text-[11px] text-[#9da3b8]">Tem uma barbearia? <Link href="/cadastro" className="font-semibold text-accent-strong hover:underline">Cadastre seu estabelecimento</Link></p>}
             </form>
           </div>
         )}

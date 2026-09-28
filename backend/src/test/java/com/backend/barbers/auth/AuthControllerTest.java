@@ -94,7 +94,7 @@ class AuthControllerTest {
     }
 
     @Test
-    void loginDeClienteVinculaAutomaticamenteAoCustomerExistente() throws Exception {
+    void loginDeClienteNaoEscolheBarbeariaNemVinculaAntesDoAgendamento() throws Exception {
         Tenant tenant = tenantRepository.save(new Tenant(
                 null, "Barbearia do Link", null, null,
                 "America/Sao_Paulo", "pt-BR", "BRL", null, null
@@ -124,17 +124,17 @@ class AuthControllerTest {
         mockMvc.perform(get("/auth/me")
                         .header("Authorization", "Bearer " + clientToken))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.tenantId").value(tenant.getId().toString()));
+                .andExpect(jsonPath("$.tenantId").isEmpty());
 
         mockMvc.perform(get("/me/customer")
+                        .header("X-Barbershop-Id", tenant.getId())
                         .header("Authorization", "Bearer " + clientToken))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.customerId").value(customer.getId().toString()))
-                .andExpect(jsonPath("$.tenantName").value("Barbearia do Link"));
+                .andExpect(status().isNotFound());
+        org.junit.jupiter.api.Assertions.assertNull(customerRepository.findById(customer.getId()).orElseThrow().getUserId());
     }
 
     @Test
-    void meCustomerSemVinculoRetorna404() throws Exception {
+    void meCustomerSemBarbeariaSelecionadaPedeEscolha() throws Exception {
         User clientSemCustomer = userRepository.save(new User(
                 null, "Cliente Sem Barbearia", "solto@auth.dev",
                 passwordEncoder.encode("senha-correta"),
@@ -145,6 +145,6 @@ class AuthControllerTest {
 
         mockMvc.perform(get("/me/customer")
                         .header("Authorization", "Bearer " + token))
-                .andExpect(status().isNotFound());
+                .andExpect(status().isBadRequest());
     }
 }

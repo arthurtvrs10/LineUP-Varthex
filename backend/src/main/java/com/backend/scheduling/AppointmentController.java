@@ -31,6 +31,10 @@ public class AppointmentController {
             @RequestBody AppointmentCreateRequest request,
             JwtAuthenticationToken authentication
     ) {
+        if ("CLIENT".equals(authentication.getToken().getClaimAsString("role"))) {
+            return appointmentService.createClientAppointment(currentTenantId(authentication),
+                    UUID.fromString(authentication.getToken().getSubject()), request);
+        }
         return appointmentService.createAppointment(
                 currentTenantId(authentication), request, restrictToOwnCustomer(authentication)
         );
@@ -140,7 +144,7 @@ public class AppointmentController {
 
         UUID userId = UUID.fromString(authentication.getToken().getSubject());
 
-        return customerRepository.findByUserId(userId)
+        return customerRepository.findByTenantIdAndUserId(currentTenantId(authentication), userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Você ainda não é cliente de nenhuma barbearia"

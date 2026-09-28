@@ -87,6 +87,8 @@ class PasswordRecoveryControllerTest {
                                 """))
                 .andExpect(status().isOk());
 
+        org.junit.jupiter.api.Assertions.assertTrue(userRepository.findByEmail("feliz@auth.dev").orElseThrow().isEmailVerified());
+
         // Token de uso único: usar de novo falha.
         mockMvc.perform(post("/auth/password-recovery/complete")
                         .contentType(MediaType.APPLICATION_JSON)

@@ -19,7 +19,7 @@ public class CommercialController {
     static UUID actor(JwtAuthenticationToken auth) {return UUID.fromString(auth.getToken().getSubject());}
     public record Reason(String reason) {}
     @GetMapping("/customers/summary") public Object customerStats(JwtAuthenticationToken a){return service.customerStats(tenant(a));}
-    @GetMapping("/me") public Object me(JwtAuthenticationToken a){return service.mySummary(actor(a));}
+    @GetMapping("/me") public Object me(JwtAuthenticationToken a){return service.mySummary(tenant(a),actor(a));}
     @GetMapping("/finance") public Object finance(JwtAuthenticationToken a){return service.finance(tenant(a));}
     @GetMapping("/receipts/{appointmentId}") public Object receipt(@PathVariable UUID appointmentId,JwtAuthenticationToken a){return service.receipt(tenant(a),appointmentId);}
     @PostMapping("/cash/open") public Object open(@RequestBody CommercialService.OpenCash b,JwtAuthenticationToken a){return service.openCash(tenant(a),actor(a),b);}
@@ -34,7 +34,7 @@ public class CommercialController {
     @GetMapping("/loyalty") public Object loyalty(JwtAuthenticationToken a){return service.loyalty(tenant(a));}
     @PostMapping("/loyalty/redeem") public Object redeem(@RequestBody CommercialService.RedeemInput b,JwtAuthenticationToken a){return service.redeem(tenant(a),actor(a),b);}
     @GetMapping("/reviews") public Object reviews(JwtAuthenticationToken a){return service.reviews(tenant(a));}
-    @PostMapping("/reviews") public Object review(@RequestBody CommercialService.ReviewInput b,JwtAuthenticationToken a){return service.review(actor(a),b);}
+    @PostMapping("/reviews") public Object review(@RequestBody CommercialService.ReviewInput b,JwtAuthenticationToken a){return service.review(tenant(a),actor(a),b);}
     @PostMapping("/reviews/{id}/reply") public Object reply(@PathVariable UUID id,@RequestBody Reason b,JwtAuthenticationToken a){return service.reply(tenant(a),actor(a),id,b.reason());}
     @GetMapping("/crm") public Object crm(JwtAuthenticationToken a){return service.crm(tenant(a));}
     @PostMapping("/campaigns") public Object campaign(@RequestBody CommercialService.CampaignInput b,JwtAuthenticationToken a){return service.campaign(tenant(a),actor(a),b);}

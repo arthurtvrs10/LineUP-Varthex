@@ -2,12 +2,23 @@
 
 import Link from "next/link";
 import { CheckCircle2, ChevronLeft, Mail } from "lucide-react";
-import { useState, type FormEvent } from "react";
+import { Suspense, useState, type FormEvent } from "react";
+import { useSearchParams } from "next/navigation";
+import { ResetPasswordForm } from "./ResetPasswordForm";
 import { Logo } from "@/components/brand/Logo";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ForgotPasswordPage() {
+  return <Suspense fallback={<p className="p-8 text-center">Carregando…</p>}><PasswordRecovery /></Suspense>;
+}
+
+function PasswordRecovery() {
+  const token = useSearchParams().get("token");
+  return token ? <ResetPasswordForm token={token} /> : <RequestPasswordRecovery />;
+}
+
+function RequestPasswordRecovery() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState<string | undefined>();
   const [status, setStatus] = useState<"idle" | "submitting" | "success">(
@@ -24,8 +35,16 @@ export function ForgotPasswordPage() {
 
     setError(undefined);
     setStatus("submitting");
-    await new Promise((resolve) => setTimeout(resolve, 900));
-    setStatus("success");
+    try {
+      const response = await fetch("/auth/password-recovery", {
+        method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email: email.trim().toLowerCase() }),
+      });
+      if (!response.ok) throw new Error("Não foi possível solicitar a recuperação. Tente novamente.");
+      setStatus("success");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Não foi possível conectar. Tente novamente.");
+      setStatus("idle");
+    }
   }
 
   return (

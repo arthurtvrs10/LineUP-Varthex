@@ -36,11 +36,11 @@ public class CustomerService {
         this.userRepository = userRepository;
     }
 
-    public MeCustomerResponse getMyCustomer(UUID userId) {
-        Customer customer = customerRepository.findByUserId(userId)
+    public MeCustomerResponse getMyCustomer(UUID tenantId, UUID userId) {
+        Customer customer = customerRepository.findByTenantIdAndUserId(tenantId, userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Você ainda não é cliente de nenhuma barbearia"
+                        "Você ainda não possui cadastro nesta barbearia"
                 ));
 
         Tenant tenant = tenantRepository.findById(customer.getTenantId())
@@ -61,17 +61,45 @@ public class CustomerService {
     }
 
     @Transactional
-    public MeCustomerResponse updateMyPhone(UUID userId, String phone) {
-        Customer customer = customerRepository.findByUserId(userId)
+    public MeCustomerResponse updateMyPhone(UUID tenantId, UUID userId, String phone) {
+        Customer customer = customerRepository.findByTenantIdAndUserId(tenantId, userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
-                        "Você ainda não é cliente de nenhuma barbearia"
+                        "Você ainda não possui cadastro nesta barbearia"
                 ));
 
         customer.setPhone(phone == null || phone.isBlank() ? null : phone);
         customerRepository.save(customer);
 
-        return getMyCustomer(userId);
+        return getMyCustomer(tenantId, userId);
+    }
+
+    @Transactional
+    public Customer ensureBookingCustomer(UUID tenantId, UUID userId) {
+        // Serializes first bookings for the same account, including different professionals.
+        User user = userRepository.findLockedById(userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Conta não encontrada"));
+        if (user.getRole() != com.backend.users.Role.CLIENT || user.getStatus() != com.backend.users.UserStatus.ACTIVE) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Conta indisponível para agendamento");
+        }
+        Customer customer = customerRepository.findByTenantIdAndUserId(tenantId, userId).orElse(null);
+        if (customer == null) {
+            List<Customer> matches = customerRepository.findAllByTenantIdAndEmailIgnoreCase(tenantId, user.getEmail());
+            if (matches.size() > 1 || (matches.size() == 1 && matches.getFirst().getUserId() != null)) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe um cadastro que precisa ser conferido pela barbearia. Nenhum cliente foi duplicado.");
+            }
+            if (!matches.isEmpty() && !user.isEmailVerified()) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "Para conectar seu cadastro existente com segurança, confirme a posse do e-mail entrando pelo Google ou usando a recuperação de senha. Depois, confirme o agendamento novamente.");
+            }
+            customer = matches.isEmpty()
+                    ? new Customer(null, tenantId, user.getName(), user.getEmail(), null, null, null)
+                    : matches.getFirst();
+        }
+        if (customer.getStatus() == CustomerStatus.ARCHIVED) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Seu cadastro nesta barbearia está arquivado. Entre em contato com ela ou escolha outra.");
+        }
+        customer.setUserId(userId);
+        return customerRepository.save(customer);
     }
 
     @Transactional

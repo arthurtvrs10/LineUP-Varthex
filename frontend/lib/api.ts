@@ -1,4 +1,5 @@
 import { getSession, signOut } from "next-auth/react";
+import { selectedShop } from "./client-barbershop";
 
 export class ApiError extends Error {
   status: number;
@@ -19,12 +20,14 @@ type ApiFetchOptions = Omit<RequestInit, "body"> & {
 export async function apiFetch<T>(path: string, options: ApiFetchOptions = {}): Promise<T> {
   const session = await getSession();
   const token = session?.user?.accessToken;
+  const shop = session?.user?.role === "CLIENT" ? selectedShop(session.user.email) : undefined;
 
   const res = await fetch(path, {
     ...options,
     headers: {
       "Content-Type": "application/json",
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(shop ? { "X-Barbershop-Id": shop.id } : {}),
       ...options.headers,
     },
     body: options.body !== undefined ? JSON.stringify(options.body) : undefined,

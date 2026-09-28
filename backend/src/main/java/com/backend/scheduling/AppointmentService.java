@@ -39,6 +39,7 @@ public class AppointmentService {
 
     private final AppointmentRepository appointmentRepository;
     private final CustomerRepository customerRepository;
+    private final com.backend.customers.CustomerService customerService;
     private final BarberRepository barberRepository;
     private final UnitRepository unitRepository;
     private final ServiceOfferingRepository serviceOfferingRepository;
@@ -50,7 +51,7 @@ public class AppointmentService {
     private static final DateTimeFormatter WHEN_FORMAT = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm");
 
     public AppointmentService(AppointmentRepository appointmentRepository,
-                               CustomerRepository customerRepository,
+                               CustomerRepository customerRepository, com.backend.customers.CustomerService customerService,
                                BarberRepository barberRepository,
                                UnitRepository unitRepository,
                                ServiceOfferingRepository serviceOfferingRepository,
@@ -58,6 +59,7 @@ public class AppointmentService {
                                NotificationService notificationService, com.backend.commercial.BusinessSettingsRepository settings, com.backend.commercial.BarberCatalogRepository catalogs) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
+        this.customerService = customerService;
         this.barberRepository = barberRepository;
         this.unitRepository = unitRepository;
         this.serviceOfferingRepository = serviceOfferingRepository;
@@ -65,6 +67,13 @@ public class AppointmentService {
         this.notificationService = notificationService;
         this.settings = settings;
         this.catalogs = catalogs;
+    }
+
+    @Transactional
+    public AppointmentResponse createClientAppointment(UUID tenantId, UUID userId, AppointmentCreateRequest request) {
+        // Membership and reservation commit together; a rejected slot leaves no new membership.
+        Customer customer = customerService.ensureBookingCustomer(tenantId, userId);
+        return createAppointment(tenantId, request, customer.getId());
     }
 
     @Transactional

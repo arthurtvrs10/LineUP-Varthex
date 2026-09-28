@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useEffect, Suspense } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSession } from "next-auth/react";
+
+import { clientDestination } from "@/lib/client-barbershop";
 
 const roleRedirect: Record<string, string> = {
   SUPER_ADMIN: "/superadmin/dashboard",
@@ -16,6 +18,11 @@ const roleRedirect: Record<string, string> = {
 // usuário — essa página só existe pra esperar a sessão carregar e então
 // mandar cada um para o portal certo.
 export default function PosLoginPage() {
+  return <Suspense fallback={<p>Carregando…</p>}><PosLoginRedirect /></Suspense>;
+}
+
+function PosLoginRedirect() {
+  const linkedShop = useSearchParams().get("barbearia");
   const router = useRouter();
   const { data: session, status } = useSession();
 
@@ -23,13 +30,13 @@ export default function PosLoginPage() {
     if (status === "loading") return;
 
     if (status === "unauthenticated") {
-      router.replace("/login");
+      router.replace(linkedShop ? "/login?barbearia=" + encodeURIComponent(linkedShop) : "/login");
       return;
     }
 
-    const destination = roleRedirect[session?.user?.role ?? ""] ?? "/clientes/dashboard";
+    const destination = session?.user?.role === "CLIENT" ? clientDestination(session.user.email, linkedShop) : roleRedirect[session?.user?.role ?? ""] ?? "/login";
     router.replace(destination);
-  }, [status, session, router]);
+  }, [status, session, router, linkedShop]);
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-white">

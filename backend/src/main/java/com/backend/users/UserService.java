@@ -34,6 +34,7 @@ public class UserService {
             return userRepository.findAll();
         }
         return userRepository.findAll().stream()
+                .filter(user -> user.getRole() != Role.CLIENT)
                 .filter(user -> requester.tenantId().equals(user.getTenantId()))
                 .toList();
     }
@@ -103,6 +104,9 @@ public class UserService {
         UUID resolvedTenantId = tenantId;
 
         if (!requester.isSuperAdmin()) {
+            if (role == Role.CLIENT) {
+                throw new AccessDeniedException("Clientes criam sua própria conta; use o cadastro de clientes da barbearia para dados locais");
+            }
             if (role == Role.SUPER_ADMIN || role == Role.ADMIN) {
                 throw new AccessDeniedException("Perfil não pode criar usuários com este papel");
             }
@@ -138,7 +142,7 @@ public class UserService {
         if (requester.isSuperAdmin()) {
             return;
         }
-        if (!requester.tenantId().equals(user.getTenantId())) {
+        if (user.getRole() == Role.CLIENT || !requester.tenantId().equals(user.getTenantId())) {
             throw new AccessDeniedException("Usuário fora da barbearia do requisitante");
         }
     }

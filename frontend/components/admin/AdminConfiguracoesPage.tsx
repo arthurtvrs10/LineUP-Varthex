@@ -221,6 +221,16 @@ export function AdminConfiguracoesPage() {
       </SectionCard>
 
       <SectionCard icon={Store} title="Barbearia">
+        {tenant && <div className="mb-4 rounded-[10px] border border-[#e6e4df] bg-[#f7f6f2] p-4">
+          <p className="text-sm font-semibold text-[#0d1831]">Link para seus clientes agendarem</p>
+          <p className="mt-1 text-xs text-[#5f6f87]">A escolha desta barbearia será mantida durante o cadastro e login.</p>
+          <button type="button" className="mt-3 text-sm font-semibold text-accent-strong" onClick={async () => {
+            try {
+              await navigator.clipboard.writeText(`${window.location.origin}/agendar/${tenant.id}`);
+              toast.mostrar("Link de agendamento copiado.");
+            } catch { toast.mostrar("Não foi possível copiar o link. Verifique a permissão do navegador.", "erro"); }
+          }}>Copiar link de agendamento</button>
+        </div>}
         {error && (
           <p className="mb-4 rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">
             {error}

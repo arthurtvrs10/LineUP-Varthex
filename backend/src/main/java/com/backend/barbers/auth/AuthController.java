@@ -29,6 +29,12 @@ public class AuthController {
         this.authService = authService;
     }
 
+    @PostMapping("/register-client")
+    @ResponseStatus(HttpStatus.CREATED)
+    public void registerClient(@RequestBody AuthService.ClientRegistration request) {
+        authService.registerClient(request);
+    }
+
     @PostMapping("/login")
     public LoginResponse login(@RequestBody LoginRequest request,
                                 @RequestHeader(value = "User-Agent", required = false) String userAgent){

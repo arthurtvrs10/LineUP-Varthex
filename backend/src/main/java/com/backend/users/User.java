@@ -48,6 +48,12 @@ public class User {
     @Column(nullable = false, length = 20)
     private AuthProvider provider;
 
+    @Column(name = "email_verified", nullable = false)
+    private boolean emailVerified;
+
+    public boolean isEmailVerified() { return emailVerified; }
+    public void verifyEmail() { emailVerified = true; }
+
     // Data URL (base64) da foto de perfil — sem infra de storage de arquivo
     // ainda, então guarda direto no banco. Nula = usa as iniciais no lugar.
     @Column(name = "photo_data", columnDefinition = "TEXT")

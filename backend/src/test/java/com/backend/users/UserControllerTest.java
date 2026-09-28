@@ -77,6 +77,16 @@ class UserControllerTest {
     }
 
     @Test
+    void adminNaoControlaContaGlobalDeClienteMesmoComTenantLegado() throws Exception {
+        User legacy = userRepository.save(new User(null, "Cliente compartilhado", "legacy@isolamento.dev",
+                passwordEncoder.encode("senha-correta"), Role.CLIENT, UserStatus.ACTIVE, tenantA, null, null, null));
+        mockMvc.perform(patch("/users/{id}/block", legacy.getId()).header("Authorization", "Bearer " + tokenAdminA))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/users").header("Authorization", "Bearer " + tokenAdminA))
+                .andExpect(status().isOk()).andExpect(jsonPath("$[?(@.email == 'legacy@isolamento.dev')]").isEmpty());
+    }
+
+    @Test
     void adminNaoVeUsuarioDeOutroTenant() throws Exception {
         mockMvc.perform(get("/users/{id}", clienteB.getId())
                         .header("Authorization", "Bearer " + tokenAdminA))

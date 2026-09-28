@@ -52,6 +52,7 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
+        <Link href="/clientes/barbearias" className="rounded-lg px-2 py-2 text-xs font-semibold text-accent-strong hover:bg-[#f7f6f2]">Trocar barbearia</Link>
         <NotificacoesPopover
           notificacoes={notificacoes.map(toNotificacao)}
           onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}

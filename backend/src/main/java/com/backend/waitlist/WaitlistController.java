@@ -77,7 +77,7 @@ public class WaitlistController {
 
         UUID userId = UUID.fromString(authentication.getToken().getSubject());
 
-        return customerRepository.findByUserId(userId)
+        return customerRepository.findByTenantIdAndUserId(currentTenantId(authentication), userId)
                 .orElseThrow(() -> new ResponseStatusException(
                         HttpStatus.NOT_FOUND,
                         "Você ainda não é cliente de nenhuma barbearia"

@@ -218,8 +218,8 @@ public class CommercialService {
         }
         return result;
     }
-    public Map<String,Object> mySummary(UUID actor) {
-        var c=customers.findByUserId(actor).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Cliente não encontrado"));
+    public Map<String,Object> mySummary(UUID tenant, UUID actor) {
+        var c=customers.findByTenantIdAndUserId(tenant,actor).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Cliente não encontrado"));
         List<LoyaltyMovement> moves=loyalty.findAllByTenantId(c.getTenantId()).stream().filter(l->c.getId().equals(l.customerId)).toList();
         Map<String,Object> result=new HashMap<>(customerStats(c.getTenantId()).get(c.getId()));
         result.put("points",moves.stream().mapToLong(l->l.points).sum());result.put("loyalty",moves);
@@ -240,8 +240,8 @@ public class CommercialService {
     }
     public List<Review> reviews(UUID tenant) {return reviews.findAllByTenantId(tenant);}
     public record ReviewInput(UUID appointmentId,Integer rating,String comment) {}
-    public Review review(UUID actor,ReviewInput input) {
-        var c=customers.findByUserId(actor).orElseThrow(()->new ResponseStatusException(HttpStatus.FORBIDDEN,"Cliente não encontrado"));lock(c.getTenantId());
+    public Review review(UUID tenant,UUID actor,ReviewInput input) {
+        var c=customers.findByTenantIdAndUserId(tenant,actor).orElseThrow(()->new ResponseStatusException(HttpStatus.FORBIDDEN,"Cliente não encontrado"));lock(c.getTenantId());
         require(input.appointmentId()!=null,"Informe o atendimento");Appointment a=appointment(c.getTenantId(),input.appointmentId());
         require(a.getCustomerId().equals(c.getId())&&a.getStatus()==AppointmentStatus.COMPLETED,"Somente seus atendimentos concluídos podem ser avaliados");
         require(reviews.findAllByTenantId(c.getTenantId()).stream().noneMatch(r->input.appointmentId().equals(r.appointmentId)),"Atendimento já avaliado");

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { Toast, useToast } from "@/components/ui/Toast";
@@ -45,7 +46,7 @@ function toLocalDateTime(date: Date) {
 export function AgendamentoFlow() {
   const router = useRouter();
   const toast = useToast();
-  const { customer } = useMyCustomer();
+  const { shop } = useMyCustomer();
   const [passo, setPasso] = useState(0);
   const [selecao, setSelecao] = useState<Selecao>(selecaoVazia);
   const [confirmando, setConfirmando] = useState(false);
@@ -86,8 +87,7 @@ export function AgendamentoFlow() {
             })),
         );
       } catch {
-        // Silencioso aqui — o passo correspondente mostra a lista vazia,
-        // e o usuário pode voltar/tentar de novo.
+        setErroConfirmacao("Não foi possível carregar os serviços e profissionais. Atualize a página ou escolha outra barbearia.");
       } finally {
         setLoadingBase(false);
       }
@@ -204,6 +204,7 @@ export function AgendamentoFlow() {
         })}
       </ol>
 
+      {erroConfirmacao && passo !== 3 && <p role="alert" className="mb-4 rounded-[10px] bg-[#fdecee] p-3 text-sm text-[#e0333f]">{erroConfirmacao}</p>}
       <div>
         {passo === 0 && (
           <PassoServico
@@ -235,10 +236,11 @@ export function AgendamentoFlow() {
         )}
         {passo === 3 && (
           <>
-            <PassoConfirmacao selecao={selecao} tenantName={customer?.tenantName ?? ""} />
+            <PassoConfirmacao selecao={selecao} tenantName={shop?.name ?? ""} />
             {erroConfirmacao && (
               <p className="mt-4 rounded-[10px] bg-[#fdecee] px-3 py-2 text-sm text-[#e0333f]">{erroConfirmacao}</p>
             )}
+            {erroConfirmacao?.includes("posse do e-mail") && <Link href="/esqueceu-senha" className="mt-3 inline-block text-sm font-semibold text-accent-strong">Confirmar acesso pelo e-mail e redefinir senha</Link>}
           </>
         )}
       </div>

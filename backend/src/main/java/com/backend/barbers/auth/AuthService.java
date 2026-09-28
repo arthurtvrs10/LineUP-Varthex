@@ -4,8 +4,6 @@ import com.backend.auth.jwt.JwtService;
 import com.backend.barbers.auth.dto.LoginRequest;
 import com.backend.barbers.auth.dto.LoginResponse;
 import com.backend.barbers.auth.dto.SessionResponse;
-import com.backend.customers.Customer;
-import com.backend.customers.CustomerRepository;
 import com.backend.email.EmailService;
 import com.backend.users.AuthProvider;
 import com.backend.users.Role;
@@ -50,7 +48,6 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final UserRepository userRepository;
-    private final CustomerRepository customerRepository;
     private final PasswordEncoder passwordEncoder;
     private final GoogleIdTokenDecoder googleIdTokenDecoder;
     private final PasswordResetTokenRepository passwordResetTokenRepository;
@@ -62,7 +59,6 @@ public class AuthService {
     public AuthService(AuthenticationManager authenticationManager,
                        JwtService jwtService,
                        UserRepository userRepository,
-                       CustomerRepository customerRepository,
                        PasswordEncoder passwordEncoder,
                        GoogleIdTokenDecoder googleIdTokenDecoder,
                        PasswordResetTokenRepository passwordResetTokenRepository,
@@ -72,7 +68,6 @@ public class AuthService {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.userRepository = userRepository;
-        this.customerRepository = customerRepository;
         this.passwordEncoder = passwordEncoder;
         this.googleIdTokenDecoder = googleIdTokenDecoder;
         this.passwordResetTokenRepository = passwordResetTokenRepository;
@@ -107,7 +102,7 @@ public class AuthService {
 
         AuthUserDetails authUserDetails = (AuthUserDetails) authentication.getPrincipal();
 
-        User user = linkCustomerIfNeeded(authUserDetails.getUser());
+        User user = authUserDetails.getUser();
         user.setFailedLoginAttempts(0);
         user.setLockedUntil(null);
         userRepository.save(user);
@@ -137,7 +132,7 @@ public class AuthService {
             throw new BadCredentialsException("Token do Google inválido");
         }
 
-        String email = googleToken.getClaimAsString("email");
+        String email = googleToken.getClaimAsString("email").strip().toLowerCase(java.util.Locale.ROOT);
         String name = googleToken.getClaimAsString("name");
 
         User user = userRepository.findByEmail(email).orElseGet(() -> {
@@ -154,10 +149,11 @@ public class AuthService {
                     null
             );
             newUser.setProvider(AuthProvider.GOOGLE);
+            newUser.verifyEmail();
             return userRepository.save(newUser);
         });
-
-        user = linkCustomerIfNeeded(user);
+        user.verifyEmail();
+        userRepository.save(user);
         String accessToken = jwtService.generateTokemn(user);
         String refreshToken = issueRefreshToken(user.getId(), userAgent);
 
@@ -310,6 +306,7 @@ public class AuthService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Token inválido ou expirado"));
 
         user.setPasswordHash(passwordEncoder.encode(newPassword));
+        user.verifyEmail();
         userRepository.save(user);
 
         resetToken.setUsedAt(LocalDateTime.now());
@@ -354,23 +351,22 @@ public class AuthService {
         }
     }
 
-    // Conecta a conta de login de um CLIENT ao registro de Customer que o
-    // staff já cadastrou com o mesmo e-mail (ex.: Admin > Clientes) — sem
-    // isso, User (login) e Customer (CRM) nunca se encontram e o cliente
-    // fica sem tenant, incapaz de ver ou reservar qualquer coisa própria.
-    private User linkCustomerIfNeeded(User user) {
-        if (user.getRole() != Role.CLIENT || user.getTenantId() != null) {
-            return user;
+    public record ClientRegistration(String fullName, String email, String password) {}
+
+    @Transactional
+    public void registerClient(ClientRegistration request) {
+        String name = request.fullName() == null ? "" : request.fullName().strip();
+        String email = request.email() == null ? "" : request.email().strip().toLowerCase(java.util.Locale.ROOT);
+        String password = request.password();
+        if (name.length() < 2 || name.length() > 120 || email.length() > 180
+                || !email.matches("[^\\s@]+@[^\\s@]+\\.[^\\s@]+")
+                || password == null || password.length() < 8 || password.getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe nome, e-mail válido e senha de 8 caracteres ou mais (até 72 bytes)");
         }
-
-        return customerRepository.findFirstByEmailIgnoreCaseAndUserIdIsNull(user.getEmail())
-                .map(customer -> {
-                    customer.setUserId(user.getId());
-                    customerRepository.save(customer);
-
-                    user.assignTenantId(customer.getTenantId());
-                    return userRepository.save(user);
-                })
-                .orElse(user);
+        if (userRepository.existsByEmailIgnoreCase(email)) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado. Entre na sua conta ou recupere sua senha.");
+        }
+        userRepository.save(new User(null, name, email, passwordEncoder.encode(password),
+                Role.CLIENT, UserStatus.ACTIVE, null, null, null, null));
     }
 }

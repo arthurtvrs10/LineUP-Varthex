@@ -24,7 +24,7 @@ public class MeCustomerController {
     @GetMapping("/customer")
     public MeCustomerResponse getMyCustomer(JwtAuthenticationToken authentication) {
         UUID userId = UUID.fromString(authentication.getToken().getSubject());
-        return customerService.getMyCustomer(userId);
+        return customerService.getMyCustomer(ClientTenant.id(authentication), userId);
     }
 
     // Só o telefone: nome vem de /users/me (é o dado de login), e-mail não é
@@ -33,6 +33,6 @@ public class MeCustomerController {
     @PatchMapping("/customer")
     public MeCustomerResponse updateMyPhone(@RequestBody UpdateMyPhoneRequest request, JwtAuthenticationToken authentication) {
         UUID userId = UUID.fromString(authentication.getToken().getSubject());
-        return customerService.updateMyPhone(userId, request.phone());
+        return customerService.updateMyPhone(ClientTenant.id(authentication), userId, request.phone());
     }
 }

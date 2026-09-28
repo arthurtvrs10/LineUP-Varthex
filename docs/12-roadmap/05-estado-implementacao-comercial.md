@@ -1,12 +1,12 @@
 # Estado da implementação comercial
 
-Atualizado em 22/09/2026. Este documento descreve o código implementado; não substitui os gates de homologação e operação do [plano de releases](01-plano-tres-niveis.md).
+Atualizado em 28/09/2026. Este documento descreve o código implementado; não substitui os gates de homologação e operação do [plano de releases](01-plano-tres-niveis.md).
 
 ## Funcionalidades disponíveis
 
 | Área | Implementação |
 | --- | --- |
-| Cadastro | Criação real de barbearia, unidade e administrador com senha utilizável no login. |
+| Cadastro | Criação de barbearia, unidade e administrador; cadastro independente de cliente, escolha/troca de barbearia e vínculo automático no primeiro agendamento. Ver [fluxo de cliente](../06-frontend-ux/fluxo-cliente-barbearia.md). |
 | Acesso | Portais separados por perfil; operações comerciais restritas ao administrador da própria barbearia; administração SaaS exclusiva do Super Admin. |
 | Clientes | Edição, arquivamento, visitas, último/próximo atendimento e pagamentos efetivamente registrados. Listagem consulta todas as páginas. |
 | Equipe | Indicadores de serviços concluídos no mês, avaliações, edição de perfil/comissão/status e seleção dos serviços atendidos. |

@@ -14,7 +14,10 @@ public interface CustomerRepository extends JpaRepository<Customer, UUID> {
             UUID tenantId, String query, Pageable pageable
     );
 
-    Optional<Customer> findByUserId(UUID userId);
+    Optional<Customer> findByTenantIdAndUserId(UUID tenantId, UUID userId);
 
-    Optional<Customer> findFirstByEmailIgnoreCaseAndUserIdIsNull(String email);
+    @org.springframework.data.jpa.repository.Query("select c from Customer c where c.tenantId = :tenantId and lower(trim(c.email)) = lower(:email)")
+    java.util.List<Customer> findAllByTenantIdAndEmailIgnoreCase(
+            @org.springframework.data.repository.query.Param("tenantId") UUID tenantId,
+            @org.springframework.data.repository.query.Param("email") String email);
 }
