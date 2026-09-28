@@ -5,6 +5,7 @@ import { Toast, useToast } from "@/components/ui/Toast";
 import { NovoServicoModal, type NovoServicoPayload } from "./modals/CadastroModals";
 import { Plus, Clock } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
+import { NovaCategoriaModal } from "./modals/NovaCategoriaModal";
 
 type ServiceCategoryResponse = {
   id: string;
@@ -43,7 +44,16 @@ export function AdminServicosPage() {
   const [error, setError] = useState<string>();
   const [filter, setFilter] = useState<string>("Todos");
   const [novoAberto, setNovoAberto] = useState(false);
+  const [novaCategoria, setNovaCategoria] = useState(false);
   const toast = useToast();
+
+  async function criarCategoria(name: string) {
+    const category = await apiFetch<ServiceCategoryResponse>("/service-categories", {
+      method: "POST", body: { name, active: true, sortOrder: 0 },
+    });
+    setCategorias(previous => [...previous, category]);
+    return category;
+  }
 
   async function carregar() {
     try {
@@ -128,7 +138,7 @@ export function AdminServicosPage() {
               category === "Todos"
                 ? services.length
                 : services.filter((s) => categoryName(s.categoryId) === category).length;
-            if (category !== "Todos" && count === 0) return null;
+            if (category === SEM_CATEGORIA && count === 0) return null;
             const isActive = filter === category;
             return (
               <button
@@ -146,6 +156,10 @@ export function AdminServicosPage() {
             );
           })}
         </div>
+        <div className="flex shrink-0 gap-2">
+        <button type="button" onClick={() => setNovaCategoria(true)} className="flex h-10 items-center justify-center gap-2 rounded-[10px] border border-fog bg-white px-4 text-sm font-medium text-ink transition hover:bg-surface-sunken">
+          <Plus size={16} /> Nova categoria
+        </button>
         <button
           type="button"
           onClick={() => setNovoAberto(true)}
@@ -154,6 +168,7 @@ export function AdminServicosPage() {
           <Plus size={16} strokeWidth={2} />
           Novo serviço
         </button>
+        </div>
       </div>
 
       {error && (
@@ -218,7 +233,9 @@ export function AdminServicosPage() {
         onConcluir={toast.mostrar}
         categorias={categorias}
         onCriar={criarServico}
+        onCriarCategoria={criarCategoria}
       />
+      {novaCategoria && <NovaCategoriaModal onClose={() => setNovaCategoria(false)} onCriar={criarCategoria} onCreated={category => { setFilter(category.name); toast.mostrar("Categoria criada."); }} />}
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
   );

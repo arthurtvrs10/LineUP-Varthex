@@ -74,6 +74,8 @@ export function SelectField({
   required,
   defaultValue,
   name,
+  value,
+  onChange,
 }: {
   label: string;
   options: SelectOption[];
@@ -81,11 +83,13 @@ export function SelectField({
   required?: boolean;
   defaultValue?: string;
   name?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLSelectElement>) => void;
 }) {
   const id = useId();
   return (
     <Wrapper id={id} label={label} hint={hint} required={required}>
-      <select id={id} name={name} required={required} defaultValue={defaultValue} className={baseInput}>
+      <select id={id} name={name} required={required} defaultValue={defaultValue} value={value} onChange={onChange} className={baseInput}>
         {options.map((o) => {
           const value = typeof o === "string" ? o : o.value;
           const label = typeof o === "string" ? o : o.label;

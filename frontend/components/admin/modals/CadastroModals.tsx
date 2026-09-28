@@ -6,6 +6,7 @@ import { Modal, ModalCancelButton, ModalSubmitButton } from "@/components/ui/Mod
 import { FieldGrid, SelectField, TextAreaField, TextField } from "@/components/ui/FormFields";
 import { ApiError } from "@/lib/api";
 import type { ModalBaseProps } from "./AgendaModals";
+import { NovaCategoriaModal, type CategoryOption } from "./NovaCategoriaModal";
 
 /** Modais de cadastro do admin: cliente, barbeiro, serviço, produto e despesa. */
 
@@ -188,6 +189,7 @@ export type NovoServicoPayload = {
 type NovoServicoModalProps = ModalBaseProps & {
   categorias: { id: string; name: string }[];
   onCriar: (payload: NovoServicoPayload) => Promise<void>;
+  onCriarCategoria: (name: string) => Promise<CategoryOption>;
 };
 
 export function NovoServicoModal({
@@ -196,8 +198,12 @@ export function NovoServicoModal({
   onConcluir,
   categorias,
   onCriar,
+  onCriarCategoria,
 }: NovoServicoModalProps) {
   const [enviando, setEnviando] = useState(false);
+  const [categoryId, setCategoryId] = useState("");
+  const [novaCategoria, setNovaCategoria] = useState(false);
+  const [categoryFeedback, setCategoryFeedback] = useState("");
 
   async function submeter(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -225,9 +231,9 @@ export function NovoServicoModal({
     }
   }
 
-  return (
+  return (<>
     <Modal
-      open={open}
+      open={open && !novaCategoria}
       onClose={onClose}
       title="Novo serviço"
       description="Fica disponível na agenda online assim que criado."
@@ -259,10 +265,13 @@ export function NovoServicoModal({
           <SelectField
             name="categoryId"
             label="Categoria"
+            value={categoryId}
+            onChange={event => { if (event.target.value === "__new__") setNovaCategoria(true); else setCategoryId(event.target.value); }}
             hint={categorias.length === 0 ? "Nenhuma categoria cadastrada ainda." : undefined}
             options={[
               { value: "", label: "Sem categoria" },
               ...categorias.map((c) => ({ value: c.id, label: c.name })),
+              { value: "__new__", label: "+ Nova categoria" },
             ]}
           />
           <TextField
@@ -273,6 +282,7 @@ export function NovoServicoModal({
             defaultValue="45"
           />
         </FieldGrid>
+        {categoryFeedback && <p role="status" className="text-sm text-success">{categoryFeedback}</p>}
         <TextField name="price" label="Preço (R$)" type="number" required placeholder="45.00" />
         <TextAreaField
           name="description"
@@ -282,6 +292,8 @@ export function NovoServicoModal({
         />
       </form>
     </Modal>
+    {novaCategoria && <NovaCategoriaModal onClose={() => setNovaCategoria(false)} onCriar={onCriarCategoria} onCreated={category => { setCategoryId(category.id); setCategoryFeedback(`Categoria “${category.name}” criada e selecionada.`); }} />}
+    </>
   );
 }
 

@@ -48,6 +48,42 @@ class ServiceOfferingControllerTest {
 
     private String token;
 
+    @Test
+    void categoriasValidamNomeEDuplicidade() throws Exception {
+        for (String name : new String[]{"", "   ", "a".repeat(121)}) {
+            mockMvc.perform(post("/service-categories").header("Authorization", "Bearer " + token)
+                    .contentType(MediaType.APPLICATION_JSON).content(objectMapper.writeValueAsString(java.util.Map.of("name", name))))
+                    .andExpect(status().isBadRequest());
+        }
+        mockMvc.perform(post("/service-categories").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"  Cortes  \"}"))
+                .andExpect(status().isCreated()).andExpect(jsonPath("$.name").value("Cortes"));
+        mockMvc.perform(post("/service-categories").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"cORTES\"}"))
+                .andExpect(status().isConflict());
+        mockMvc.perform(get("/service-categories").header("Authorization", "Bearer " + token))
+                .andExpect(jsonPath("$.length()").value(1));
+    }
+
+    @Test
+    void categoriasSaoIsoladasPorBarbearia() throws Exception {
+        UUID otherTenant = tenantRepository.save(new com.backend.tenants.Tenant(null, "Outra", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId();
+        User other = userRepository.save(new User(null, "Outro Admin", "other@services.dev", passwordEncoder.encode("senha-correta"), Role.ADMIN, UserStatus.ACTIVE, otherTenant, null, null, null));
+        String otherToken = jwtService.generateTokemn(other);
+        String response = mockMvc.perform(post("/service-categories").header("Authorization", "Bearer " + token)
+                .header("X-Barbershop-Id", otherTenant).contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Cortes\"}"))
+                .andExpect(status().isCreated()).andReturn().getResponse().getContentAsString();
+        mockMvc.perform(get("/service-categories").header("Authorization", "Bearer " + otherToken))
+                .andExpect(jsonPath("$.length()").value(0));
+        mockMvc.perform(post("/service-categories").header("Authorization", "Bearer " + otherToken)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"name\":\"Cortes\"}"))
+                .andExpect(status().isCreated());
+        String foreignId = objectMapper.readTree(response).get("id").asText();
+        mockMvc.perform(post("/services").header("Authorization", "Bearer " + otherToken)
+                .contentType(MediaType.APPLICATION_JSON).content(CREATE_SERVICE_BODY.replace("\"serviceType\"", "\"categoryId\":\"" + foreignId + "\",\"serviceType\"")))
+                .andExpect(status().isBadRequest());
+    }
+
     @BeforeEach
     void seedAdmin() {
         UUID tenantId = tenantRepository.save(new com.backend.tenants.Tenant(null, "Empresa Teste", null, null, "America/Sao_Paulo", "pt-BR", "BRL", null, null)).getId();

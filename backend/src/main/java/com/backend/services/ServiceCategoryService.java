@@ -14,15 +14,26 @@ import java.util.UUID;
 public class ServiceCategoryService {
 
     private final ServiceCategoryRepository categoryRepository;
+    private final com.backend.tenants.TenantRepository tenants;
 
-    public ServiceCategoryService(ServiceCategoryRepository categoryRepository) {
+    public ServiceCategoryService(ServiceCategoryRepository categoryRepository, com.backend.tenants.TenantRepository tenants) {
         this.categoryRepository = categoryRepository;
+        this.tenants = tenants;
     }
 
     @Transactional
     public ServiceCategoryResponse createCategory(UUID tenantId, ServiceCategoryRequest request) {
         if (request.name() == null || request.name().isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome é obrigatório");
+        }
+        String name = request.name().strip();
+        if (name.length() > 120) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome deve ter no máximo 120 caracteres");
+        }
+        // Serialize creation per shop so concurrent requests cannot pass the duplicate check together.
+        tenants.findLockedById(tenantId).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Barbearia não encontrada"));
+        if (categoryRepository.countMatchingName(tenantId, name) > 0) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Já existe uma categoria com esse nome nesta barbearia");
         }
 
         int sortOrder = request.sortOrder() != null ? request.sortOrder() : 0;
@@ -32,7 +43,7 @@ public class ServiceCategoryService {
 
         boolean active = request.active() == null || request.active();
 
-        ServiceCategory category = new ServiceCategory(null, tenantId, request.name(), sortOrder, active);
+        ServiceCategory category = new ServiceCategory(null, tenantId, name, sortOrder, active);
 
         return toResponse(categoryRepository.save(category));
     }

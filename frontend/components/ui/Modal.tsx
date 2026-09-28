@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useRef, useId, type ReactNode } from "react";
 import { X } from "lucide-react";
 
 /**
@@ -43,6 +43,7 @@ export function Modal({
   size = "md",
 }: ModalProps) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
 
   // Abre/fecha o dialog nativo conforme a prop.
   useEffect(() => {
@@ -79,7 +80,7 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      aria-labelledby="modal-titulo"
+      aria-labelledby={titleId}
       /* Clique no ::backdrop tem o próprio <dialog> como target. */
       onClick={(event) => {
         if (event.target === ref.current) onClose();
@@ -91,7 +92,7 @@ export function Modal({
       <div className="flex max-h-[90dvh] flex-col overflow-hidden rounded-t-[16px] bg-white shadow-modal sm:rounded-[14px]">
         <div className="flex items-start justify-between gap-4 border-b border-fog px-5 py-4">
           <div className="min-w-0">
-            <h2 id="modal-titulo" className="text-h3 text-ink">
+            <h2 id={titleId} className="text-h3 text-ink">
               {title}
             </h2>
             {description && <p className="mt-0.5 text-xs text-secondary">{description}</p>}
