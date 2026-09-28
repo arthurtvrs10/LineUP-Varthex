@@ -66,9 +66,9 @@ jobs:
           distribution: temurin
           java-version: 21
           cache: maven
-      - name: Apply migrations and validate Hibernate schema on disposable PostgreSQL
+      - name: Apply migrations and test client onboarding on disposable PostgreSQL
         run: >-
-          bash mvnw --batch-mode test -Dtest=backendTests
+          bash mvnw --batch-mode test -Dtest=backendTests,ClientOnboardingTest,AuthControllerTest,PasswordRecoveryControllerTest,UserControllerTest
           -Dspring.datasource.url=jdbc:postgresql://localhost:5432/lineup_ci
           -Dspring.datasource.username=lineup_ci
           -Dspring.datasource.password=isolated_ci_password

@@ -37,4 +37,21 @@ Perfil local do cliente, reservas, fila, ofertas, resumo comercial, avaliações
 
 `ClientOnboardingTest` cobre cadastro, duplicidade de e-mail, dois estabelecimentos por conta, reaproveitamento de cadastro, comprovação de e-mail, isolamento, seleção inválida, indisponibilidade, rollback e concorrência. Os testes de autenticação refletem que o login não cria vínculos. O frontend testa o destino após login e a separação da escolha por conta.
 
-Os testes de integração usam H2 em modo PostgreSQL. Aplicar e homologar V26/V27 no PostgreSQL de homologação antes de produção. O fluxo OAuth preserva o parâmetro no callback, mas a autorização real no Google depende das credenciais e URLs de callback do ambiente.
+Em 28/09/2026, V26/V27 foram homologadas no PostgreSQL 16.14 em container isolado: atualização de V25 com cadastro legado fictício preservado, 28 testes de cadastro/autenticação/isolamento aprovados e instalação completa de V1 a V27 em banco vazio com validação Hibernate aprovada. O CI também executa esses 28 testes no PostgreSQL descartável.
+
+O fluxo OAuth preserva o parâmetro no callback, mas a autorização real no Google depende das credenciais e URLs de callback do ambiente.
+
+### Ambiente Docker local
+
+A mensagem antiga “Você ainda não é cliente de nenhuma barbearia” persistia porque os containers tinham sido construídos em 22/09, antes do commit `9012730`. Atualizar o código no Git não atualiza uma imagem Docker já em execução.
+
+Após a homologação e backup do banco local, frontend/backend foram reconstruídos e recriados em 28/09/2026. Flyway aplicou V26/V27 com sucesso no banco local e o backend iniciou com validação de esquema. Os volumes do PostgreSQL e Redis foram preservados.
+
+Para próximas alterações locais, após os testes:
+
+```sh
+docker compose build backend frontend
+docker compose up -d --no-deps backend frontend
+```
+
+Atualize a aba do navegador para carregar os novos arquivos. Contas CLIENT sem escolha seguem para `/clientes/barbearias`; contas ADMIN, BARBER e SUPER_ADMIN continuam em seus respectivos portais.
