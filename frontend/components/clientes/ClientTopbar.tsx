@@ -6,6 +6,7 @@ import { useSession, signOut } from "next-auth/react";
 import { ChevronDown } from "lucide-react";
 import { NotificacoesPopover } from "@/components/layout/NotificacoesPopover";
 import { toNotificacao, type NotificationResponse } from "@/lib/notifications";
+import { useMyCustomer } from "./MyCustomerContext";
 import { apiFetch } from "@/lib/api";
 
 type ClientTopbarProps = {
@@ -20,6 +21,7 @@ function initialsFor(name: string) {
 
 export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
   const { data: session } = useSession();
+  const { shop, loading } = useMyCustomer();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const nome = session?.user?.name ?? session?.user?.email ?? "";
@@ -28,9 +30,15 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
   const [photoData, setPhotoData] = useState<string | null>(null);
 
   useEffect(() => {
-    apiFetch<NotificationResponse[]>("/notifications").then(setNotificacoes).catch(() => {});
     apiFetch<{ photoData: string | null }>("/users/me").then((me) => setPhotoData(me.photoData)).catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (loading || !shop) return;
+    let active = true;
+    apiFetch<NotificationResponse[]>("/notifications").then(data => { if (active) setNotificacoes(data); }).catch(() => {});
+    return () => { active = false; };
+  }, [loading, shop]);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -52,7 +60,6 @@ export function ClientTopbar({ title, breadcrumb }: ClientTopbarProps) {
       </div>
 
       <div className="flex items-center gap-2">
-        <Link href="/clientes/barbearias" className="rounded-lg px-2 py-2 text-xs font-semibold text-accent-strong hover:bg-[#f7f6f2]">Trocar barbearia</Link>
         <NotificacoesPopover
           notificacoes={notificacoes.map(toNotificacao)}
           onMarcarTodas={() => apiFetch("/notifications/read-all", { method: "PATCH" }).catch(() => {})}

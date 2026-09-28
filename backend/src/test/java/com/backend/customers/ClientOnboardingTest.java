@@ -109,6 +109,47 @@ class ClientOnboardingTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test void initialChoiceIsRequiredOnlyWithoutSavedShopOrStaffRecord() throws Exception {
+        mvc.perform(get("/me/barbershop-selection").header("Authorization", "Bearer " + token))
+                .andExpect(status().isNoContent());
+        Shop a = shops.getFirst();
+        customers.save(new Customer(null, a.tenant.getId(), "Cadastro pela equipe", client.getEmail(), null, null, null));
+        mvc.perform(get("/me/barbershop-selection").header("Authorization", "Bearer " + token))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(a.tenant.getId().toString()));
+        // Recognizing the shop must not expose CRM history to an unverified account.
+        mvc.perform(get("/me/customer").header("Authorization", "Bearer " + token).header("X-Barbershop-Id", a.tenant.getId()))
+                .andExpect(status().isNotFound());
+    }
+
+    @Test void settingsChoicePersistsAcrossSessionsAndOverridesInitialStaffRecord() throws Exception {
+        Shop a = shops.getFirst(), b = shops.getLast();
+        customers.save(new Customer(null, a.tenant.getId(), "Cadastro pela equipe", client.getEmail(), null, null, null));
+        mvc.perform(post("/me/barbershop-selection").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tenantId\":\"" + b.tenant.getId() + "\"}"))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(b.tenant.getId().toString()));
+        String nextSession = jwt.generateTokemn(users.findById(client.getId()).orElseThrow());
+        mvc.perform(get("/me/barbershop-selection").header("Authorization", "Bearer " + nextSession))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(b.tenant.getId().toString()));
+        assertTrue(customers.findByTenantIdAndUserId(b.tenant.getId(), client.getId()).isEmpty());
+        User another = user(Role.CLIENT, null);
+        mvc.perform(get("/me/barbershop-selection").header("Authorization", "Bearer " + jwt.generateTokemn(another)))
+                .andExpect(status().isNoContent());
+    }
+
+    @Test void savedUnavailableShopCanBeChangedFromSettingsWithoutRestartingOnboarding() throws Exception {
+        Shop a = shops.getFirst(), b = shops.getLast();
+        client.setPreferredTenantId(a.tenant.getId()); users.save(client);
+        a.tenant.setStatus(TenantStatus.SUSPENDED); tenants.save(a.tenant);
+        mvc.perform(get("/me/barbershop-selection").header("Authorization", "Bearer " + token).header("X-Barbershop-Id", a.tenant.getId()))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.id").value(a.tenant.getId().toString()));
+        mvc.perform(post("/me/barbershop-selection").header("Authorization", "Bearer " + token)
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tenantId\":\"" + a.tenant.getId() + "\"}"))
+                .andExpect(status().isBadRequest());
+        mvc.perform(post("/me/barbershop-selection").header("Authorization", "Bearer " + token).header("X-Barbershop-Id", a.tenant.getId())
+                .contentType(MediaType.APPLICATION_JSON).content("{\"tenantId\":\"" + b.tenant.getId() + "\"}"))
+                .andExpect(status().isOk());
+    }
+
     @Test void firstBookingsCreateOneMembershipPerShopWithoutTrustingCustomerId() throws Exception {
         Shop a = shops.getFirst(), b = shops.getLast();
         book(a, token, 10); book(a, token, 11); book(b, token, 10);

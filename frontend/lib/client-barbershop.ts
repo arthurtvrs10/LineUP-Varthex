@@ -12,7 +12,10 @@ export function selectedShop(email?: string | null): BookingShop | undefined {
 export function selectShop(email: string, shop: BookingShop) {
   sessionStorage.setItem(key(email), JSON.stringify(shop));
 }
+export function clearSelectedShop(email?: string | null) {
+  if (email) sessionStorage.removeItem(key(email));
+}
 export function clientDestination(email?: string | null, linkedShop?: string | null) {
   if (linkedShop) return `/clientes/barbearias?barbearia=${encodeURIComponent(linkedShop)}`;
-  return selectedShop(email) ? "/clientes/agendamento" : "/clientes/barbearias";
+  return selectedShop(email) ? "/clientes/dashboard" : "/clientes/barbearias";
 }

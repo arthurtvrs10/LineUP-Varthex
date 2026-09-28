@@ -1,17 +1,23 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { Bell, KeyRound, UserRound } from "lucide-react";
+import { Bell, KeyRound, UserRound, Store } from "lucide-react";
 import { FieldInput, SectionCard } from "@/components/ui/SettingsPrimitives";
 import { PrivacyPanel } from "@/components/commercial/Settings";
 import { useMyCustomer } from "./MyCustomerContext";
 
 export function ClientConfiguracoesPage() {
   const { data: session } = useSession();
-  const { customer } = useMyCustomer();
+  const { customer, shop, loading } = useMyCustomer();
 
   return (
     <div className="flex w-full flex-col gap-4">
+      <SectionCard icon={Store} title="Minha barbearia">
+        <p className="text-sm font-semibold text-[#0d1831]">{loading ? "Carregando…" : shop?.name ?? "Nenhuma barbearia selecionada"}</p>
+        <p className="text-sm text-secondary">Sua escolha fica salva na conta. Para agendar em outro estabelecimento, altere sua barbearia aqui. Seus agendamentos e históricos anteriores são preservados.</p>
+        <a href="/clientes/configuracoes/barbearia" className="inline-flex w-fit rounded-[10px] bg-accent px-4 py-3 text-sm font-semibold text-on-accent">{shop ? "Alterar barbearia" : "Escolher barbearia"}</a>
+        <a href="/clientes/ajuda" className="text-sm font-semibold text-accent-strong hover:underline">Entenda como funciona</a>
+      </SectionCard>
       <SectionCard icon={UserRound} title="Conta">
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <FieldInput label="Nome" value={session?.user?.name ?? ""} onChange={() => {}} disabled />
@@ -47,7 +53,7 @@ export function ClientConfiguracoesPage() {
         </p>
       </SectionCard>
 
-      <PrivacyPanel />
+      {shop && <PrivacyPanel />}
     </div>
   );
 }

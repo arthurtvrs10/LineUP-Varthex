@@ -15,7 +15,7 @@ test('onboarding preserves linked shop, isolates accounts and falls back on inva
     selectShop('A@example.test', shop);
     assert.deepEqual(selectedShop('a@example.test'), shop);
     assert.equal(selectedShop('b@example.test'), undefined);
-    assert.equal(clientDestination('a@example.test'), '/clientes/agendamento');
+    assert.equal(clientDestination('a@example.test'), '/clientes/dashboard');
     assert.equal(clientDestination('a@example.test', 'barbearia-b'), '/clientes/barbearias?barbearia=barbearia-b');
     assert.equal(clientDestination('a@example.test', 'x&next=https://evil.test'), '/clientes/barbearias?barbearia=x%26next%3Dhttps%3A%2F%2Fevil.test');
     values.set('lineup:barbershop:a@example.test', '{broken');

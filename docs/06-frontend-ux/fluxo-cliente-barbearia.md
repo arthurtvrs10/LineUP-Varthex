@@ -5,11 +5,13 @@ Implementado em 28/09/2026. Documento interno versionado; não cria página púb
 ## Jornada
 
 - `/cadastro/cliente` cria uma conta CLIENT sem estabelecimento. `/cadastro` continua sendo o cadastro da barbearia e de seu administrador.
-- Após cadastro/login, uma conta CLIENT sem escolha nesta sessão abre `/clientes/barbearias`. A tela permite buscar pelo nome, escolher e seguir para `/clientes/agendamento`.
+- Após cadastro/login, uma conta CLIENT sem escolha salva nem cadastro prévio pela equipe abre `/clientes/barbearias`. A tela permite buscar pelo nome, escolher e seguir para `/clientes/agendamento`.
 - Sem resultados, oferece limpar a busca. Sem barbearias disponíveis, explica que a conta está pronta e orienta tentar mais tarde ou obter o link do estabelecimento. Falhas de carregamento oferecem nova tentativa.
-- O administrador pode copiar seu link nas configurações: `/agendar/{tenantId}`. Também são aceitos slugs existentes. O link passa a escolha por `?barbearia=...` durante cadastro, login por senha e callback do Google. Link indisponível abre a seleção com uma orientação.
-- “Trocar barbearia” aparece no menu e no cabeçalho do cliente. A nova escolha abre um documento novo para descartar serviços, profissionais, horários e dados anteriores. A seleção fica no `sessionStorage`, separada por conta e por aba.
+- O administrador pode copiar seu link nas configurações: `/agendar/{tenantId}`. Também são aceitos slugs existentes. O link passa a escolha por `?barbearia=...` durante cadastro, login por senha e callback do Google. No primeiro acesso, um link indisponível abre a seleção com uma orientação. Uma escolha salva ou cadastro prévio pela equipe tem prioridade sobre o link.
+- A troca fica exclusivamente em **Configurações → Minha barbearia**, em `/clientes/configuracoes/barbearia`. A escolha é salva na conta (`users.preferred_tenant_id`, migração V28) e persiste entre sessões e dispositivos. O `sessionStorage` serve apenas como contexto das chamadas do portal. Uma nova escolha recarrega o portal para descartar dados anteriores.
 - Antes da primeira reserva, o cliente já pode consultar serviços, profissionais e horários. Seu vínculo com o estabelecimento é criado somente na transação que grava o agendamento.
+
+Cadastros ativos feitos pela equipe com o mesmo e-mail identificam a barbearia inicial automaticamente, sem apresentar a seleção. Vínculos já associados à conta têm prioridade; entre múltiplos cadastros, usa-se o mais antigo. Isso não libera histórico sem comprovação do e-mail. A preferência escolhida em Configurações tem prioridade. A página `/clientes/ajuda` explica a escolha inicial, a troca, links e a confirmação de e-mail.
 
 ## Vínculo e proteção de dados
 
@@ -28,6 +30,7 @@ Para reaproveitar um histórico anterior, a posse do e-mail deve estar confirmad
 | Cadastro do cliente | `POST /auth/register-client`: `fullName`, `email`, `password`. Papel CLIENT definido no servidor; não aceita escolha de papel/tenant. |
 | Descoberta autenticada | `GET /me/barbershops?q=...`: apenas `id`, `name`, `slug`; filtra estabelecimentos disponíveis e vigência da assinatura quando existente. |
 | Contexto do cliente | `X-Barbershop-Id: UUID` nas chamadas autenticadas do portal. Só CLIENT pode selecionar um contexto; staff mantém seu tenant assinado. |
+| Preferência da conta | `GET /me/barbershop-selection`: escolha salva ou cadastro inicial; 204 quando inexistente. `POST /me/barbershop-selection` com `tenantId` salva uma barbearia disponível. |
 | Consulta do vínculo | `GET /me/customer`: 400 sem escolha, 404 sem vínculo naquele estabelecimento; isso não impede criar a primeira reserva. |
 | Reserva | `POST /appointments`: valida os recursos do tenant e cria/reutiliza o vínculo na mesma transação. |
 
@@ -55,3 +58,5 @@ docker compose up -d --no-deps backend frontend
 ```
 
 Atualize a aba do navegador para carregar os novos arquivos. Contas CLIENT sem escolha seguem para `/clientes/barbearias`; contas ADMIN, BARBER e SUPER_ADMIN continuam em seus respectivos portais.
+
+A atualização V28 foi validada com 31 testes no PostgreSQL isolado, além de 113 testes no backend e 9 no frontend. Lint e build do frontend aprovados. A migração V28 foi aplicada no Docker local após backup do banco.

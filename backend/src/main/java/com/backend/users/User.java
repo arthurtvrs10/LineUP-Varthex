@@ -37,6 +37,12 @@ public class User {
     @Column(name = "tenant_id")
     private UUID tenantId;
 
+    @Column(name = "preferred_tenant_id")
+    private UUID preferredTenantId;
+
+    public UUID getPreferredTenantId() { return preferredTenantId; }
+    public void setPreferredTenantId(UUID id) { preferredTenantId = id; }
+
     @Column(nullable = false)
     private LocalDateTime createdAt;
 

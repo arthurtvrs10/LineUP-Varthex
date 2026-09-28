@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { LayoutGrid, CalendarDays, History, ListOrdered, UserRound, Settings, HelpCircle, Store } from "lucide-react";
+import { LayoutGrid, CalendarDays, History, ListOrdered, UserRound, Settings, HelpCircle } from "lucide-react";
 import { useSession, signOut } from "next-auth/react";
 import { PortalSidebar, type PortalNavGroup } from "@/components/layout/PortalSidebar";
 import { apiFetch } from "@/lib/api";
@@ -10,7 +10,6 @@ import { useMyCustomer } from "./MyCustomerContext";
 const groups: PortalNavGroup[] = [
   {
     items: [
-      { href: "/clientes/barbearias", label: "Trocar barbearia", icon: Store },
       { href: "/clientes/dashboard", label: "Dashboard", icon: LayoutGrid },
       { href: "/clientes/agendamento", label: "Agendar", icon: CalendarDays },
       { href: "/clientes/fila-de-espera", label: "Fila de espera", icon: ListOrdered },

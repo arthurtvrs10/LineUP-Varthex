@@ -24,6 +24,7 @@ public class TenantAccessFilter extends OncePerRequestFilter {
         // Account and discovery remain usable even when the previous shop closes.
         boolean account = path.startsWith("/auth/") || path.equals("/users/me")
                 || path.equals("/me/barbershops")
+                || path.equals("/me/barbershop-selection")
                 || path.equals("/notification-preferences");
         if (authentication instanceof JwtAuthenticationToken auth
                 && !"SUPER_ADMIN".equals(auth.getToken().getClaimAsString("role")) && !account) {

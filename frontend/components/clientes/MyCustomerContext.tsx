@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
-import { selectedShop, type BookingShop } from "@/lib/client-barbershop";
+import { selectShop, clearSelectedShop, type BookingShop } from "@/lib/client-barbershop";
 import { apiFetch, ApiError } from "@/lib/api";
 
 export type MeCustomerResponse = {
@@ -29,6 +29,7 @@ const MyCustomerContext = createContext<MyCustomerState | undefined>(undefined);
 export function MyCustomerProvider({ children }: { children: ReactNode }) {
   const { data: session, status } = useSession();
   const pathname = usePathname();
+  const email = session?.user?.email;
   const [shop, setShop] = useState<BookingShop>();
   const [customer, setCustomer] = useState<MeCustomerResponse>();
   const [loading, setLoading] = useState(true);
@@ -36,16 +37,20 @@ export function MyCustomerProvider({ children }: { children: ReactNode }) {
   const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
-    if (status !== "authenticated") return;
+    if (status !== "authenticated" || !email) return;
     let active = true;
-    const selected = selectedShop(session?.user?.email);
     async function load() {
       setLoading(true);
       setCustomer(undefined);
       setError(undefined);
-      setShop(selected);
+      setShop(undefined);
       try {
-        if (!selected || pathname === "/clientes/barbearias") return;
+        const selected = await apiFetch<BookingShop | undefined>("/me/barbershop-selection");
+        if (!active) return;
+        if (!selected) { clearSelectedShop(email); return; }
+        selectShop(email!, selected);
+        setShop(selected);
+        if (pathname === "/clientes/barbearias" || pathname === "/clientes/configuracoes/barbearia" || pathname === "/clientes/ajuda") return;
         const data = await apiFetch<MeCustomerResponse>("/me/customer");
         if (active) setCustomer(data);
       } catch (err) {
@@ -56,7 +61,7 @@ export function MyCustomerProvider({ children }: { children: ReactNode }) {
     }
     void load();
     return () => { active = false; };
-  }, [reloadKey, session?.user?.email, status, pathname]);
+  }, [reloadKey, email, status, pathname]);
 
   return (
     <MyCustomerContext.Provider
