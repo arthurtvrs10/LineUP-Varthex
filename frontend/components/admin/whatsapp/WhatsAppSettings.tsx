@@ -39,7 +39,7 @@ export function WhatsAppSettings(){
   });
  }
  return <div className="w-full space-y-5">
-  <Link href="/admin/configuracoes/integracoes" className="text-sm font-semibold text-accent-strong">Voltar às integrações</Link>
+  <Link href="/admin/configuracoes" className="text-sm font-semibold text-accent-strong">Voltar às configurações</Link>
   <div><h1 className="text-2xl font-bold text-ink">Conectar WhatsApp</h1><p className="mt-1 text-sm text-secondary">Siga as etapas para enviar lembretes e conversar com seus clientes pelo LineUp.</p></div>
   <Status ready={!!c} error={resource.error}/>
   {error&&<p role="alert" className="rounded-[10px] bg-danger-subtle p-4 text-sm text-danger">{error}</p>}{feedback&&<p role="status" className="rounded-[10px] bg-success-subtle p-4 text-sm text-success">{feedback}</p>}

@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffectEvent, useEffect, useState } from "react";
 import { BusinessSettingsPanel } from "@/components/commercial/Settings";
 import { useSession } from "next-auth/react";
-import { Store, UserRound } from "lucide-react";
+import { ArrowRight, MessageCircle, Plug, Store, UserRound } from "lucide-react";
 import {
   FieldInput,
   SectionCard,
@@ -294,9 +294,16 @@ export function AdminConfiguracoesPage() {
       </SectionCard>
 
       <BusinessSettingsPanel />
-      <SectionCard title="Integrações" icon={Store}>
-        <p className="text-sm text-secondary">Conecte a conta WhatsApp Business da sua barbearia pela API oficial da Meta.</p>
-        <Link href="/admin/configuracoes/integracoes" className="mt-3 inline-block text-sm font-semibold text-accent-strong">Gerenciar integrações → WhatsApp</Link>
+      <SectionCard title="Integrações" icon={Plug}>
+        <Link href="/admin/configuracoes/integracoes/whatsapp" className="flex items-center gap-4 rounded-[12px] border border-fog bg-white p-4 transition hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-accent">
+          <MessageCircle size={24} className="shrink-0 text-accent-strong" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-ink">WhatsApp Business</h3>
+            <p className="mt-1 text-sm text-secondary">Conecte sua conta e número pela API oficial da Meta.</p>
+            <span className="mt-2 inline-block text-sm font-semibold text-accent-strong">Configurar WhatsApp</span>
+          </div>
+          <ArrowRight size={20} className="shrink-0 text-accent-strong" aria-hidden="true" />
+        </Link>
       </SectionCard>
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
