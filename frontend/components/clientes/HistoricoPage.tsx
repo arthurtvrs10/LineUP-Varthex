@@ -299,7 +299,7 @@ export function HistoricoPage() {
         </div>
       </div>
 
-      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
+      <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} duracaoMs={toast.mensagem === "Obrigado pela sua avaliação!" ? 3000 : 4000} />
     </div>
   );
 }

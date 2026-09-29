@@ -42,6 +42,11 @@ export function ReviewPrompt() {
   const token = session?.user?.accessToken;
   const [pending, setPending] = useState<PendingReview>();
   const [success, setSuccess] = useState(false);
+  useEffect(() => {
+    if (!success) return;
+    const timer = window.setTimeout(() => setSuccess(false), 3000);
+    return () => window.clearTimeout(timer);
+  }, [success]);
   const known = useRef<Set<string> | undefined>(undefined);
 
   useEffect(() => {
