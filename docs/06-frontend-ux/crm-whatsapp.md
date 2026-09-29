@@ -44,6 +44,12 @@ Desconectar remove credenciais, invalida modelos e cancela mensagens ainda na fi
 
 ## Custos e validação
 
+### Fluxo guiado de configuração
+
+A configuração apresenta quatro etapas: conectar a conta, validar o número, receber atualizações e começar a usar. A etapa inicial é escolhida conforme o estado salvo da integração. O gerente pode revisar etapas anteriores sem perder o preenchimento do formulário.
+
+A conexão manual fica recolhida e explica os identificadores solicitados. O resumo lateral mostra credenciais, número e atualizações separadamente. Quando falta a URL pública HTTPS ou a habilitação da conexão guiada, a tela identifica a pendência como responsabilidade da equipe do LineUp. As instruções de webhook ficam nos detalhes técnicos. O teste de número não envia mensagens; o envio de teste exige confirmação de autorização e dos possíveis custos.
+
 A interface informa possíveis custos por mensagem e remete à tabela vigente da Meta, sem prometer valores fixos ou gratuidade. Custos Meta são separados do plano LineUp.
 
 Testes automatizados usam respostas simuladas da Meta. Conexão, aprovação, cobrança e entrega reais precisam ser homologadas com uma conta autorizada e webhook HTTPS. Nenhuma mensagem real foi enviada durante a implementação.
