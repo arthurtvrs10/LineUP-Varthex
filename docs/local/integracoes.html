@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Integrações — LineUp Docs local</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
+<body><a class="skip" href="#conteudo">Pular para o conteúdo</a><header class="header"><a class="brand" href="#conteudo"><svg class="lineup-logo" viewBox="0 0 469.58 87.81" height="26" role="img" aria-label="LineUp" focusable="false"><g fill="currentColor"><g transform="translate(0,0.000)"><g transform="scale(0.91467)"><path fill="currentColor" d="M0 0 H36 V24 H24 V48 H36 V60 H72 V96 H0 Z"/></g></g><g transform="translate(98.784,9.604)"><g transform="translate(0,68.600)"><path d="M7.60 0.00V-68.60H22.50V-12.70H57.10V0.00Z M65.70 0.00V-68.60H80.60V0.00Z M94.80 0.00V-68.60H108.50L136.10 -31.60Q136.70 -30.90 137.60 -29.65Q138.50 -28.40 139.30 -27.20Q140.10 -26.00 140.40 -25.30H140.90V-68.60H155.00V0.00H141.30L113.10 -37.90Q112.10 -39.30 111.00 -41.00Q109.90 -42.70 109.40 -43.60H108.90V0.00Z M169.20 0.00V-68.60H224.00V-56.40H184.20V-41.10H219.40V-29.00H184.20V-12.30H224.60V0.00Z M266.20 1.20Q256.80 1.20 250.05 -1.80Q243.30 -4.80 239.70 -10.85Q236.10 -16.90 236.10 -25.90V-68.60H251.10V-26.30Q251.10 -18.90 255.00 -14.95Q258.90 -11.00 266.20 -11.00Q273.50 -11.00 277.45 -14.95Q281.40 -18.90 281.40 -26.30V-68.60H296.40V-25.90Q296.40 -16.90 292.80 -10.85Q289.20 -4.80 282.45 -1.80Q275.70 1.20 266.20 1.20Z M310.30 0.00V-68.60H346.00Q353.40 -68.60 358.35 -65.85Q363.30 -63.10 365.85 -58.15Q368.40 -53.20 368.40 -46.40Q368.40 -39.60 365.75 -34.55Q363.10 -29.50 358.00 -26.70Q352.90 -23.90 345.50 -23.90H325.20V0.00ZM325.20 -36.10H343.50Q348.20 -36.10 350.75 -38.80Q353.30 -41.50 353.30 -46.30Q353.30 -49.60 352.20 -51.80Q351.10 -54.00 348.95 -55.20Q346.80 -56.40 343.50 -56.40H325.20Z"/></g></g></g></svg> <small>Documentação</small></a><span class="pill">● SOMENTE LOCAL</span><button class="menu" aria-controls="navegacao" aria-expanded="false">Menu</button></header>
+<div class="layout"><aside class="sidebar" id="navegacao"><p><a href="index.html">← Infraestrutura</a></p><label for="search">Buscar neste guia</label><input id="search" type="search" placeholder="Resend, Google, credenciais…"><div id="search-status" class="status" aria-live="polite"></div><nav aria-label="Integrações"><a href="#guia-1">1. Responsabilidades e disponibilidade</a><a href="#guia-2">2. Onde configurar e ordem de implantação</a><a href="#guia-3">3. Inventário exato de variáveis</a><a href="#guia-4">4. Resend — e-mails da plataforma</a><a href="#guia-5">5. Login com Google — identidade do usuário</a><a href="#guia-6">6. Google Calendar — previsto, ainda não configurável</a><a href="#guia-7">7. WhatsApp Business oficial — plataforma e estabelecimento</a><a href="#guia-8">8. Banco, Redis e serviços não implementados</a><a href="#guia-9">9. Checklist de homologação e manutenção</a></nav></aside><main id="conteudo" tabindex="-1"><h1 id="integracoes-do-lineup-implantacao-e-operacao-saas">Integrações do LineUp — implantação e operação SaaS</h1>
+<p>Revisão: 28/09/2026. Inventário conferido na implementação atual. Todos os domínios, IDs e valores abaixo são fictícios. Este guia é interno, versionado no Git e destinado à consulta local; não deve ser publicado junto ao aplicativo.</p>
+<section id="guia-1" tabindex="-1"><h2 id="responsabilidades-e-disponibilidade">1. Responsabilidades e disponibilidade</h2>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Serviço</th>
+<th>Estado e necessidade</th>
+<th>Operador da plataforma</th>
+<th>Cada barbearia</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PostgreSQL</td>
+<td>Implementado; obrigatório</td>
+<td>Provisiona banco, usuário, senha, backups e rede</td>
+<td>Não recebe credenciais do banco</td>
+</tr>
+<tr>
+<td>Sessões NextAuth</td>
+<td>Implementado; obrigatório</td>
+<td>Configura segredo e URL do aplicativo</td>
+<td>Apenas faz login</td>
+</tr>
+<tr>
+<td>Resend</td>
+<td>Implementado; opcional para iniciar localmente, necessário para entregar recuperação de senha e notificações por e-mail</td>
+<td>Cria conta, verifica domínio e configura chave</td>
+<td>Não cadastra chave Resend; usa remetente da plataforma</td>
+</tr>
+<tr>
+<td>Login Google</td>
+<td>Implementado; opcional</td>
+<td>Cria projeto e cliente OAuth do LineUp</td>
+<td>Usuário autoriza seu próprio login; não cria projeto Google</td>
+</tr>
+<tr>
+<td>WhatsApp Business oficial</td>
+<td>Implementado; opcional</td>
+<td>Configura criptografia, endereço público e aplicativo Meta para conexão guiada</td>
+<td>Autoriza sua própria conta empresarial e número; conexão isolada por estabelecimento</td>
+</tr>
+<tr>
+<td>Google Calendar</td>
+<td>Previsto, sem integração executável</td>
+<td>Futuramente habilitará API e cliente OAuth</td>
+<td>Futuramente autorizará sua conta e escolherá agenda</td>
+</tr>
+<tr>
+<td>Avaliações Google</td>
+<td>Previsto na documentação de domínio</td>
+<td>Não há integração Google Business Profile implementada</td>
+<td>Não confundir com avaliações internas do LineUp</td>
+</tr>
+<tr>
+<td>Redis</td>
+<td>Provisionado no Compose, sem uso identificado no código da aplicação</td>
+<td>Mantém serviço exigido pelo Compose atual</td>
+<td>Nenhuma configuração</td>
+</tr>
+<tr>
+<td>Pagamentos externos, armazenamento S3 e Evolution API</td>
+<td>Nenhum conector ativo identificado</td>
+<td>Não há chaves a configurar</td>
+<td>Cadastros financeiros internos não representam cobrança em gateway</td>
+</tr>
+</tbody>
+</table></div>
+<p>As chaves Resend, segredo OAuth Google, segredo de sessão e chave de criptografia são da plataforma. Não devem aparecer em formulários para barbearias. No WhatsApp, a conexão manual existente é uma alternativa técnica: recebe credenciais do aplicativo Meta próprio do estabelecimento. Nunca fornecer o segredo do aplicativo Meta da plataforma para que o cliente o cole nesse formulário.</p>
+</section><section id="guia-2" tabindex="-1"><h2 id="onde-configurar-e-ordem-de-implantacao">2. Onde configurar e ordem de implantação</h2>
+<ol>
+<li>Prepare PostgreSQL e o ambiente de aplicação; valide login por senha.</li>
+<li>Configure URLs e segredo de sessão.</li>
+<li>Configure Resend e teste recuperação de senha.</li>
+<li>Se desejado, habilite login Google.</li>
+<li>Se contratado, habilite WhatsApp e conecte uma barbearia de homologação.</li>
+<li>Execute os testes da seção 9 antes de liberar o ambiente.</li>
+</ol>
+<h3 id="desenvolvimento-com-docker-compose">Desenvolvimento com Docker Compose</h3>
+<p>Na raiz do repositório, copie <code>frontend/.env.local.example</code> para <code>frontend/.env.local</code> <strong>somente se o destino ainda não existir</strong>. Edite o arquivo existente quando houver configuração. Crie <code>backend/.env.local</code> para configurações exclusivas do backend; o modelo WhatsApp está em <code>backend/whatsapp.env.example</code>.</p>
+<p>O Compose atual injeta <code>frontend/.env.local</code> nos dois serviços e depois <code>backend/.env.local</code> no backend. Assim, o segundo arquivo prevalece em valores repetidos no backend. As entradas <code>environment</code> do Compose prevalecem sobre ambos. O <code>.env</code> da raiz serve à interpolação do Compose e não injeta automaticamente todas as variáveis nos containers. <code>backend/.env</code> não está ligado ao Compose atual.</p>
+<p>Coloque Resend, <code>FRONTEND_URL</code> e WhatsApp em <code>backend/.env.local</code>; remova eventuais cópias antigas de Resend do arquivo frontend depois de migrar os valores. O backend precisa apenas do Google Client ID, embora o Compose atual também injete os demais valores do arquivo frontend. Em produção, separe explicitamente os ambientes de cada serviço.</p>
+<p>Exemplo de <code>frontend/.env.local</code> para desenvolvimento:</p>
+<pre><code class="language-dotenv">NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=SUBSTITUIR_POR_SEGREDO_ALEATORIO
+BACKEND_INTERNAL_URL=http://localhost:8080
+NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_DEMO_SWITCHER=false
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+</code></pre>
+<p>No Docker, o Compose substitui os dois endereços do backend por <code>http://backend:8080</code>. Não use esse hostname para acessar o aplicativo no navegador. Use <code>http://localhost:3000</code> de forma consistente durante login e callbacks.</p>
+<p>Exemplo de <code>backend/.env.local</code>:</p>
+<pre><code class="language-dotenv">FRONTEND_URL=http://localhost:3000
+RESEND_API_KEY=
+RESEND_FROM_EMAIL=onboarding@resend.dev
+WHATSAPP_ENCRYPTION_KEY=
+WHATSAPP_GRAPH_VERSION=v23.0
+WHATSAPP_PUBLIC_URL=
+WHATSAPP_APP_ID=
+WHATSAPP_APP_SECRET=
+WHATSAPP_CONFIG_ID=
+WHATSAPP_WEBHOOK_VERIFY_TOKEN=
+WHATSAPP_WORKER_ENABLED=false
+</code></pre>
+<p>Campos vazios deixam integrações opcionais indisponíveis; não são credenciais funcionais. Gere valores distintos para sessão, criptografia WhatsApp e verificação do webhook. Com Node instalado, <code>node -e &quot;console.log(require('node:crypto').randomBytes(32).toString('base64'))&quot;</code> gera um valor aleatório. Execute em terminal privado e armazene em gerenciador de segredos; não copie a saída para documentação ou chamados.</p>
+<p>Depois de editar variáveis de execução:</p>
+<pre><code class="language-sh">docker compose up -d --force-recreate backend frontend
+docker compose ps
+</code></pre>
+<p>Um simples <code>docker compose restart</code> não injeta valores novos do arquivo. Quando mudar o destino dos rewrites, atualize também <code>build.args.BACKEND_INTERNAL_URL</code> do frontend e reconstrua com <code>docker compose up -d --build frontend</code>. O destino do proxy é resolvido no build.</p>
+<h3 id="execucao-fora-do-docker">Execução fora do Docker</h3>
+<p>Next.js lê <code>frontend/.env.local</code> ao iniciar na pasta frontend. Spring Boot <strong>não carrega automaticamente</strong> <code>backend/.env.local</code>: configure as variáveis no ambiente do processo Java ou na configuração de execução da IDE. Use PostgreSQL em <code>localhost:5432</code>. Reinicie o processo correspondente após alterações. Não execute <code>source</code> em arquivos recebidos de terceiros.</p>
+<h3 id="producao">Produção</h3>
+<p>Use contas/projetos, banco e credenciais separados de desenvolvimento. Configure os valores no gerenciador de segredos da hospedagem, com acesso apenas pelo serviço responsável. O Compose fornecido é local: publica banco/Redis e fixa credenciais de desenvolvimento; não deve ser exposto como está.</p>
+<p>Exemplo de endereçamento: landing <code>https://example.com</code>, app <code>https://app.example.com</code>, blog <code>https://blog.example.com</code>. Configure <code>NEXTAUTH_URL</code> no frontend e <code>FRONTEND_URL</code> no backend como <code>https://app.example.com</code>, sem barra final. Domínio de envio sugerido: <code>mail.example.com</code>. <code>WHATSAPP_PUBLIC_URL=https://app.example.com</code> funciona quando o proxy desse endereço encaminha os webhooks ao backend; uma origem dedicada de API também é possível. Nunca use a landing ou o blog como callback sem implementar o encaminhamento necessário.</p>
+<p>Mantenha HTTPS, saída de rede para Resend/Google/Meta, banco e Redis em rede privada, backups e horário do servidor sincronizado. Configure as credenciais reais do banco também no serviço PostgreSQL; definir a variável apenas no backend não altera a senha do usuário existente. Em volumes já inicializados, mudar <code>POSTGRES_PASSWORD</code> também não troca a senha do banco.</p>
+<p><strong>Pendência para produção identificada:</strong> a assinatura JWT do backend ainda usa um segredo de desenvolvimento fixo em código. Não existe variável <code>JWT_SECRET</code> implementada. A equipe precisa externalizar esse segredo, definir rotação e invalidar sessões antes da publicação; <code>NEXTAUTH_SECRET</code> não substitui a chave JWT do backend. Este guia documenta a situação atual, sem afirmar que essa pendência está resolvida.</p>
+</section><section id="guia-3" tabindex="-1"><h2 id="inventario-exato-de-variaveis">3. Inventário exato de variáveis</h2>
+<p>F = processo frontend; B = processo backend; DB = container PostgreSQL. No modo local, use os arquivos descritos acima; em produção, use o ambiente do serviço indicado.</p>
+<div class="table-wrap"><table>
+<thead>
+<tr>
+<th>Variável</th>
+<th>Destino</th>
+<th>Obrigatoriedade / valor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SPRING_DATASOURCE_URL</code></td>
+<td>B</td>
+<td>Obrigatória para banco diferente do padrão; padrão <code>jdbc:postgresql://localhost:5432/varthex_barber</code>; Compose substitui por host <code>postgres</code></td>
+</tr>
+<tr>
+<td><code>SPRING_DATASOURCE_USERNAME</code></td>
+<td>B</td>
+<td>Usuário do banco; padrão local <code>postgres</code>, substituído pelo Compose</td>
+</tr>
+<tr>
+<td><code>SPRING_DATASOURCE_PASSWORD</code></td>
+<td>B</td>
+<td>Senha do banco; padrão local de desenvolvimento, substituído pelo Compose</td>
+</tr>
+<tr>
+<td><code>POSTGRES_USER</code></td>
+<td>DB</td>
+<td>Nome do usuário inicial; definido no Compose</td>
+</tr>
+<tr>
+<td><code>POSTGRES_PASSWORD</code></td>
+<td>DB</td>
+<td>Senha de inicialização; definida no Compose; substituir na implantação</td>
+</tr>
+<tr>
+<td><code>POSTGRES_DB</code></td>
+<td>DB</td>
+<td>Banco inicial <code>varthex_barber</code>; definido no Compose</td>
+</tr>
+<tr>
+<td><code>NEXTAUTH_SECRET</code></td>
+<td>F</td>
+<td>Obrigatória para sessão segura e estável; valor aleatório exclusivo do ambiente</td>
+</tr>
+<tr>
+<td><code>NEXTAUTH_URL</code></td>
+<td>F</td>
+<td>URL canônica externa do app; local <code>http://localhost:3000</code></td>
+</tr>
+<tr>
+<td><code>BACKEND_INTERNAL_URL</code></td>
+<td>F e build F</td>
+<td>Destino interno da API; local <code>http://localhost:8080</code>, Compose <code>http://backend:8080</code></td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_API_URL</code></td>
+<td>F</td>
+<td>Fallback do acesso de servidor à API; não contém segredo; rewrites usam <code>BACKEND_INTERNAL_URL</code></td>
+</tr>
+<tr>
+<td><code>NEXT_PUBLIC_DEMO_SWITCHER</code></td>
+<td>F</td>
+<td>Opcional, <code>false</code> em produção; seletor de demonstração, não concede acesso</td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_ID</code></td>
+<td>F e B</td>
+<td>Obrigatória somente para login Google; exatamente o mesmo ID nos dois serviços</td>
+</tr>
+<tr>
+<td><code>GOOGLE_CLIENT_SECRET</code></td>
+<td>F</td>
+<td>Obrigatória somente para login Google; segredo do cliente OAuth</td>
+</tr>
+<tr>
+<td><code>RESEND_API_KEY</code></td>
+<td>B</td>
+<td>Necessária para e-mails reais; vazia não envia</td>
+</tr>
+<tr>
+<td><code>RESEND_FROM_EMAIL</code></td>
+<td>B</td>
+<td>Remetente autorizado; padrão <code>onboarding@resend.dev</code>; produção <code>LineUp &lt;nao-responda@mail.example.com&gt;</code></td>
+</tr>
+<tr>
+<td><code>FRONTEND_URL</code></td>
+<td>B</td>
+<td>Origem dos links de recuperação; padrão <code>http://localhost:3000</code></td>
+</tr>
+<tr>
+<td><code>WHATSAPP_ENCRYPTION_KEY</code></td>
+<td>B</td>
+<td>Obrigatória para armazenar credenciais WhatsApp; 32 bytes aleatórios em Base64; preservar em backup</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_GRAPH_VERSION</code></td>
+<td>B</td>
+<td>Versão Graph; padrão atual do projeto <code>v23.0</code>; conferir suporte na Meta antes de alterar</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_PUBLIC_URL</code></td>
+<td>B</td>
+<td>Origem HTTPS, sem barra final nem caminho; necessária para receber webhooks</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_APP_ID</code></td>
+<td>B</td>
+<td>ID público do aplicativo Meta da plataforma; necessário para conexão guiada</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_APP_SECRET</code></td>
+<td>B</td>
+<td>Segredo Meta da plataforma; necessário para conexão guiada</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_CONFIG_ID</code></td>
+<td>B</td>
+<td>ID da configuração Facebook Login for Business / Embedded Signup</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_WEBHOOK_VERIFY_TOKEN</code></td>
+<td>B</td>
+<td>Segredo aleatório escolhido pelo operador para verificação do webhook compartilhado</td>
+</tr>
+<tr>
+<td><code>WHATSAPP_WORKER_ENABLED</code></td>
+<td>B</td>
+<td><code>true</code> por padrão; <code>false</code> em testes sem envio; habilitar para processar fila/automações</td>
+</tr>
+<tr>
+<td><code>NODE_ENV</code></td>
+<td>F/runtime</td>
+<td>Definido pelo runtime/build; produção usa <code>production</code>; não é credencial</td>
+</tr>
+</tbody>
+</table></div>
+<p>Não há variáveis ativas de Google Calendar, Redis, Stripe, Mercado Pago ou Evolution API. Não criar nomes presumidos de variáveis esperando que ativem esses serviços. Parâmetros gerais de Spring/Node não utilizados especificamente pelo projeto estão fora deste inventário.</p>
+</section><section id="guia-4" tabindex="-1"><h2 id="resend-e-mails-da-plataforma">4. Resend — e-mails da plataforma</h2>
+<ol>
+<li>O operador cria uma conta no <a href="https://resend.com">Resend</a> e mantém acesso administrativo da equipe.</li>
+<li>Em Domains, adicione <code>mail.example.com</code> substituindo pelo domínio real. Copie os registros de verificação e envio apresentados no painel para o provedor DNS. Use os nomes, tipos e valores exatos; não invente registros SPF/DKIM nem altere os MX usados pelo e-mail corporativo. Aguarde a verificação. Um subdomínio separa a reputação de envio. Consulte <a href="https://resend.com/docs/dashboard/domains/introduction">domínios verificados</a>.</li>
+<li>Em API Keys, crie uma chave por ambiente, com permissão de envio e restrição ao domínio quando disponível. Guarde o valor no momento da criação. Configure <code>RESEND_API_KEY</code> e <code>RESEND_FROM_EMAIL</code> somente no backend. Veja <a href="https://resend.com/docs/dashboard/api-keys/introduction">gestão de chaves</a>.</li>
+<li>Configure <code>FRONTEND_URL</code> com a origem do aplicativo. Não há OAuth, callback ou webhook Resend implementado; o envio é feito pela API HTTPS. Não há variáveis SMTP.</li>
+<li>Recrie o backend. Na página <code>/esqueceu-senha</code>, solicite recuperação para um usuário de teste existente, cujo e-mail você controle. Confira o envio no painel Resend e a mensagem na caixa postal. O link deve abrir <code>/esqueceu-senha?token=...</code> no ambiente correto. Troque a senha, faça login e confirme que reutilizar o link falha. O token expira em 30 minutos.</li>
+</ol>
+<p>Sem domínio próprio, use o remetente de teste <code>onboarding@resend.dev</code> somente dentro das restrições da conta Resend, para o e-mail autorizado de teste. Não serve para clientes reais. Sem chave, o sistema registra que não enviou; a resposta genérica de recuperação não comprova entrega. O código não tem fila/retry de e-mail nem acompanhamento de entrega por webhook; aceite da API não equivale a chegada na caixa postal.</p>
+<p>Erros: chave inválida → substituir <code>RESEND_API_KEY</code>; domínio/remetente não autorizado → conferir verificação e correspondência do domínio; destinatário bloqueado em teste → usar conta autorizada ou domínio próprio; link aponta para localhost → corrigir <code>FRONTEND_URL</code>; mensagem não chegou → verificar eventos Resend, spam e limites da conta, sem expor o token de recuperação em chamados.</p>
+<p>Rotação: crie nova chave, atualize o backend, recrie, teste um envio controlado e remova a chave antiga no Resend. Em vazamento, revogue imediatamente e aceite a interrupção até substituir. Para trocar remetente, verifique primeiro o novo domínio e só depois altere <code>RESEND_FROM_EMAIL</code>.</p>
+</section><section id="guia-5" tabindex="-1"><h2 id="login-com-google-identidade-do-usuario">5. Login com Google — identidade do usuário</h2>
+<ol>
+<li>O operador acessa <a href="https://console.cloud.google.com">Google Cloud Console</a>, cria um projeto para o ambiente e abre Google Auth Platform. Configure Branding (nome LineUp, suporte, contato), Audience e Data Access. Para SaaS aberto a contas externas, configure público externo; durante testes, cadastre os usuários permitidos.</li>
+<li>Crie um cliente OAuth do tipo aplicação Web. Para desenvolvimento, autorize origem <code>http://localhost:3000</code> e retorno <code>http://localhost:3000/api/auth/callback/google</code>. Para produção, use origem <code>https://app.example.com</code> e retorno <code>https://app.example.com/api/auth/callback/google</code>. Os valores devem corresponder exatamente ao endereço usado no navegador. Veja <a href="https://next-auth.js.org/providers/google">configuração do provedor NextAuth</a>.</li>
+<li>Configure <code>GOOGLE_CLIENT_ID</code> e <code>GOOGLE_CLIENT_SECRET</code> no frontend. Configure o mesmo <code>GOOGLE_CLIENT_ID</code> no backend. O backend valida assinatura, audiência e informações do ID token. Configure também <code>NEXTAUTH_URL</code> e <code>NEXTAUTH_SECRET</code> e recrie os dois serviços.</li>
+<li>Os escopos de login são <code>openid email profile</code>. Não habilite permissões de Calendar apenas para login. O cliente OAuth pertence ao LineUp; cada pessoa só autoriza sua identidade. A configuração de OAuth e URLs é explicada na <a href="https://developers.google.com/identity/openid-connect/openid-connect">documentação Google OpenID Connect</a>.</li>
+<li>Em janela privada, abra <code>/login</code>, escolha Entrar com Google, autorize com um usuário de teste e confirme retorno ao LineUp. Confira nome, e-mail e portal permitido. Saia e entre novamente; não deve ser criada uma segunda conta apenas por repetir o login. Teste também e-mail/senha para uma conta com senha cadastrada.</li>
+</ol>
+<p>Para produção, configure domínios, páginas de privacidade/termos e publicação/verificação exigidas pelo painel Google. Não deixe o SaaS dependente de uma lista privada de testadores. Não há necessidade de cada barbearia criar um projeto Google.</p>
+<p>Erros: <code>redirect_uri_mismatch</code> → conferir protocolo, host, porta e caminho completo do callback; <code>invalid_client</code> → conferir par ID/secret e ambiente; acesso negado → conferir usuário de teste, audiência e políticas Workspace; retorno ao login/validação social falha → conferir mesmo Client ID no backend, conectividade com certificados Google, horário do servidor e acesso frontend→backend. Alternar <code>localhost</code> e <code>127.0.0.1</code> pode quebrar cookies e retorno.</p>
+<p>Rotação: crie/substitua o segredo no cliente OAuth do Console, atualize o frontend, recrie e valide login antes de desativar o anterior quando o provedor permitir sobreposição. Se trocar o Client ID, atualize frontend e backend juntos. O usuário pode revogar acesso ao LineUp nas conexões de terceiros da Conta Google. Isso não apaga sua conta local nem garante encerramento imediato de sessões existentes. Trocar <code>NEXTAUTH_SECRET</code> encerra a validade das sessões NextAuth antigas; planeje novo login.</p>
+</section><section id="guia-6" tabindex="-1"><h2 id="google-calendar-previsto-ainda-nao-configuravel">6. Google Calendar — previsto, ainda não configurável</h2>
+<p>O projeto não implementa cliente Calendar, callback de autorização, armazenamento de refresh token, seleção de agenda nem sincronização. Não existem variáveis Calendar reconhecidas. Habilitar a API no Google Cloud ou preencher o login Google não ativa sincronização.</p>
+<p>Preparação futura do operador: no projeto Google da plataforma, habilitar Google Calendar API, definir um fluxo OAuth separado do login e cadastrar a URL de retorno <strong>quando ela for implementada e documentada</strong>. Não há callback Calendar utilizável nesta versão.</p>
+<p>Fluxo SaaS previsto: administrador/barbeiro escolhe Conectar Google Calendar, autoriza sua própria conta e seleciona a agenda. O operador guarda o segredo OAuth da plataforma; cada conexão guarda tokens segregados por barbearia e usuário, criptografados no backend. A pessoa não cola Client Secret ou chave de serviço.</p>
+<p>Para sincronização em segundo plano será necessário acesso offline e renovação de tokens. O escopo deve ser o mínimo para a função: por exemplo, <code>https://www.googleapis.com/auth/calendar.events</code> permite operações em eventos; a escolha final depende das agendas e funções implementadas. Consulte <a href="https://developers.google.com/workspace/calendar/api/auth">escopos Calendar</a> e <a href="https://developers.google.com/identity/protocols/oauth2/web-server">OAuth para aplicações Web</a>.</p>
+<p>Aceite futuro: conectar conta A à barbearia A, selecionar agenda, criar/remarcar/cancelar atendimento e conferir o evento correspondente sem duplicatas; comprovar que barbearia B não vê tokens ou eventos de A; testar expiração/renovação e revogação na Conta Google. Falha <code>invalid_grant</code> deverá pedir nova autorização; permissões insuficientes deverão orientar reconexão. <strong>Esses testes ainda não podem ser executados no LineUp atual.</strong></p>
+</section><section id="guia-7" tabindex="-1"><h2 id="whatsapp-business-oficial-plataforma-e-estabelecimento">7. WhatsApp Business oficial — plataforma e estabelecimento</h2>
+<h3 id="operador-infraestrutura-comum">Operador: infraestrutura comum</h3>
+<p>Configure <code>WHATSAPP_ENCRYPTION_KEY</code> antes de salvar qualquer conexão. Mantenha essa chave estável e em backup separado do banco. Configure <code>WHATSAPP_PUBLIC_URL</code> com origem HTTPS acessível pela Meta e proxy das rotas <code>/integrations/whatsapp/webhook</code>. Localhost sozinho não recebe eventos. Em desenvolvimento, testes reais exigem um endpoint HTTPS de homologação ou túnel explicitamente configurado para a aplicação; nunca exponha o servidor da documentação local.</p>
+<p>Para conexão guiada, crie a conta de desenvolvedor e aplicativo empresarial da plataforma no <a href="https://developers.facebook.com/">Meta for Developers</a>, configure WhatsApp e Facebook Login for Business / Embedded Signup, portfólio empresarial e os requisitos de publicação/revisão. Copie App ID, App Secret e Configuration ID para <code>WHATSAPP_APP_ID</code>, <code>WHATSAPP_APP_SECRET</code> e <code>WHATSAPP_CONFIG_ID</code>. Cadastre o domínio e origem HTTPS reais do aplicativo na configuração de login da Meta. O fluxo atual usa janela do SDK e troca do código no backend; não existe uma rota fictícia <code>/callback/meta</code> para cadastrar.</p>
+<p>Solicite as permissões aplicáveis a gerenciamento e envio: <code>whatsapp_business_management</code>, <code>whatsapp_business_messaging</code> e, quando exigido pelo fluxo de onboarding, <code>business_management</code>. Para atender empresas externas, conclua a revisão e o nível de acesso exigido pela Meta; configurar variáveis não concede aprovação. Referência oficial: <a href="https://www.postman.com/meta/whatsapp-business-platform/folder/1bczlus/get-started">Get Started da Meta</a>.</p>
+<p>No webhook compartilhado, use <code>https://app.example.com/integrations/whatsapp/webhook</code> e o valor de <code>WHATSAPP_WEBHOOK_VERIFY_TOKEN</code>, escolhido pelo operador. Assine o campo <code>messages</code>. O segredo do aplicativo valida as assinaturas dos eventos; o token de verificação não é token de envio. Reinicie/recrie o backend após alterar variáveis.</p>
+<h3 id="barbearia-conectar-a-propria-conta">Barbearia: conectar a própria conta</h3>
+<ol>
+<li>Entre como administrador e abra Configurações → WhatsApp Business.</li>
+<li>Se Continuar com a Meta estiver disponível, autorize a conta empresarial e o número que pertencem ao estabelecimento. O LineUp usa as chaves da plataforma sem mostrá-las ao gerente.</li>
+<li>Valide o número e confira o nome/telefone no resumo. A validação não envia mensagem.</li>
+<li>Conclua a etapa de atualizações e confira a verificação do webhook. Sem endereço HTTPS, a pendência deve ser resolvida pelo operador.</li>
+<li>Em CRM &amp; WhatsApp, sincronize modelos aprovados, registre consentimento e prepare o teste. Modelos com mídia/botões não são suportados pelo incremento atual.</li>
+</ol>
+<p>Alternativa manual: um responsável técnico com aplicativo Meta próprio prepara WhatsApp/Cloud API, conta WABA e número registrado. No painel Meta obtenha WABA ID e Phone Number ID (não é o telefone com DDD), token de acesso autorizado aos ativos e App Secret. Para uso contínuo, configure token adequado ao ambiente e permissões, evitando depender de token temporário de desenvolvimento. Informe esses quatro campos na opção de conexão manual do LineUp; não são variáveis globais de ambiente.</p>
+<p>Localização das credenciais: no aplicativo Meta, a área WhatsApp → configuração da API apresenta os IDs da conta e do número e o token de teste. O segredo fica nas configurações básicas do aplicativo. Para um token de usuário do sistema, o administrador do portfólio empresarial deve criar/selecionar esse usuário em Configurações do negócio → Usuários do sistema, atribuir os ativos WhatsApp e gerar um token para o aplicativo com as permissões necessárias. Os nomes dos menus podem variar conforme a conta. Não confunda o Business/Portfolio ID com o WABA ID. Registro do número, aprovação do nome, forma de pagamento e elegibilidade são concluídos na Meta, não pelo formulário LineUp.</p>
+<p>Ao salvar, copie imediatamente o token de verificação exibido. Configure no aplicativo Meta a URL <strong>exata mostrada pelo LineUp</strong>, no formato <code>https://app.example.com/integrations/whatsapp/webhook/ID_DA_BARBEARIA</code>, e esse token; assine <code>messages</code> e garanta a assinatura do aplicativo na WABA. Salvar credenciais novamente gera outro token de verificação e exige nova verificação. O token não é recuperável em texto após sair; salvar novamente permite gerar outro. Não reutilize uma conexão entre barbearias.</p>
+<h3 id="testar-e-resolver-falhas">Testar e resolver falhas</h3>
+<p>Use número e destinatário de homologação autorizado. Com <code>WHATSAPP_WORKER_ENABLED=true</code>, envie um único modelo aprovado pelo formulário de teste, preenchendo variáveis e ciência dos custos. Confira fila, envio e entrega no histórico; responda pelo telefone destinatário e confirme recebimento no CRM. O teste real pode gerar cobrança Meta. Se o worker estiver desabilitado, permanecer na fila não comprova falha da Meta. A verificação do webhook sozinha não prova entrega; confirme um evento real.</p>
+<p>Erros: conexão guiada indisponível → verificar todas as seis configurações necessárias (criptografia, App ID, App Secret, Config ID, origem HTTPS e token compartilhado); <code>TOKEN_INVALID</code> → renovar autorização; <code>NUMBER_NOT_FOUND</code> → conferir associação WABA/número e acesso aos ativos; webhook sem eventos → conferir URL pública, assinatura <code>messages</code>, token de verificação e App Secret correspondente; fila parada → conferir worker, modelo, consentimento e janela de envio; <code>UNKNOWN</code> → conferir histórico/eventos antes de reenviar para não duplicar cobrança. A API oficial não usa QR Code de WhatsApp Web nem Evolution API.</p>
+<p>Rotação: para token manual do mesmo número, substitua o campo, salve, revalide número e webhook e só então revogue o antigo quando possível. Para trocar conta/número, desconecte e conecte novamente. Desconectar pausa automações e cancela fila pendente, mas não revoga automaticamente permissões no provedor; revogue também no gerenciamento empresarial Meta. Envios em andamento podem terminar.</p>
+<p>Trocar <code>WHATSAPP_APP_SECRET</code> exige coordenar o segredo usado nas conexões já armazenadas, inclusive as guiadas; mudar a variável não recriptografa nem atualiza registros existentes. Planeje reconexão/migração. <strong>Nunca substituir <code>WHATSAPP_ENCRYPTION_KEY</code> isoladamente:</strong> perde-se a leitura das credenciais anteriores. Rotação dessa chave exige migração assistida ou reconexão de todas as barbearias.</p>
+</section><section id="guia-8" tabindex="-1"><h2 id="banco-redis-e-servicos-nao-implementados">8. Banco, Redis e serviços não implementados</h2>
+<p>PostgreSQL: o operador pode usar conta em provedor gerenciado ou container local; crie banco e usuário com acesso às tabelas e migrations do LineUp. Configure as três variáveis <code>SPRING_DATASOURCE_*</code>, usando o modo TLS indicado pelo provedor em produção. As migrations Flyway são executadas ao iniciar e Hibernate valida o esquema. Não há callback externo.</p>
+<p>Teste local: <code>docker compose exec postgres pg_isready -U postgres -d varthex_barber</code>; confirme backend iniciado sem erros de migration e faça login/crie um registro de teste pela aplicação. <code>connection refused</code> aponta para rede/host/porta; falha de autenticação aponta para usuário/senha; falha Flyway exige analisar a migration, sem apagar tabelas ou volumes. Rotação exige alterar a senha do papel PostgreSQL no banco e atualizar backend de forma coordenada. Faça backup antes de manutenção.</p>
+<p>Redis: <code>docker compose exec redis redis-cli ping</code> deve retornar <code>PONG</code>. Isso testa o container, não uma funcionalidade do LineUp. Não foi identificado cliente Redis ou variável de conexão na aplicação; o Compose aguarda o healthcheck desse serviço. Não há tutorial de autenticação Redis da aplicação a executar nesta versão.</p>
+<p>Avaliações internas são vinculadas aos atendimentos no próprio LineUp; não publicam avaliações no Google. Não há conectores ativos de gateway de pagamentos, storage externo ou Evolution API. Não contratar ou cadastrar chaves desses serviços para tentar ativar funcionalidades previstas em documentos de produto.</p>
+</section><section id="guia-9" tabindex="-1"><h2 id="checklist-de-homologacao-e-manutencao">9. Checklist de homologação e manutenção</h2>
+<ul class="contains-task-list">
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Ambiente identificado: desenvolvimento, homologação ou produção; domínios e contas correspondem a ele.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Banco acessível, migrations concluídas e login por senha funcionando.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> <code>NEXTAUTH_SECRET</code> exclusivo; pendência da chave JWT do backend resolvida antes de produção.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Resend: domínio verificado, envio recebido, link aponta para o app correto e só funciona uma vez.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Google: usuário autorizado entra e retorna corretamente; login não promete acesso ao Calendar.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> WhatsApp: número correto, webhook verificado, envio e resposta controlados confirmados; isolamento entre duas barbearias validado.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Google Calendar e demais recursos previstos registrados como indisponíveis, sem falso teste aprovado.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Segredos fora do Git e do navegador; nenhuma variável <code>NEXT_PUBLIC_*</code> contém segredo.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Responsável, data de criação/rotação e procedimento de revogação registrados no gerenciador de segredos.</li>
+<li class="task-list-item"><input disabled="disabled" type="checkbox" /> Backups de banco e chave de criptografia recuperáveis; documentação permanece local.</li>
+</ul>
+<p>Em incidentes, registre serviço, ambiente, horário e código de erro. Remova tokens, cookies, links de recuperação, números e dados pessoais antes de anexar logs. Não use <code>docker compose config</code> ou despejo de ambiente em chamados: eles podem revelar valores resolvidos. Nenhuma credencial real foi necessária para produzir este guia; a homologação externa deve ser realizada pelo responsável com contas autorizadas.</p>
+<h3 id="rastreabilidade-do-levantamento">Rastreabilidade do levantamento</h3>
+<p>Verificados: <code>backend/src/main/resources/application.properties</code>, <code>docker-compose.yml</code>, exemplos de ambiente, configuração NextAuth, serviços de e-mail/autenticação, módulo WhatsApp, dependências e referências de integrações do frontend/backend. Documentos conceituais de domínio não foram tratados como prova de funcionalidade implementada. Guia técnico complementar: <code>docs/06-frontend-ux/crm-whatsapp.md</code>.</p>
+</section></main><aside class="toc"><p>DOCUMENTO INTERNO</p><p>Somente local · 28/09/2026</p></aside></div></body></html>

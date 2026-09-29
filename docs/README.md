@@ -1,5 +1,11 @@
 # Varthex Barber — Documentação de Produto e Engenharia
 
+## Guia local de hospedagem, domínio e DNS
+
+O [guia de configuração das integrações](05-api-integracoes/guia-configuracao.md) distingue credenciais da plataforma e conexões das barbearias, com variáveis, desenvolvimento/produção, testes e revogação. Também está disponível como [tutorial HTML somente local](local/integracoes.html).
+
+A [documentação de infraestrutura](local/index.html) cobre custos, landing page, aplicativo e blog. Os arquivos são versionados, mas a página não faz parte do aplicativo nem de sua publicação. Para visualizar, execute `node docs/local/serve.mjs` na raiz e abra `http://127.0.0.1:4178`. Veja as [instruções locais](local/README.md).
+
 **Versão documental:** 1.0.0  
 **Data-base:** 29/07/2026  
 **Status:** baseline aprovada para detalhamento e implementação  
