@@ -7,6 +7,7 @@ const backendUrl = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8080";
 const nextConfig: NextConfig = {
   async rewrites() {
     return [
+      { source: "/integrations/:path*", destination: `${backendUrl}/integrations/:path*` },
       { source: "/commercial/:path*", destination: `${backendUrl}/commercial/:path*` },
       { source: "/platform/:path*", destination: `${backendUrl}/platform/:path*` },
       { source: "/auth/:path*", destination: `${backendUrl}/auth/:path*` },

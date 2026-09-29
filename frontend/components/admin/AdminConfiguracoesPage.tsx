@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 import { useEffectEvent, useEffect, useState } from "react";
 import { BusinessSettingsPanel } from "@/components/commercial/Settings";
@@ -293,6 +294,10 @@ export function AdminConfiguracoesPage() {
       </SectionCard>
 
       <BusinessSettingsPanel />
+      <SectionCard title="Integrações" icon={Store}>
+        <p className="text-sm text-secondary">Conecte a conta WhatsApp Business da sua barbearia pela API oficial da Meta.</p>
+        <Link href="/admin/configuracoes/integracoes" className="mt-3 inline-block text-sm font-semibold text-accent-strong">Gerenciar integrações → WhatsApp</Link>
+      </SectionCard>
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>

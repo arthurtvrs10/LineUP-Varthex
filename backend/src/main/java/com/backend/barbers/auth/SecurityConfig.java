@@ -55,6 +55,8 @@ public class SecurityConfig {
                         ).permitAll()
 
                         // Público
+                        .requestMatchers("/integrations/whatsapp/webhook", "/integrations/whatsapp/webhook/*").permitAll()
+                        .requestMatchers("/integrations/whatsapp", "/integrations/whatsapp/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login", "/auth/register-client",
                                 "/auth/password-recovery", "/auth/password-recovery/complete",
                                 "/auth/refresh", "/auth/logout")

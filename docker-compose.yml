@@ -80,6 +80,8 @@ services:
     # validar a audiência do ID token do Google).
     env_file:
       - ./frontend/.env.local
+      - path: ./backend/.env.local
+        required: false
 
     environment:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/varthex_barber

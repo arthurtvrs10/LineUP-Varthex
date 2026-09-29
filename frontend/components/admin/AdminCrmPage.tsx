@@ -1,2 +1,2 @@
 "use client";
-export { CrmPage as AdminCrmPage } from "@/components/commercial/BusinessPages";
+export { WhatsAppCrm as AdminCrmPage } from "./whatsapp/WhatsAppCrm";

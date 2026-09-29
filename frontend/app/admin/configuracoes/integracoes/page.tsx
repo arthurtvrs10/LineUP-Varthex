@@ -1,0 +1,4 @@
+import Link from "next/link";
+import { MessageCircle } from "lucide-react";
+import { AdminShell } from "@/components/admin/AdminShell";
+export default function Page(){return <AdminShell title="Integrações" breadcrumb="Configurações / Integrações"><h1 className="text-2xl font-bold text-ink">Integrações</h1><p className="mt-1 text-sm text-secondary">Conecte as ferramentas da sua barbearia.</p><Link href="/admin/configuracoes/integracoes/whatsapp" className="mt-5 flex max-w-xl items-center gap-4 rounded-[12px] border border-fog bg-white p-5"><MessageCircle className="text-accent-strong"/><div><h2 className="font-semibold">WhatsApp Business</h2><p className="mt-1 text-sm text-secondary">API oficial da Meta · Conta e número próprios</p><p className="mt-3 text-sm font-semibold text-accent-strong">Configurar integração</p></div></Link></AdminShell>;}
