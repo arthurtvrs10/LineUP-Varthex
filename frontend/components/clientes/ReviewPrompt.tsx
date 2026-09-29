@@ -22,7 +22,16 @@ export function ReviewForm({ appointmentId, onSaved }: { appointmentId: string; 
     if (!rating) { setError("Escolha uma nota de 1 a 5."); return; }
     const comment = String(new FormData(event.currentTarget).get("comment") ?? "");
     setBusy(true); setError(undefined);
-    try { await apiFetch("/commercial/reviews", { method: "POST", body: { appointmentId, rating, comment } }); onSaved(); }
+    try {
+      await apiFetch("/commercial/reviews", { method: "POST", body: { appointmentId, rating, comment } });
+      // Notify other open tabs only after the server has saved the review.
+      try {
+        const channel = new BroadcastChannel("lineup-reviews");
+        channel.postMessage({ appointmentId });
+        channel.close();
+      } catch { /* Focus/polling revalidation also handles browsers without BroadcastChannel. */ }
+      onSaved();
+    }
     catch (err) { setError(err instanceof Error ? err.message : "Não foi possível enviar sua avaliação."); }
     finally { setBusy(false); }
   }}>
@@ -50,6 +59,26 @@ export function ReviewPrompt() {
   const known = useRef<Set<string> | undefined>(undefined);
 
   useEffect(() => {
+    if (!pending) return;
+    let active = true;
+    async function refresh() {
+      try {
+        const list = await apiFetch<PendingReview[]>("/commercial/reviews/pending", { cache: "no-store" });
+        if (active && !list.some(item => item.appointmentId === pending!.appointmentId)) setPending(undefined);
+      } catch { /* Keep the current prompt on a temporary network failure. */ }
+    }
+    let channel: BroadcastChannel | undefined;
+    try {
+      channel = new BroadcastChannel("lineup-reviews");
+      channel.onmessage = () => void refresh();
+    } catch { /* Focus/polling fallback. */ }
+    void refresh();
+    const timer = window.setInterval(() => void refresh(), 30000);
+    window.addEventListener("focus", refresh);
+    return () => { active = false; channel?.close(); window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [pending]);
+
+  useEffect(() => {
     if (loading || !shop || !customer || !token) return;
     let active = true;
     let checking = false;
@@ -62,7 +91,7 @@ export function ReviewPrompt() {
         const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(token));
         const key = "lineup-review-prompt:" + Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2,"0")).join("");
         if (!active || promptSession.has(key)) return;
-        const list = await apiFetch<PendingReview[]>("/commercial/reviews/pending");
+        const list = await apiFetch<PendingReview[]>("/commercial/reviews/pending", { cache: "no-store" });
         if (!active) return;
         const newlyCompleted = known.current && list.find(item => !known.current!.has(item.appointmentId));
         known.current = new Set(list.map(item => item.appointmentId));
