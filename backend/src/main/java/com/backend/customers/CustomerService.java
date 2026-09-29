@@ -28,12 +28,14 @@ public class CustomerService {
     private final CustomerRepository customerRepository;
     private final TenantRepository tenantRepository;
     private final UserRepository userRepository;
+    private final com.backend.storage.SupabaseStorage storage;
 
     public CustomerService(CustomerRepository customerRepository, TenantRepository tenantRepository,
-                            UserRepository userRepository) {
+                            UserRepository userRepository, com.backend.storage.SupabaseStorage storage) {
         this.customerRepository = customerRepository;
         this.tenantRepository = tenantRepository;
         this.userRepository = userRepository;
+        this.storage = storage;
     }
 
     public MeCustomerResponse getMyCustomer(UUID tenantId, UUID userId) {
@@ -196,7 +198,7 @@ public class CustomerService {
     private CustomerResponse toResponse(Customer customer) {
         String photoData = customer.getUserId() == null
                 ? null
-                : userRepository.findById(customer.getUserId()).map(User::getPhotoData).orElse(null);
+                : userRepository.findById(customer.getUserId()).map(u -> storage.display(u.getPhotoData())).orElse(null);
 
         return toResponse(customer, photoData);
     }
@@ -225,7 +227,7 @@ public class CustomerService {
         Map<UUID, String> photoByUserId = new HashMap<>();
         if (!userIds.isEmpty()) {
             for (User user : userRepository.findAllById(userIds)) {
-                photoByUserId.put(user.getId(), user.getPhotoData());
+                photoByUserId.put(user.getId(), storage.display(user.getPhotoData()));
             }
         }
 

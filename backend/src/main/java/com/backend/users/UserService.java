@@ -22,11 +22,13 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.backend.storage.SupabaseStorage storage;
 
     public UserService(UserRepository userRepository,
-                        PasswordEncoder passwordEncoder) {
+                        PasswordEncoder passwordEncoder, com.backend.storage.SupabaseStorage storage) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.storage = storage;
     }
 
     public List<User> listUsers(RequesterContext requester) {
@@ -73,15 +75,24 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @org.springframework.transaction.annotation.Transactional
     public User updateOwnProfile(UUID userId, String name, String photoData) {
         if (name == null || name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "O nome é obrigatório");
         }
 
-        User user = findById(userId);
+        User user = userRepository.findLockedById(userId).orElseThrow(() -> new UserNotFoundException("Usuário não encontrado"));
         user.setName(name);
-        if (photoData != null) {
-            user.setPhotoData(photoData.isBlank() ? null : photoData);
+        if (photoData != null && !storage.samePhoto(user.getPhotoData(), photoData)) {
+            String previous = user.getPhotoData();
+            String next = photoData.isBlank() ? null : storage.upload(userId, photoData);
+            user.setPhotoData(next);
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override public void afterCompletion(int status) {
+                        storage.delete(status == STATUS_COMMITTED ? previous : next);
+                    }
+                });
         }
         return userRepository.save(user);
     }

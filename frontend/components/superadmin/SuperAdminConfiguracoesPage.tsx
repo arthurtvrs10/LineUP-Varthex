@@ -23,7 +23,7 @@ function initialsFor(name: string) {
 type Integracao = {
   nome: string;
   descricao: string;
-  status: "Conectado" | "Pendente" | "Desconectado";
+  status: "Conectado" | "Pendente" | "Desconectado" | "Configuração no backend";
   acao: string;
 };
 
@@ -31,7 +31,7 @@ const integracoes: Integracao[] = [
   { nome: "Stripe", descricao: "Pagamentos e cobranças recorrentes", status: "Conectado", acao: "Editar" },
   { nome: "Twilio (WhatsApp)", descricao: "Envio de SMS e mensagens WhatsApp", status: "Conectado", acao: "Editar" },
   { nome: "Resend", descricao: "E-mails de recuperação de senha e notificações da plataforma", status: "Conectado", acao: "Editar" },
-  { nome: "AWS S3", descricao: "Armazenamento de arquivos e imagens", status: "Conectado", acao: "Editar" },
+  { nome: "Supabase Storage · Free", descricao: "Fotos de perfil em bucket privado · até 1 GB no plano Free", status: "Configuração no backend", acao: "" },
   { nome: "Sentry", descricao: "Monitoramento de erros", status: "Pendente", acao: "Configurar" },
   { nome: "DataDog", descricao: "APM e observabilidade", status: "Desconectado", acao: "Configurar" },
 ];
@@ -40,6 +40,7 @@ const integracaoStyles: Record<Integracao["status"], { bg: string; color: string
   Conectado: { bg: "#e8f7f1", color: "#27865b" },
   Pendente: { bg: "#fdf3e3", color: "#d28b27" },
   Desconectado: { bg: "#f0efea", color: "#686a73" },
+  "Configuração no backend": { bg: "#f0efea", color: "#686a73" },
 };
 
 export function SuperAdminConfiguracoesPage() {
@@ -207,12 +208,12 @@ export function SuperAdminConfiguracoesPage() {
                 >
                   {i.status}
                 </span>
-                <button
+                {i.acao && <button
                   type="button"
                   className="flex h-8 items-center justify-center rounded-[10px] px-3 text-sm text-[#686a73] transition hover:bg-[#f7f6f2]"
                 >
                   {i.acao}
-                </button>
+                </button>}
               </div>
             ))}
           </div>

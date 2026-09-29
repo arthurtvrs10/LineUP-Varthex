@@ -21,6 +21,7 @@ import java.util.UUID;
 public class BarberService {
 
     private final BarberRepository barberRepository;
+    private final com.backend.storage.SupabaseStorage storage;
     private final UserRepository userRepository;
     private final UnitRepository unitRepository;
     private final com.backend.commercial.EntitlementService entitlements;
@@ -218,7 +219,7 @@ public class BarberService {
                 barber.getStatus(),
                 barber.getCreateAt(),
                 barber.getUpdatedAt(),
-                barber.getUser().getPhotoData()
+                storage.display(barber.getUser().getPhotoData())
         );
     }
 }

@@ -1,6 +1,6 @@
 // Redimensiona no client antes de mandar pro backend — a foto vira um data
-// URL base64 guardado direto numa coluna TEXT (sem infra de storage de
-// arquivo ainda), então precisa ficar pequena. 200px/JPEG 0.8 dá uma foto de
+// URL base64 enviada ao backend para upload privado no Supabase Storage.
+// A compressão economiza armazenamento e tráfego. 200px/JPEG 0.8 dá uma foto de
 // perfil legível em poucos KB, bem longe do limite de TEXT do Postgres.
 export function readImageAsCompressedDataUrl(file: File, maxSize = 200, quality = 0.8): Promise<string> {
   return new Promise((resolve, reject) => {

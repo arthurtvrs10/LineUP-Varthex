@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Integrações — LineUp Docs local</title><link rel="stylesheet" href="style.css"><script src="app.js" defer></script></head>
 <body><a class="skip" href="#conteudo">Pular para o conteúdo</a><header class="header"><a class="brand" href="#conteudo"><svg class="lineup-logo" viewBox="0 0 469.58 87.81" height="26" role="img" aria-label="LineUp" focusable="false"><g fill="currentColor"><g transform="translate(0,0.000)"><g transform="scale(0.91467)"><path fill="currentColor" d="M0 0 H36 V24 H24 V48 H36 V60 H72 V96 H0 Z"/></g></g><g transform="translate(98.784,9.604)"><g transform="translate(0,68.600)"><path d="M7.60 0.00V-68.60H22.50V-12.70H57.10V0.00Z M65.70 0.00V-68.60H80.60V0.00Z M94.80 0.00V-68.60H108.50L136.10 -31.60Q136.70 -30.90 137.60 -29.65Q138.50 -28.40 139.30 -27.20Q140.10 -26.00 140.40 -25.30H140.90V-68.60H155.00V0.00H141.30L113.10 -37.90Q112.10 -39.30 111.00 -41.00Q109.90 -42.70 109.40 -43.60H108.90V0.00Z M169.20 0.00V-68.60H224.00V-56.40H184.20V-41.10H219.40V-29.00H184.20V-12.30H224.60V0.00Z M266.20 1.20Q256.80 1.20 250.05 -1.80Q243.30 -4.80 239.70 -10.85Q236.10 -16.90 236.10 -25.90V-68.60H251.10V-26.30Q251.10 -18.90 255.00 -14.95Q258.90 -11.00 266.20 -11.00Q273.50 -11.00 277.45 -14.95Q281.40 -18.90 281.40 -26.30V-68.60H296.40V-25.90Q296.40 -16.90 292.80 -10.85Q289.20 -4.80 282.45 -1.80Q275.70 1.20 266.20 1.20Z M310.30 0.00V-68.60H346.00Q353.40 -68.60 358.35 -65.85Q363.30 -63.10 365.85 -58.15Q368.40 -53.20 368.40 -46.40Q368.40 -39.60 365.75 -34.55Q363.10 -29.50 358.00 -26.70Q352.90 -23.90 345.50 -23.90H325.20V0.00ZM325.20 -36.10H343.50Q348.20 -36.10 350.75 -38.80Q353.30 -41.50 353.30 -46.30Q353.30 -49.60 352.20 -51.80Q351.10 -54.00 348.95 -55.20Q346.80 -56.40 343.50 -56.40H325.20Z"/></g></g></g></svg> <small>Documentação</small></a><span class="pill">● SOMENTE LOCAL</span><button class="menu" aria-controls="navegacao" aria-expanded="false">Menu</button></header>
-<div class="layout"><aside class="sidebar" id="navegacao"><p><a href="index.html">← Infraestrutura</a></p><label for="search">Buscar neste guia</label><input id="search" type="search" placeholder="Resend, Google, credenciais…"><div id="search-status" class="status" aria-live="polite"></div><nav aria-label="Integrações"><a href="#guia-1">1. Responsabilidades e disponibilidade</a><a href="#guia-2">2. Onde configurar e ordem de implantação</a><a href="#guia-3">3. Inventário exato de variáveis</a><a href="#guia-4">4. Resend — e-mails da plataforma</a><a href="#guia-5">5. Login com Google — identidade do usuário</a><a href="#guia-6">6. Google Calendar — previsto, ainda não configurável</a><a href="#guia-7">7. WhatsApp Business oficial — plataforma e estabelecimento</a><a href="#guia-8">8. Banco, Redis e serviços não implementados</a><a href="#guia-9">9. Checklist de homologação e manutenção</a></nav></aside><main id="conteudo" tabindex="-1"><h1 id="integracoes-do-lineup-implantacao-e-operacao-saas">Integrações do LineUp — implantação e operação SaaS</h1>
+<div class="layout"><aside class="sidebar" id="navegacao"><p><a href="index.html">← Infraestrutura</a></p><label for="search">Buscar neste guia</label><input id="search" type="search" placeholder="Resend, Google, credenciais…"><div id="search-status" class="status" aria-live="polite"></div><nav aria-label="Integrações"><a href="#guia-1">1. Responsabilidades e disponibilidade</a><a href="#guia-2">2. Onde configurar e ordem de implantação</a><a href="#guia-3">3. Inventário exato de variáveis</a><a href="#guia-4">4. Resend — e-mails da plataforma</a><a href="#guia-5">5. Login com Google — identidade do usuário</a><a href="#guia-6">6. Google Calendar — previsto, ainda não configurável</a><a href="#guia-7">7. WhatsApp Business oficial — plataforma e estabelecimento</a><a href="#guia-8">8. Banco, Redis e serviços não implementados</a><a href="#guia-9">9. Checklist de homologação e manutenção</a><a href="#guia-10">10. Supabase Storage Free — fotos de perfil</a></nav></aside><main id="conteudo" tabindex="-1"><h1 id="integracoes-do-lineup-implantacao-e-operacao-saas">Integrações do LineUp — implantação e operação SaaS</h1>
 <p>Revisão: 28/09/2026. Inventário conferido na implementação atual. Todos os domínios, IDs e valores abaixo são fictícios. Este guia é interno, versionado no Git e destinado à consulta local; não deve ser publicado junto ao aplicativo.</p>
 <section id="guia-1" tabindex="-1"><h2 id="responsabilidades-e-disponibilidade">1. Responsabilidades e disponibilidade</h2>
 <div class="table-wrap"><table>
@@ -61,6 +61,12 @@
 <td>Provisionado no Compose, sem uso identificado no código da aplicação</td>
 <td>Mantém serviço exigido pelo Compose atual</td>
 <td>Nenhuma configuração</td>
+</tr>
+<tr>
+<td>Supabase Storage Free</td>
+<td>Implementado para novas fotos de perfil; ativação depende das credenciais</td>
+<td>Cria projeto gratuito e bucket privado; configura chave secreta</td>
+<td>Usa o upload do perfil; não cria conta Supabase</td>
 </tr>
 <tr>
 <td>Pagamentos externos, armazenamento S3 e Evolution API</td>
@@ -256,6 +262,21 @@ docker compose ps
 <td>F/runtime</td>
 <td>Definido pelo runtime/build; produção usa <code>production</code>; não é credencial</td>
 </tr>
+<tr>
+<td><code>SUPABASE_URL</code></td>
+<td>B</td>
+<td>Origem HTTPS do projeto, no formato <code>https://seu-projeto.supabase.co</code></td>
+</tr>
+<tr>
+<td><code>SUPABASE_SECRET_KEY</code></td>
+<td>B</td>
+<td>Chave secreta da plataforma, <code>sb_secret_...</code>; nunca enviar ao frontend</td>
+</tr>
+<tr>
+<td><code>SUPABASE_STORAGE_BUCKET</code></td>
+<td>B</td>
+<td>Bucket privado de fotos; padrão <code>lineup-avatars</code></td>
+</tr>
 </tbody>
 </table></div>
 <p>Não há variáveis ativas de Google Calendar, Redis, Stripe, Mercado Pago ou Evolution API. Não criar nomes presumidos de variáveis esperando que ativem esses serviços. Parâmetros gerais de Spring/Node não utilizados especificamente pelo projeto estão fora deste inventário.</p>
@@ -330,4 +351,30 @@ docker compose ps
 <p>Em incidentes, registre serviço, ambiente, horário e código de erro. Remova tokens, cookies, links de recuperação, números e dados pessoais antes de anexar logs. Não use <code>docker compose config</code> ou despejo de ambiente em chamados: eles podem revelar valores resolvidos. Nenhuma credencial real foi necessária para produzir este guia; a homologação externa deve ser realizada pelo responsável com contas autorizadas.</p>
 <h3 id="rastreabilidade-do-levantamento">Rastreabilidade do levantamento</h3>
 <p>Verificados: <code>backend/src/main/resources/application.properties</code>, <code>docker-compose.yml</code>, exemplos de ambiente, configuração NextAuth, serviços de e-mail/autenticação, módulo WhatsApp, dependências e referências de integrações do frontend/backend. Documentos conceituais de domínio não foram tratados como prova de funcionalidade implementada. Guia técnico complementar: <code>docs/06-frontend-ux/crm-whatsapp.md</code>.</p>
+</section><section id="guia-10" tabindex="-1"><h2 id="supabase-storage-free-fotos-de-perfil">10. Supabase Storage Free — fotos de perfil</h2>
+<p>Decisão: começar no plano Free para evitar mensalidade adicional. O projeto usa somente Storage; autenticação e banco de negócio continuam no LineUp. O Free inclui 1 GB de arquivos e franquias separadas de 5 GB de tráfego com cache e 5 GB sem cache. Esses limites não significam uso ilimitado, e o plano gratuito pode sofrer pausas conforme a política do provedor. Confira o painel de uso e a <a href="https://supabase.com/pricing">tabela oficial</a> antes de liberar clientes reais. Não foi contratado plano pago ou criado projeto automaticamente.</p>
+<h3 id="configuracao-pelo-operador">Configuração pelo operador</h3>
+<ol>
+<li>Crie sua conta em <a href="https://supabase.com/dashboard">Supabase</a>, uma organização no plano Free e um projeto. Escolha uma região adequada ao backend. Guarde a senha de banco solicitada pelo painel; ela não é usada como chave Storage do LineUp.</li>
+<li>Abra Storage e crie o bucket <code>lineup-avatars</code>. Mantenha <strong>Public bucket desativado</strong>, limite cada arquivo a <strong>262144 bytes (256 KB)</strong> e permita somente <code>image/jpeg</code>. Não crie políticas de acesso anônimo ou escrita pública.</li>
+<li>Nas configurações de API/Connect, copie a Project URL. Na área de API Keys, crie uma <strong>secret key</strong> (<code>sb_secret_...</code>) para o backend. Não use publishable/anon key neste conector. A chave secreta tem acesso privilegiado: a autorização de usuários e barbearias é feita pelo LineUp antes das operações. Veja <a href="https://supabase.com/docs/guides/getting-started/api-keys">chaves Supabase</a>.</li>
+<li>Copie os nomes de <code>backend/supabase.env.example</code> para <code>backend/.env.local</code> sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em <code>frontend/.env.local</code>, variáveis <code>NEXT_PUBLIC_*</code>, Git ou chat.</li>
+</ol>
+<pre><code class="language-dotenv">SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SECRET_KEY=SUBSTITUIR_PELA_SECRET_KEY
+SUPABASE_STORAGE_BUCKET=lineup-avatars
+</code></pre>
+<ol start="5">
+<li>Execute <code>docker compose up -d --force-recreate backend</code>. Não há callback OAuth, webhook ou credenciais por barbearia. O operador mantém uma conta/bucket da plataforma.</li>
+</ol>
+<h3 id="funcionamento-e-economia">Funcionamento e economia</h3>
+<p>Ao salvar o perfil, a imagem é comprimida no navegador em JPEG de até 200 px. O backend aceita no máximo 256 KB e 512 × 512 px, valida o conteúdo e usa o usuário autenticado como dono do objeto. O nome é gerado pelo servidor: <code>avatars/ID_DO_USUARIO/ID_ALEATORIO.jpg</code>. O cliente não escolhe caminhos de outro usuário.</p>
+<p>O banco guarda uma referência ao objeto; as respostas autorizadas geram uma URL de leitura válida por uma hora. O bucket permanece privado. Quem obtiver uma URL assinada poderá acessá-la até expirar; não a compartilhe. Depois da expiração, recarregue a página para obter outra. As consultas de clientes/profissionais mantêm as regras de acesso da barbearia; a foto de uma conta de cliente é global, assim como seu perfil. <a href="https://supabase.com/docs/guides/storage/buckets/fundamentals">Buckets privados</a>.</p>
+<p>A foto anterior é excluída após a confirmação da gravação no banco; se a transação for revertida, o novo objeto é removido. Falhas de limpeza são registradas para revisão manual e não há fila automática de repetição. Mantenha um acompanhamento de objetos órfãos para economizar espaço. Fotos antigas em Base64 continuam funcionando e só são substituídas ao enviar uma nova imagem; não há migração em massa automática. Logos, anexos e documentos não foram migrados neste incremento.</p>
+<p>Use o painel Storage/Usage para acompanhar espaço e tráfego semanalmente. O limite de 256 KB por upload não é uma cota global: a franquia total é controlada pelo Supabase. Ao se aproximar do limite, remova objetos órfãos e reveja o consumo antes de decidir por qualquer upgrade. Não foram ativadas transformações de imagem pagas.</p>
+<h3 id="testes-e-erros">Testes e erros</h3>
+<p>Com uma conta de teste, abra Configurações/Perfil, selecione uma foto e clique em salvar. Recarregue: a imagem deve aparecer e o bucket deve conter um objeto JPEG. Substitua a imagem e confira que a anterior foi removida; remova a foto e confirme ausência do objeto e retorno às iniciais. Teste outra conta: ela não pode substituir a foto da primeira usando <code>/users/me</code> ou um caminho enviado manualmente. Um arquivo SVG, conteúdo falso ou imagem acima dos limites deve ser recusado pelo backend.</p>
+<p>Sem variáveis, novas fotos retornam orientação para configurar o Storage; o perfil pode ser editado mantendo a foto existente. Erro de credenciais → conferir Project URL e secret key do mesmo projeto; bucket inexistente → conferir nome exato; erro de cota → conferir Usage e plano; imagem ausente após uma hora → recarregar; indisponibilidade do serviço → conferir status/pausa do projeto. Falha de leitura apresenta as iniciais sem expor a chave ou detalhes internos. Testes automatizados usam respostas HTTP simuladas; validação real exige seu projeto configurado.</p>
+<h3 id="rotacao-e-revogacao">Rotação e revogação</h3>
+<p>Crie outra secret key no Supabase, atualize <code>SUPABASE_SECRET_KEY</code>, recrie o backend e teste upload/leitura/exclusão antes de revogar a anterior. Em vazamento, revogue imediatamente. Trocar projeto ou bucket exige copiar os objetos preservando os caminhos antes de mudar as variáveis; não é feito automaticamente. As barbearias não recebem nem revogam a chave da plataforma.</p>
 </section></main><aside class="toc"><p>DOCUMENTO INTERNO</p><p>Somente local · 28/09/2026</p></aside></div></body></html>

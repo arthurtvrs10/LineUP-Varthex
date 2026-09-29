@@ -23,9 +23,11 @@ public class UserController {
     //*
 
     private final UserService userService;
+    private final com.backend.storage.SupabaseStorage storage;
 
-    public UserController(UserService userService){
+    public UserController(UserService userService, com.backend.storage.SupabaseStorage storage){
         this.userService = userService;
+        this.storage = storage;
     }
 
     private RequesterContext requesterContext(JwtAuthenticationToken authentication) {
@@ -51,7 +53,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 
@@ -69,7 +71,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 
@@ -93,7 +95,7 @@ public class UserController {
                 createdUser.getStatus(),
                 createdUser.getTenantId(),
                 createdUser.getCreatedAt(),
-                createdUser.getPhotoData()
+                storage.display(createdUser.getPhotoData())
         );
     }
 
@@ -124,7 +126,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 
@@ -140,7 +142,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 
@@ -155,7 +157,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 
@@ -170,7 +172,7 @@ public class UserController {
                 user.getStatus(),
                 user.getTenantId(),
                 user.getCreatedAt(),
-                user.getPhotoData()
+                storage.display(user.getPhotoData())
         );
     }
 }

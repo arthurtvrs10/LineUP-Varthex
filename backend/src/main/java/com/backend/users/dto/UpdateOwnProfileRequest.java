@@ -1,6 +1,6 @@
 package com.backend.users.dto;
 
-// photoData: data URL base64 da nova foto; null = não mexe na foto atual,
+// photoData: JPEG base64 para upload privado; URL atual = preservar; null = não mexer,
 // string vazia = remove a foto atual.
 public record UpdateOwnProfileRequest(
         String name,

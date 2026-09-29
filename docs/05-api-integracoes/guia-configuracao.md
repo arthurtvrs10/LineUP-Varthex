@@ -14,6 +14,7 @@ Revisão: 28/09/2026. Inventário conferido na implementação atual. Todos os d
 | Google Calendar | Previsto, sem integração executável | Futuramente habilitará API e cliente OAuth | Futuramente autorizará sua conta e escolherá agenda |
 | Avaliações Google | Previsto na documentação de domínio | Não há integração Google Business Profile implementada | Não confundir com avaliações internas do LineUp |
 | Redis | Provisionado no Compose, sem uso identificado no código da aplicação | Mantém serviço exigido pelo Compose atual | Nenhuma configuração |
+| Supabase Storage Free | Implementado para novas fotos de perfil; ativação depende das credenciais | Cria projeto gratuito e bucket privado; configura chave secreta | Usa o upload do perfil; não cria conta Supabase |
 | Pagamentos externos, armazenamento S3 e Evolution API | Nenhum conector ativo identificado | Não há chaves a configurar | Cadastros financeiros internos não representam cobrança em gateway |
 
 As chaves Resend, segredo OAuth Google, segredo de sessão e chave de criptografia são da plataforma. Não devem aparecer em formulários para barbearias. No WhatsApp, a conexão manual existente é uma alternativa técnica: recebe credenciais do aplicativo Meta próprio do estabelecimento. Nunca fornecer o segredo do aplicativo Meta da plataforma para que o cliente o cole nesse formulário.
@@ -121,6 +122,9 @@ F = processo frontend; B = processo backend; DB = container PostgreSQL. No modo 
 | `WHATSAPP_WEBHOOK_VERIFY_TOKEN` | B | Segredo aleatório escolhido pelo operador para verificação do webhook compartilhado |
 | `WHATSAPP_WORKER_ENABLED` | B | `true` por padrão; `false` em testes sem envio; habilitar para processar fila/automações |
 | `NODE_ENV` | F/runtime | Definido pelo runtime/build; produção usa `production`; não é credencial |
+| `SUPABASE_URL` | B | Origem HTTPS do projeto, no formato `https://seu-projeto.supabase.co` |
+| `SUPABASE_SECRET_KEY` | B | Chave secreta da plataforma, `sb_secret_...`; nunca enviar ao frontend |
+| `SUPABASE_STORAGE_BUCKET` | B | Bucket privado de fotos; padrão `lineup-avatars` |
 
 Não há variáveis ativas de Google Calendar, Redis, Stripe, Mercado Pago ou Evolution API. Não criar nomes presumidos de variáveis esperando que ativem esses serviços. Parâmetros gerais de Spring/Node não utilizados especificamente pelo projeto estão fora deste inventário.
 
@@ -228,3 +232,42 @@ Em incidentes, registre serviço, ambiente, horário e código de erro. Remova t
 ### Rastreabilidade do levantamento
 
 Verificados: `backend/src/main/resources/application.properties`, `docker-compose.yml`, exemplos de ambiente, configuração NextAuth, serviços de e-mail/autenticação, módulo WhatsApp, dependências e referências de integrações do frontend/backend. Documentos conceituais de domínio não foram tratados como prova de funcionalidade implementada. Guia técnico complementar: `docs/06-frontend-ux/crm-whatsapp.md`.
+
+## 10. Supabase Storage Free — fotos de perfil
+
+Decisão: começar no plano Free para evitar mensalidade adicional. O projeto usa somente Storage; autenticação e banco de negócio continuam no LineUp. O Free inclui 1 GB de arquivos e franquias separadas de 5 GB de tráfego com cache e 5 GB sem cache. Esses limites não significam uso ilimitado, e o plano gratuito pode sofrer pausas conforme a política do provedor. Confira o painel de uso e a [tabela oficial](https://supabase.com/pricing) antes de liberar clientes reais. Não foi contratado plano pago ou criado projeto automaticamente.
+
+### Configuração pelo operador
+
+1. Crie sua conta em [Supabase](https://supabase.com/dashboard), uma organização no plano Free e um projeto. Escolha uma região adequada ao backend. Guarde a senha de banco solicitada pelo painel; ela não é usada como chave Storage do LineUp.
+2. Abra Storage e crie o bucket `lineup-avatars`. Mantenha **Public bucket desativado**, limite cada arquivo a **262144 bytes (256 KB)** e permita somente `image/jpeg`. Não crie políticas de acesso anônimo ou escrita pública.
+3. Nas configurações de API/Connect, copie a Project URL. Na área de API Keys, crie uma **secret key** (`sb_secret_...`) para o backend. Não use publishable/anon key neste conector. A chave secreta tem acesso privilegiado: a autorização de usuários e barbearias é feita pelo LineUp antes das operações. Veja [chaves Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
+4. Copie os nomes de `backend/supabase.env.example` para `backend/.env.local` sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em `frontend/.env.local`, variáveis `NEXT_PUBLIC_*`, Git ou chat.
+
+```dotenv
+SUPABASE_URL=https://seu-projeto.supabase.co
+SUPABASE_SECRET_KEY=SUBSTITUIR_PELA_SECRET_KEY
+SUPABASE_STORAGE_BUCKET=lineup-avatars
+```
+
+5. Execute `docker compose up -d --force-recreate backend`. Não há callback OAuth, webhook ou credenciais por barbearia. O operador mantém uma conta/bucket da plataforma.
+
+### Funcionamento e economia
+
+Ao salvar o perfil, a imagem é comprimida no navegador em JPEG de até 200 px. O backend aceita no máximo 256 KB e 512 × 512 px, valida o conteúdo e usa o usuário autenticado como dono do objeto. O nome é gerado pelo servidor: `avatars/ID_DO_USUARIO/ID_ALEATORIO.jpg`. O cliente não escolhe caminhos de outro usuário.
+
+O banco guarda uma referência ao objeto; as respostas autorizadas geram uma URL de leitura válida por uma hora. O bucket permanece privado. Quem obtiver uma URL assinada poderá acessá-la até expirar; não a compartilhe. Depois da expiração, recarregue a página para obter outra. As consultas de clientes/profissionais mantêm as regras de acesso da barbearia; a foto de uma conta de cliente é global, assim como seu perfil. [Buckets privados](https://supabase.com/docs/guides/storage/buckets/fundamentals).
+
+A foto anterior é excluída após a confirmação da gravação no banco; se a transação for revertida, o novo objeto é removido. Falhas de limpeza são registradas para revisão manual e não há fila automática de repetição. Mantenha um acompanhamento de objetos órfãos para economizar espaço. Fotos antigas em Base64 continuam funcionando e só são substituídas ao enviar uma nova imagem; não há migração em massa automática. Logos, anexos e documentos não foram migrados neste incremento.
+
+Use o painel Storage/Usage para acompanhar espaço e tráfego semanalmente. O limite de 256 KB por upload não é uma cota global: a franquia total é controlada pelo Supabase. Ao se aproximar do limite, remova objetos órfãos e reveja o consumo antes de decidir por qualquer upgrade. Não foram ativadas transformações de imagem pagas.
+
+### Testes e erros
+
+Com uma conta de teste, abra Configurações/Perfil, selecione uma foto e clique em salvar. Recarregue: a imagem deve aparecer e o bucket deve conter um objeto JPEG. Substitua a imagem e confira que a anterior foi removida; remova a foto e confirme ausência do objeto e retorno às iniciais. Teste outra conta: ela não pode substituir a foto da primeira usando `/users/me` ou um caminho enviado manualmente. Um arquivo SVG, conteúdo falso ou imagem acima dos limites deve ser recusado pelo backend.
+
+Sem variáveis, novas fotos retornam orientação para configurar o Storage; o perfil pode ser editado mantendo a foto existente. Erro de credenciais → conferir Project URL e secret key do mesmo projeto; bucket inexistente → conferir nome exato; erro de cota → conferir Usage e plano; imagem ausente após uma hora → recarregar; indisponibilidade do serviço → conferir status/pausa do projeto. Falha de leitura apresenta as iniciais sem expor a chave ou detalhes internos. Testes automatizados usam respostas HTTP simuladas; validação real exige seu projeto configurado.
+
+### Rotação e revogação
+
+Crie outra secret key no Supabase, atualize `SUPABASE_SECRET_KEY`, recrie o backend e teste upload/leitura/exclusão antes de revogar a anterior. Em vazamento, revogue imediatamente. Trocar projeto ou bucket exige copiar os objetos preservando os caminhos antes de mudar as variáveis; não é feito automaticamente. As barbearias não recebem nem revogam a chave da plataforma.
