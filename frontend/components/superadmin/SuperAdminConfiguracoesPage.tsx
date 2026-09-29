@@ -30,7 +30,7 @@ type Integracao = {
 const integracoes: Integracao[] = [
   { nome: "Stripe", descricao: "Pagamentos e cobranças recorrentes", status: "Conectado", acao: "Editar" },
   { nome: "Twilio (WhatsApp)", descricao: "Envio de SMS e mensagens WhatsApp", status: "Conectado", acao: "Editar" },
-  { nome: "SendGrid", descricao: "E-mail transacional", status: "Conectado", acao: "Editar" },
+  { nome: "Resend", descricao: "E-mails de recuperação de senha e notificações da plataforma", status: "Conectado", acao: "Editar" },
   { nome: "AWS S3", descricao: "Armazenamento de arquivos e imagens", status: "Conectado", acao: "Editar" },
   { nome: "Sentry", descricao: "Monitoramento de erros", status: "Pendente", acao: "Configurar" },
   { nome: "DataDog", descricao: "APM e observabilidade", status: "Desconectado", acao: "Configurar" },
