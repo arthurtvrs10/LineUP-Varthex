@@ -38,7 +38,7 @@ export function WhatsAppSettings(){
    setFeedback("Conta conectada. Confira agora as atualizações de entrega.");setSelectedStep(3);
   });
  }
- return <div className="w-full max-w-6xl space-y-5">
+ return <div className="w-full space-y-5">
   <Link href="/admin/configuracoes/integracoes" className="text-sm font-semibold text-accent-strong">Voltar às integrações</Link>
   <div><h1 className="text-2xl font-bold text-ink">Conectar WhatsApp</h1><p className="mt-1 text-sm text-secondary">Siga as etapas para enviar lembretes e conversar com seus clientes pelo LineUp.</p></div>
   <Status ready={!!c} error={resource.error}/>
