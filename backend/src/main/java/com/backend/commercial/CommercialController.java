@@ -34,6 +34,7 @@ public class CommercialController {
     @GetMapping("/loyalty") public Object loyalty(JwtAuthenticationToken a){return service.loyalty(tenant(a));}
     @PostMapping("/loyalty/redeem") public Object redeem(@RequestBody CommercialService.RedeemInput b,JwtAuthenticationToken a){return service.redeem(tenant(a),actor(a),b);}
     @GetMapping("/reviews") public Object reviews(JwtAuthenticationToken a){return service.reviews(tenant(a));}
+    @GetMapping("/reviews/pending") public Object pendingReviews(JwtAuthenticationToken a){return service.pendingReviews(tenant(a),actor(a));}
     @PostMapping("/reviews") public Object review(@RequestBody CommercialService.ReviewInput b,JwtAuthenticationToken a){return service.review(tenant(a),actor(a),b);}
     @PostMapping("/reviews/{id}/reply") public Object reply(@PathVariable UUID id,@RequestBody Reason b,JwtAuthenticationToken a){return service.reply(tenant(a),actor(a),id,b.reason());}
     @GetMapping("/crm") public Object crm(JwtAuthenticationToken a){return service.crm(tenant(a));}

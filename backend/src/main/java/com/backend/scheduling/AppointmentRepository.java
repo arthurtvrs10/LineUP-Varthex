@@ -9,6 +9,13 @@ import java.util.List;
 import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, UUID> {
+    @Query("""
+        select a from Appointment a where a.tenantId = :tenantId and a.customerId = :customerId
+        and a.status = com.backend.scheduling.AppointmentStatus.COMPLETED
+        and not exists (select r.id from Review r where r.tenantId = a.tenantId and r.appointmentId = a.id)
+        order by a.endAt desc, a.id
+        """)
+    List<Appointment> findPendingReviews(UUID tenantId, UUID customerId);
 
     List<Appointment> findAllByTenantIdAndStartAtLessThanAndEndAtGreaterThan(
             UUID tenantId, LocalDateTime to, LocalDateTime from

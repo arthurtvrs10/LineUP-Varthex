@@ -4,6 +4,7 @@ import { ClientSidebar } from "./ClientSidebar";
 import { ClientTopbar } from "./ClientTopbar";
 import { ClientPortalGate } from "./ClientPortalGate";
 import { MyCustomerProvider } from "./MyCustomerContext";
+import { ReviewPrompt } from "./ReviewPrompt";
 
 type ClientShellProps = {
   title: string;
@@ -23,6 +24,7 @@ export function ClientShell({ title, breadcrumb, children }: ClientShellProps) {
           </main>
         </div>
         <PortalSwitcher />
+        <ReviewPrompt />
       </div>
     </MyCustomerProvider>
   );

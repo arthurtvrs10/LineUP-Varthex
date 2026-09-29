@@ -182,6 +182,7 @@ public class SecurityConfig {
 
                         .requestMatchers("/platform", "/platform/**").hasRole("SUPER_ADMIN")
                         .requestMatchers(HttpMethod.POST, "/commercial/reviews").hasRole("CLIENT")
+                        .requestMatchers(HttpMethod.GET, "/commercial/reviews/pending").hasRole("CLIENT")
                         .requestMatchers(HttpMethod.GET, "/commercial/me").hasRole("CLIENT")
                         .requestMatchers("/commercial/me/consent").authenticated()
                         .requestMatchers("/commercial", "/commercial/**").hasRole("ADMIN")

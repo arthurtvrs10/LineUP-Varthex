@@ -55,6 +55,7 @@ function toLocalDateTime(date: Date) {
 
 export function HistoricoPage() {
   const [appointments, setAppointments] = useState<AppointmentResponse[]>([]);
+  const [pendingReviews, setPendingReviews] = useState<string[]>([]);
   const [barberNames, setBarberNames] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
@@ -75,6 +76,8 @@ export function HistoricoPage() {
       );
       items.sort((a, b) => b.startAt.localeCompare(a.startAt));
       setAppointments(items);
+      const pending = await apiFetch<{appointmentId:string}[]>("/commercial/reviews/pending");
+      setPendingReviews(pending.map(item=>item.appointmentId));
 
       const unitIds = Array.from(new Set(items.map((a) => a.unitId)));
       const names: Record<string, string> = {};
@@ -261,7 +264,7 @@ export function HistoricoPage() {
                     {brl.format(Number(item.totalAmount))}
                   </td>
                   <td className="px-6 py-4 text-right">
-                    {item.status === "COMPLETED" && <CustomerReview appointmentId={item.id} />}
+                    {item.status === "COMPLETED" && pendingReviews.includes(item.id) && <CustomerReview appointmentId={item.id} onSaved={()=>{setPendingReviews(previous=>previous.filter(id=>id!==item.id));toast.mostrar("Obrigado pela sua avaliação!");}} />}
                     {CANCELAVEIS.includes(item.status) && (
                       <button
                         type="button"

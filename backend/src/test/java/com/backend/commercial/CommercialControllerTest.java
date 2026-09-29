@@ -91,6 +91,38 @@ class CommercialControllerTest {
         mvc.perform(get("/platform/plans").header("Authorization","Bearer "+adminToken)).andExpect(status().isForbidden());
         mvc.perform(get("/platform/metrics").header("Authorization","Bearer "+platformToken)).andExpect(status().isOk());
     }
+    @Test void pendingReviewsPersistUntilSubmittedAndAreScoped() throws Exception {
+        for (int attempt=0;attempt<2;attempt++) {
+            mvc.perform(get("/commercial/reviews/pending").header("Authorization","Bearer "+clientToken))
+                .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].appointmentId").value(appointment.toString()))
+                .andExpect(jsonPath("$[0].barberId").value(barberId.toString()));
+        }
+        String stranger=jwt.generateTokemn(user(Role.CLIENT,tenant));
+        mvc.perform(get("/commercial/reviews/pending").header("Authorization","Bearer "+stranger))
+            .andExpect(status().isOk()).andExpect(jsonPath("$.length()").value(0));
+        postJson("/commercial/reviews",stranger,Map.of("appointmentId",appointment,"rating",5),403);
+        postJson("/commercial/reviews",clientToken,Map.of("appointmentId",appointment,"rating",5),200);
+        mvc.perform(get("/commercial/reviews/pending").header("Authorization","Bearer "+clientToken)).andExpect(jsonPath("$.length()").value(0));
+        mvc.perform(get("/commercial/reviews").header("Authorization","Bearer "+adminToken))
+            .andExpect(jsonPath("$[0].barberName").value("Profissional"))
+            .andExpect(jsonPath("$[0].customerName").value("Cliente Exemplo"));
+        String list=mvc.perform(get("/commercial/reviews").header("Authorization","Bearer "+adminToken)).andReturn().getResponse().getContentAsString();
+        String reviewId=json.readTree(list).get(0).get("id").asText();
+        mvc.perform(get("/commercial/reviews").header("Authorization","Bearer "+otherToken)).andExpect(jsonPath("$.length()").value(0));
+        postJson("/commercial/reviews/"+reviewId+"/reply",otherToken,Map.of("reason","Resposta"),404);
+        mvc.perform(get("/commercial/reviews").header("Authorization","Bearer "+clientToken)).andExpect(status().isForbidden());
+    }
+
+    @Test void unfinishedAppointmentsAndInvalidRatingsCannotBeReviewed() throws Exception {
+        var a=appointments.findById(appointment).orElseThrow();a.setStatus(AppointmentStatus.CONFIRMED);appointments.save(a);
+        mvc.perform(get("/commercial/reviews/pending").header("Authorization","Bearer "+clientToken)).andExpect(jsonPath("$.length()").value(0));
+        postJson("/commercial/reviews",clientToken,Map.of("appointmentId",appointment,"rating",5),400);
+        a.setStatus(AppointmentStatus.COMPLETED);appointments.save(a);
+        postJson("/commercial/reviews",clientToken,Map.of("appointmentId",appointment,"rating",0),400);
+        postJson("/commercial/reviews",clientToken,Map.of("appointmentId",appointment,"rating",6),400);
+        postJson("/commercial/reviews",clientToken,Map.of("appointmentId",appointment,"rating",5,"comment","x".repeat(1001)),400);
+    }
     @Test void invalidMoneyAndDuplicateOpenAreRejected()throws Exception{
         postJson("/commercial/cash/open",adminToken,Map.of("amount",-1),400);open();postJson("/commercial/cash/open",adminToken,Map.of("amount",0),400);
         postJson("/commercial/payments",adminToken,payment("bad","0.001"),400);

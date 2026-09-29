@@ -238,7 +238,25 @@ public class CommercialService {
         require(input.points()!=null&&input.points()>0,"Informe a quantidade de pontos");long balance=moves.stream().filter(l->input.customerId().equals(l.customerId)).mapToLong(l->l.points).sum();require(balance>=input.points(),"Pontos insuficientes");
         LoyaltyMovement l=new LoyaltyMovement();l.tenantId=tenant;l.customerId=input.customerId();l.points=-input.points();l.reason=text(input.reason(),"Recompensa");l.requestKey=key;l.createdBy=actor;l.createdAt=LocalDateTime.now();loyalty.save(l);event(tenant,actor,"LOYALTY_REDEEM",l.id);return l;
     }
-    public List<Review> reviews(UUID tenant) {return reviews.findAllByTenantId(tenant);}
+    public record ReviewResponse(UUID id, UUID appointmentId, UUID customerId, UUID barberId, String customerName, String barberName, Integer rating, String comment, String reply, LocalDateTime createdAt) {}
+    private String barberName(UUID id) {
+        var barber = em.find(com.backend.barbers.BarberProfile.class, id);
+        return barber == null ? "Profissional" : barber.getDisplayName();
+    }
+    public List<ReviewResponse> reviews(UUID tenant) {
+        return reviews.findAllByTenantId(tenant).stream().sorted(Comparator.comparing((Review r)->r.createdAt).reversed()).map(r -> {
+            Appointment a = appointment(tenant,r.appointmentId);
+            String name = customers.findById(r.customerId).filter(c -> tenant.equals(c.getTenantId())).map(com.backend.customers.Customer::getFullName).orElse("Cliente");
+            return new ReviewResponse(r.id,r.appointmentId,r.customerId,a.getBarberId(),name,barberName(a.getBarberId()),r.rating,r.comment,r.reply,r.createdAt);
+        }).toList();
+    }
+    public record PendingReview(UUID appointmentId, UUID barberId, String barberName, LocalDateTime endAt) {}
+    public List<PendingReview> pendingReviews(UUID tenant, UUID actor) {
+        return customers.findByTenantIdAndUserId(tenant,actor)
+            .map(c -> appointments.findPendingReviews(tenant,c.getId()).stream()
+                .map(a -> new PendingReview(a.getId(),a.getBarberId(),barberName(a.getBarberId()),a.getEndAt())).toList())
+            .orElse(List.of());
+    }
     public record ReviewInput(UUID appointmentId,Integer rating,String comment) {}
     public Review review(UUID tenant,UUID actor,ReviewInput input) {
         var c=customers.findByTenantIdAndUserId(tenant,actor).orElseThrow(()->new ResponseStatusException(HttpStatus.FORBIDDEN,"Cliente não encontrado"));lock(c.getTenantId());
@@ -246,7 +264,8 @@ public class CommercialService {
         require(a.getCustomerId().equals(c.getId())&&a.getStatus()==AppointmentStatus.COMPLETED,"Somente seus atendimentos concluídos podem ser avaliados");
         require(reviews.findAllByTenantId(c.getTenantId()).stream().noneMatch(r->input.appointmentId().equals(r.appointmentId)),"Atendimento já avaliado");
         require(input.rating()!=null&&input.rating()>=1&&input.rating()<=5,"Nota deve ser de 1 a 5");
-        Review r=new Review();r.tenantId=c.getTenantId();r.customerId=c.getId();r.appointmentId=a.getId();r.rating=input.rating();r.comment=text(input.comment(),"Comentário");r.createdAt=LocalDateTime.now();reviews.save(r);event(r.tenantId,actor,"REVIEW_CREATE",r.id);return r;
+        require(input.comment()==null || input.comment().length()<=1000,"Comentário deve ter até 1000 caracteres");
+        Review r=new Review();r.tenantId=c.getTenantId();r.customerId=c.getId();r.appointmentId=a.getId();r.rating=input.rating();r.comment=input.comment()==null?"":input.comment().trim();r.createdAt=LocalDateTime.now();reviews.save(r);event(r.tenantId,actor,"REVIEW_CREATE",r.id);return r;
     }
     public Review reply(UUID tenant,UUID actor,UUID id,String reply) {
         lock(tenant);Review r=reviews.findById(id).filter(v->tenant.equals(v.tenantId)).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Avaliação não encontrada"));r.reply=text(reply,"Resposta");reviews.save(r);event(tenant,actor,"REVIEW_REPLY",id);return r;
