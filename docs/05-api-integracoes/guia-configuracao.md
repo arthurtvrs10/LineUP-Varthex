@@ -11,11 +11,12 @@ Revisão: 28/09/2026. Inventário conferido na implementação atual. Todos os d
 | Resend | Implementado; opcional para iniciar localmente, necessário para entregar recuperação de senha e notificações por e-mail | Cria conta, verifica domínio e configura chave | Não cadastra chave Resend; usa remetente da plataforma |
 | Login Google | Implementado; opcional | Cria projeto e cliente OAuth do LineUp | Usuário autoriza seu próprio login; não cria projeto Google |
 | WhatsApp Business oficial | Implementado; opcional | Configura criptografia, endereço público e aplicativo Meta para conexão guiada | Autoriza sua própria conta empresarial e número; conexão isolada por estabelecimento |
-| Google Calendar | Previsto, sem integração executável | Futuramente habilitará API e cliente OAuth | Futuramente autorizará sua conta e escolherá agenda |
+| Google Calendar | OAuth e sincronização unidirecional | API, credenciais e callback Google configurados no backend | OAuth autoriza a conta; conexão pode ser da barbearia ou do barbeiro |
 | Avaliações Google | Previsto na documentação de domínio | Não há integração Google Business Profile implementada | Não confundir com avaliações internas do LineUp |
 | Redis | Provisionado no Compose, sem uso identificado no código da aplicação | Mantém serviço exigido pelo Compose atual | Nenhuma configuração |
 | Supabase Storage Free | Implementado para novas fotos de perfil; ativação depende das credenciais | Cria projeto gratuito e bucket privado; configura chave secreta | Usa o upload do perfil; não cria conta Supabase |
-| Pagamentos externos, armazenamento S3 e Evolution API | Nenhum conector ativo identificado | Não há chaves a configurar | Cadastros financeiros internos não representam cobrança em gateway |
+| Assinaturas Asaas | MVP implementado, desabilitado por padrão; exige homologação | Configura chave de API, webhook e regras comerciais conforme [guia Asaas](asaas-assinaturas.md) | Contrata e gerencia a assinatura; não recebe credenciais do provedor |
+| Pagamentos de atendimentos, armazenamento S3 e Evolution API | Nenhum conector ativo identificado | Não há chaves a configurar | Cadastros financeiros internos não representam cobrança em gateway |
 
 As chaves Resend, segredo OAuth Google, segredo de sessão e chave de criptografia são da plataforma. Não devem aparecer em formulários para barbearias. No WhatsApp, a conexão manual existente é uma alternativa técnica: recebe credenciais do aplicativo Meta próprio do estabelecimento. Nunca fornecer o segredo do aplicativo Meta da plataforma para que o cliente o cole nesse formulário.
 
@@ -126,7 +127,7 @@ F = processo frontend; B = processo backend; DB = container PostgreSQL. No modo 
 | `SUPABASE_SECRET_KEY` | B | Chave secreta da plataforma, `sb_secret_...`; nunca enviar ao frontend |
 | `SUPABASE_STORAGE_BUCKET` | B | Bucket privado de fotos; padrão `lineup-avatars` |
 
-Não há variáveis ativas de Google Calendar, Redis, Stripe, Mercado Pago ou Evolution API. Não criar nomes presumidos de variáveis esperando que ativem esses serviços. Parâmetros gerais de Spring/Node não utilizados especificamente pelo projeto estão fora deste inventário.
+Não há variáveis ativas de Redis, Stripe, Mercado Pago ou Evolution API. Google Calendar possui configuração própria descrita adiante. Parâmetros gerais de Spring/Node não utilizados especificamente pelo projeto estão fora deste inventário.
 
 ## 4. Resend — e-mails da plataforma
 
@@ -156,17 +157,9 @@ Erros: `redirect_uri_mismatch` → conferir protocolo, host, porta e caminho com
 
 Rotação: crie/substitua o segredo no cliente OAuth do Console, atualize o frontend, recrie e valide login antes de desativar o anterior quando o provedor permitir sobreposição. Se trocar o Client ID, atualize frontend e backend juntos. O usuário pode revogar acesso ao LineUp nas conexões de terceiros da Conta Google. Isso não apaga sua conta local nem garante encerramento imediato de sessões existentes. Trocar `NEXTAUTH_SECRET` encerra a validade das sessões NextAuth antigas; planeje novo login.
 
-## 6. Google Calendar — previsto, ainda não configurável
+## 6. Google Calendar — sincronização unidirecional
 
-O projeto não implementa cliente Calendar, callback de autorização, armazenamento de refresh token, seleção de agenda nem sincronização. Não existem variáveis Calendar reconhecidas. Habilitar a API no Google Cloud ou preencher o login Google não ativa sincronização.
-
-Preparação futura do operador: no projeto Google da plataforma, habilitar Google Calendar API, definir um fluxo OAuth separado do login e cadastrar a URL de retorno **quando ela for implementada e documentada**. Não há callback Calendar utilizável nesta versão.
-
-Fluxo SaaS previsto: administrador/barbeiro escolhe Conectar Google Calendar, autoriza sua própria conta e seleciona a agenda. O operador guarda o segredo OAuth da plataforma; cada conexão guarda tokens segregados por barbearia e usuário, criptografados no backend. A pessoa não cola Client Secret ou chave de serviço.
-
-Para sincronização em segundo plano será necessário acesso offline e renovação de tokens. O escopo deve ser o mínimo para a função: por exemplo, `https://www.googleapis.com/auth/calendar.events` permite operações em eventos; a escolha final depende das agendas e funções implementadas. Consulte [escopos Calendar](https://developers.google.com/workspace/calendar/api/auth) e [OAuth para aplicações Web](https://developers.google.com/identity/protocols/oauth2/web-server).
-
-Aceite futuro: conectar conta A à barbearia A, selecionar agenda, criar/remarcar/cancelar atendimento e conferir o evento correspondente sem duplicatas; comprovar que barbearia B não vê tokens ou eventos de A; testar expiração/renovação e revogação na Conta Google. Falha `invalid_grant` deverá pedir nova autorização; permissões insuficientes deverão orientar reconexão. **Esses testes ainda não podem ser executados no LineUp atual.**
+O fluxo OAuth do Calendar, tokens criptografados, escolha de agenda e fila de sincronização estão implementados. Para configuração do projeto Google, credenciais, callback, escopos, rotas e operação, consulte o [guia da integração Google Calendar](google-calendar.md). Essa autorização é separada do login Google. Alterações feitas no Google Calendar não alteram os agendamentos no LineUp.
 
 ## 7. WhatsApp Business oficial — plataforma e estabelecimento
 
@@ -271,3 +264,13 @@ Sem variáveis, novas fotos retornam orientação para configurar o Storage; o p
 ### Rotação e revogação
 
 Crie outra secret key no Supabase, atualize `SUPABASE_SECRET_KEY`, recrie o backend e teste upload/leitura/exclusão antes de revogar a anterior. Em vazamento, revogue imediatamente. Trocar projeto ou bucket exige copiar os objetos preservando os caminhos antes de mudar as variáveis; não é feito automaticamente. As barbearias não recebem nem revogam a chave da plataforma.
+
+## Google Calendar (sincronização unidirecional)
+
+Para a cobrança da assinatura do software, consulte o [guia Asaas — assinaturas do LineUp](asaas-assinaturas.md). A integração vem desabilitada e deve ser homologada no sandbox antes de produção.
+
+O backend inclui OAuth e fila persistente para espelhar criação, reagendamento e cancelamento no Google Calendar. Configure `GOOGLE_CALENDAR_CLIENT_ID`, `GOOGLE_CALENDAR_CLIENT_SECRET`, `GOOGLE_CALENDAR_CALLBACK_URL` (URI exata cadastrada no cliente OAuth) e `GOOGLE_CALENDAR_ENCRYPTION_KEY` (chave Base64 de 32 bytes). Habilite Google Calendar API no projeto Cloud. O callback padrão de desenvolvimento é `http://localhost:8080/integrations/google-calendar/callback`; em produção use HTTPS. Esta chave é específica do Calendar e não substitui a chave do WhatsApp.
+
+A conexão pode pertencer ao tenant (`scope=TENANT`, ADMIN) ou ao perfil próprio do profissional (`scope=BARBER`, BARBER). Cada proprietário escolhe a agenda em `GET /integrations/google-calendar/calendars?scope=...` e `PUT /integrations/google-calendar/calendar?scope=...` (`{"calendarId":"..."}`). As rotas `GET /integrations/google-calendar/status`, `POST /integrations/google-calendar/connect`, `POST /integrations/google-calendar/retry` e `DELETE /integrations/google-calendar/connection` aceitam o mesmo parâmetro `scope`. O POST connect aceita caminho de retorno allowlisted no corpo: `/admin/configuracoes/integracoes/google-calendar` ou `/barbeiro/configuracoes`.
+
+Google redireciona para `GET /integrations/google-calendar/callback` sem JWT; o `state` temporário valida e localiza a conexão iniciada. As outras rotas exigem JWT e a regra de segurança restringe ADMIN/SUPER_ADMIN para tenant e BARBER para seu próprio perfil. Cada evento é enfileirado na transação do agendamento, enviado em background e repetido com ID determinístico. Conexão de tenant tem precedência; sem ela, usa a do profissional. Alterações feitas no Google Calendar não são importadas.
