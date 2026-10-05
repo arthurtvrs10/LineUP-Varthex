@@ -11,6 +11,7 @@ import com.backend.scheduling.dto.AppointmentActionRequest;
 import com.backend.scheduling.dto.AppointmentCreateRequest;
 import com.backend.scheduling.dto.AppointmentItemResponse;
 import com.backend.scheduling.dto.AppointmentResponse;
+import com.backend.scheduling.dto.AppointmentRescheduleRequest;
 import com.backend.services.ServiceOffering;
 import com.backend.services.ServiceOfferingRepository;
 import com.backend.units.Unit;
@@ -47,6 +48,7 @@ public class AppointmentService {
     private final NotificationService notificationService;
     private final com.backend.commercial.BusinessSettingsRepository settings;
     private final com.backend.commercial.BarberCatalogRepository catalogs;
+    private final com.backend.googlecalendar.GoogleCalendarService googleCalendar;
 
     private static final DateTimeFormatter WHEN_FORMAT = DateTimeFormatter.ofPattern("dd/MM 'às' HH:mm");
 
@@ -56,7 +58,7 @@ public class AppointmentService {
                                UnitRepository unitRepository,
                                ServiceOfferingRepository serviceOfferingRepository,
                                CommissionService commissionService,
-                               NotificationService notificationService, com.backend.commercial.BusinessSettingsRepository settings, com.backend.commercial.BarberCatalogRepository catalogs) {
+                               NotificationService notificationService, com.backend.commercial.BusinessSettingsRepository settings, com.backend.commercial.BarberCatalogRepository catalogs, com.backend.googlecalendar.GoogleCalendarService googleCalendar) {
         this.appointmentRepository = appointmentRepository;
         this.customerRepository = customerRepository;
         this.customerService = customerService;
@@ -67,6 +69,7 @@ public class AppointmentService {
         this.notificationService = notificationService;
         this.settings = settings;
         this.catalogs = catalogs;
+        this.googleCalendar = googleCalendar;
     }
 
     @Transactional
@@ -143,6 +146,7 @@ public class AppointmentService {
         }
 
         Appointment saved = appointmentRepository.save(appointment);
+        googleCalendar.enqueue(saved, "UPSERT");
 
         notificationService.notifyUser(
                 tenantId, barber.getUser().getId(), NotificationType.APPOINTMENT_CREATED,
@@ -169,6 +173,29 @@ public class AppointmentService {
 
     public AppointmentResponse getAppointment(UUID tenantId, UUID appointmentId, UUID restrictCustomerId) {
         return toResponse(findByIdAndTenant(tenantId, appointmentId, restrictCustomerId));
+    }
+
+    @Transactional
+    public AppointmentResponse reschedule(UUID tenantId, UUID appointmentId, AppointmentRescheduleRequest request) {
+        if (request == null || request.startAt() == null)
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Informe a nova data e horário");
+        Appointment appointment = findByIdAndTenant(tenantId, appointmentId, null);
+        if (!Set.of(AppointmentStatus.PENDING, AppointmentStatus.CONFIRMED).contains(appointment.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Este agendamento não pode ser reagendado");
+        }
+        if (request.version() != null && !appointment.getVersion().equals(request.version())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "O agendamento foi modificado por outra requisição");
+        }
+        int duration = Math.toIntExact(java.time.Duration.between(appointment.getStartAt(), appointment.getEndAt()).toMinutes());
+        LocalDateTime endAt = request.startAt().plusMinutes(duration);
+        if (appointmentRepository.hasConflict(appointment.getBarberId(), request.startAt(), endAt, appointment.getId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Horário indisponível para este profissional");
+        }
+        appointment.setStartAt(request.startAt());
+        appointment.setEndAt(endAt);
+        Appointment saved = appointmentRepository.save(appointment);
+        googleCalendar.enqueue(saved, "UPSERT");
+        return toResponse(saved);
     }
 
     @Transactional
@@ -210,6 +237,7 @@ public class AppointmentService {
         }
 
         Appointment saved = appointmentRepository.save(appointment);
+        if (target == AppointmentStatus.CANCELED) googleCalendar.enqueue(saved, "DELETE");
 
         if (target == AppointmentStatus.COMPLETED) {
             // Provisiona a comissão de cada item já com o agendamento salvo

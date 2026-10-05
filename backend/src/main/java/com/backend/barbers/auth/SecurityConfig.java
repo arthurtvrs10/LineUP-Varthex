@@ -56,6 +56,8 @@ public class SecurityConfig {
 
                         // Público
                         .requestMatchers("/integrations/whatsapp/webhook", "/integrations/whatsapp/webhook/*").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/integrations/google-calendar/callback").permitAll()
+                        .requestMatchers("/integrations/google-calendar/**").hasAnyRole("ADMIN", "BARBER", "SUPER_ADMIN")
                         .requestMatchers("/integrations/whatsapp", "/integrations/whatsapp/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login", "/auth/register-client",
                                 "/auth/password-recovery", "/auth/password-recovery/complete",

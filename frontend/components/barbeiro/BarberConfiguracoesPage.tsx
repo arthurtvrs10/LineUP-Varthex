@@ -8,6 +8,7 @@ import { AvatarUpload } from "@/components/ui/AvatarUpload";
 import { EmBreve } from "@/components/ui/EmBreve";
 import { Toast, useToast } from "@/components/ui/Toast";
 import { apiFetch, ApiError } from "@/lib/api";
+import { GoogleCalendarConnection } from "@/components/integrations/GoogleCalendarConnection";
 
 type BarberMeResponse = {
   id: string;
@@ -140,6 +141,8 @@ export function BarberConfiguracoesPage() {
       <SectionCard icon={CalendarCog} title="Agenda">
         <EmBreve text="Preferências de agenda (encaixes, fila automática, bloqueio fora do expediente) ainda não estão disponíveis." />
       </SectionCard>
+
+      <GoogleCalendarConnection scope="BARBER" returnTo="/barbeiro/configuracoes" />
 
       <SectionCard icon={Bell} title="Notificações">
         <EmBreve text="Você já é avisado no app a cada novo agendamento ou horário liberado. Aviso por e-mail para a equipe ainda não existe — por enquanto não há nada pra configurar aqui." />

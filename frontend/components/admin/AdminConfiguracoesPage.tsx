@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffectEvent, useEffect, useState } from "react";
 import { BusinessSettingsPanel } from "@/components/commercial/Settings";
 import { useSession } from "next-auth/react";
-import { ArrowRight, MessageCircle, Plug, Store, UserRound } from "lucide-react";
+import { ArrowRight, CalendarDays, MessageCircle, Plug, Store, UserRound } from "lucide-react";
 import {
   FieldInput,
   SectionCard,
@@ -295,6 +295,15 @@ export function AdminConfiguracoesPage() {
 
       <BusinessSettingsPanel />
       <SectionCard title="Integrações" icon={Plug}>
+        <Link href="/admin/configuracoes/integracoes/google-calendar" className="flex items-center gap-4 rounded-[12px] border border-fog bg-white p-4 transition hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-accent">
+          <CalendarDays size={24} className="shrink-0 text-accent-strong" aria-hidden="true" />
+          <div className="min-w-0 flex-1">
+            <h3 className="font-semibold text-ink">Google Calendar</h3>
+            <p className="mt-1 text-sm text-secondary">Sincronize os agendamentos da barbearia com um calendário Google.</p>
+            <span className="mt-2 inline-block text-sm font-semibold text-accent-strong">Configurar calendário</span>
+          </div>
+          <ArrowRight size={20} className="shrink-0 text-accent-strong" aria-hidden="true" />
+        </Link>
         <Link href="/admin/configuracoes/integracoes/whatsapp" className="flex items-center gap-4 rounded-[12px] border border-fog bg-white p-4 transition hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-accent">
           <MessageCircle size={24} className="shrink-0 text-accent-strong" aria-hidden="true" />
           <div className="min-w-0 flex-1">

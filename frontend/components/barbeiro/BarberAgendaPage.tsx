@@ -171,13 +171,18 @@ export function BarberAgendaPage() {
     return () => { active = false; };
   }, [barber, weekStart]);
 
+  useEffect(() => {
+    const timer = setInterval(() => { if (barber && document.visibilityState === "visible") loadOnEffect(barber.id); }, 60000);
+    return () => clearInterval(timer);
+  }, [barber]);
+
   async function criarAgendamento(payload: NovoAgendamentoPayload) {
     if (!barber) return;
     const [hours, minutes] = payload.time.split(":").map(Number);
     const [year, month, day] = payload.date.split("-").map(Number);
     const startAt = new Date(year, month - 1, day, hours, minutes, 0);
 
-    await apiFetch("/appointments", {
+    await apiFetch<AppointmentResponse>("/appointments", {
       method: "POST",
       body: {
         unitId: barber.unitId,
@@ -189,6 +194,7 @@ export function BarberAgendaPage() {
         items: [{ serviceId: payload.serviceId }],
       },
     });
+    setNovoAberto(false);
     await carregarAgenda(barber.id);
   }
 
@@ -199,6 +205,24 @@ export function BarberAgendaPage() {
       if (barber) await carregarAgenda(barber.id);
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+      throw err;
+    }
+  }
+
+  async function reagendar(appointmentId: string, startAt: string, version?: number) {
+    if (!barber) return;
+    try {
+      await apiFetch<AppointmentResponse>(`/appointments/${appointmentId}/reschedule`, { method: "PATCH", body: { startAt, version } });
+      setDetalhe(null);
+        toast.mostrar("Horário atualizado; sincronização com o calendário enfileirada.");
+      const nextDay = new Date(startAt);
+      nextDay.setHours(0, 0, 0, 0);
+      const nextWeek = startOfWeek(nextDay);
+      setSelectedDay(nextDay);
+      if (nextWeek.toDateString() !== weekStart.toDateString()) setWeekStart(nextWeek);
+      else await carregarAgenda(barber.id);
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível reagendar o atendimento.", "erro");
       throw err;
     }
   }
@@ -534,12 +558,15 @@ export function BarberAgendaPage() {
             notes: detalhe.notes,
             items: detalhe.items,
             clientName: customersById[detalhe.customerId] ?? "Cliente",
+            version: detalhe.version,
           }
         }
         onAction={executarAcao}
+        onReschedule={reagendar}
       />
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
+
     </div>
   );
 }

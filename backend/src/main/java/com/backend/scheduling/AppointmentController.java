@@ -4,6 +4,7 @@ import com.backend.customers.CustomerRepository;
 import com.backend.scheduling.dto.AppointmentActionRequest;
 import com.backend.scheduling.dto.AppointmentCreateRequest;
 import com.backend.scheduling.dto.AppointmentResponse;
+import com.backend.scheduling.dto.AppointmentRescheduleRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationToken;
 import org.springframework.web.bind.annotation.*;
@@ -117,6 +118,14 @@ public class AppointmentController {
             JwtAuthenticationToken authentication
     ) {
         return appointmentService.transitionAppointment(currentTenantId(authentication), appointmentId, "no-show", request, null);
+    }
+
+    @PatchMapping("/{appointmentId}/reschedule")
+    public AppointmentResponse reschedule(@PathVariable UUID appointmentId,
+            @RequestBody AppointmentRescheduleRequest request, JwtAuthenticationToken authentication) {
+        if ("CLIENT".equals(authentication.getToken().getClaimAsString("role")))
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Ação não permitida para clientes");
+        return appointmentService.reschedule(currentTenantId(authentication), appointmentId, request);
     }
 
     private UUID currentTenantId(JwtAuthenticationToken authentication) {

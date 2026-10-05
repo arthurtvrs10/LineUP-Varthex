@@ -23,6 +23,7 @@ type AppointmentResponse = {
   totalAmount: string;
   notes: string | null;
   items: { serviceId: string; name: string }[];
+  version: number;
 };
 
 type BarberOption = { id: string; unitId: string; displayName: string };
@@ -125,6 +126,20 @@ export function AdminAgendaPage() {
       await carregarAgenda();
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível atualizar o agendamento.", "erro");
+      throw err;
+    }
+  }
+
+  async function reagendar(appointmentId: string, startAt: string, version?: number) {
+    try {
+      await apiFetch(`/appointments/${appointmentId}/reschedule`, { method: "PATCH", body: { startAt, version } });
+      toast.mostrar("Horário atualizado; sincronização com o calendário enfileirada.");
+      const nextDate = new Date(startAt);
+      nextDate.setHours(0, 0, 0, 0);
+      if (nextDate.toDateString() === date.toDateString()) await carregarAgenda();
+      else setDate(nextDate);
+    } catch (err) {
+      toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível reagendar o atendimento.", "erro");
       throw err;
     }
   }
@@ -381,9 +396,11 @@ export function AdminAgendaPage() {
             items: detalhe.items,
             clientName: customersById[detalhe.customerId] ?? "Cliente",
             barberName: barbersById[detalhe.barberId] ?? "Profissional",
+            version: detalhe.version,
           }
         }
         onAction={executarAcao}
+        onReschedule={reagendar}
       />
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
