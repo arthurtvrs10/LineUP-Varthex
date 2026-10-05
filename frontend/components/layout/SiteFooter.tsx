@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { Logo } from "@/components/brand/Logo";
 
@@ -5,13 +6,19 @@ type SiteFooterProps = {
   simple?: boolean;
 };
 
-function MadeByLineup() {
+function MadeByVarthex() {
   return (
-    <span className="flex items-center gap-1.5 whitespace-nowrap">
+    <a
+      href="https://www.instagram.com/varthexcompany/"
+      target="_blank"
+      rel="noopener noreferrer"
+      aria-label="Desenvolvido pela Varthex — Instagram (abre em nova aba)"
+      className="flex items-center gap-1.5 whitespace-nowrap hover:underline focus-visible:outline-2 focus-visible:outline-offset-4"
+    >
       Desenvolvido pela
-      <Logo variant="symbol" height={14} className="text-ink" />
-      <strong className="font-semibold text-[#4e5d73]">LINEUP</strong>
-    </span>
+      <Image src="/varthex-brandmark.svg" width={24} height={24} alt="" />
+      <strong className="font-semibold text-[#4e5d73]">Varthex</strong>
+    </a>
   );
 }
 
@@ -24,7 +31,7 @@ export function SiteFooter({ simple = false }: SiteFooterProps) {
           <Link href="/privacidade">Privacidade</Link>
           <Link href="/termos">Termos de uso</Link>
         </div>
-        <MadeByLineup />
+        <MadeByVarthex />
       </footer>
     );
   }
@@ -54,7 +61,7 @@ export function SiteFooter({ simple = false }: SiteFooterProps) {
         <small>
           © {new Date().getFullYear()} LINEUP. Todos os direitos reservados.
         </small>
-        <MadeByLineup />
+        <MadeByVarthex />
       </div>
     </footer>
   );
