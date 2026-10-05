@@ -71,7 +71,7 @@ export function FilaDeEsperaPage() {
     try {
       await apiFetch(`/waitlist-offers/${offerId}/accept`, { method: "POST" });
       toast.mostrar("Agendamento confirmado!");
-      setTimeout(() => router.push("/clientes/dashboard"), 1200);
+      router.push("/clientes/dashboard");
     } catch (err) {
       toast.mostrar(err instanceof ApiError ? err.message : "Não foi possível aceitar essa vaga.", "erro");
       carregar();

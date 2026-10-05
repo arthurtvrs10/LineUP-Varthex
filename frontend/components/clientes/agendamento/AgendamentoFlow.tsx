@@ -113,7 +113,7 @@ export function AgendamentoFlow() {
   const ultimo = passo === PASSOS.length - 1;
 
   async function confirmar() {
-    if (!selecao.servico || !selecao.profissional || !selecao.dia || !selecao.horario) return;
+    if (confirmando || !selecao.servico || !selecao.profissional || !selecao.dia || !selecao.horario) return;
 
     setConfirmando(true);
     setErroConfirmacao(undefined);
@@ -134,7 +134,7 @@ export function AgendamentoFlow() {
       });
 
       toast.mostrar("Agendamento confirmado!");
-      setTimeout(() => router.push("/clientes/dashboard"), 1200);
+      router.push("/clientes/dashboard");
     } catch (err) {
       setErroConfirmacao(err instanceof ApiError ? err.message : "Não foi possível confirmar o agendamento.");
     } finally {

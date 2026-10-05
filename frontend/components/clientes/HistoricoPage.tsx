@@ -7,6 +7,9 @@ import { Plus } from "lucide-react";
 import { apiFetch, ApiError } from "@/lib/api";
 import { Toast, useToast } from "@/components/ui/Toast";
 
+import { AddToCalendarButton } from "@/components/ui/AddToCalendarButton";
+import { appointmentCalendarEvent } from "@/lib/calendar-event";
+
 const CANCELAVEIS: AppointmentStatus[] = ["PENDING", "CONFIRMED", "CHECKED_IN", "IN_PROGRESS"];
 
 type AppointmentStatus = "PENDING" | "CONFIRMED" | "CHECKED_IN" | "IN_PROGRESS" | "COMPLETED" | "CANCELED" | "NO_SHOW";
@@ -264,17 +267,22 @@ export function HistoricoPage() {
                     {brl.format(Number(item.totalAmount))}
                   </td>
                   <td className="px-6 py-4 text-right">
+                    <div className="flex items-center justify-end gap-3 whitespace-nowrap">
                     {item.status === "COMPLETED" && pendingReviews.includes(item.id) && <CustomerReview appointmentId={item.id} onSaved={()=>{setPendingReviews(previous=>previous.filter(id=>id!==item.id));toast.mostrar("Obrigado pela sua avaliação!");}} />}
+                    {(item.status === "PENDING" || item.status === "CONFIRMED") && (
+                      <AddToCalendarButton event={appointmentCalendarEvent(item, barberNames[item.barberId] ? "Profissional: " + barberNames[item.barberId] : undefined)} />
+                    )}
                     {CANCELAVEIS.includes(item.status) && (
                       <button
                         type="button"
                         disabled={cancelingId === item.id}
                         onClick={() => cancelar(item.id)}
-                        className="text-sm font-bold text-[#c84a4a] transition hover:underline disabled:cursor-not-allowed disabled:opacity-50"
+                        className="inline-flex min-h-11 shrink-0 items-center justify-center px-2 text-sm font-bold text-danger transition hover:underline disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {cancelingId === item.id ? "Cancelando…" : "Cancelar"}
                       </button>
                     )}
+                    </div>
                   </td>
                 </tr>
               ))}

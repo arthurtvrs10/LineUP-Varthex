@@ -8,6 +8,8 @@ import { ArrowRight, CalendarDays, Clock, MapPin, Scissors, UserRound } from "lu
 import { SaudacaoHeader } from "@/components/layout/SaudacaoHeader";
 import { apiFetch, ApiError } from "@/lib/api";
 import { useMyCustomer } from "./MyCustomerContext";
+import { AddToCalendarButton } from "@/components/ui/AddToCalendarButton";
+import { appointmentCalendarEvent } from "@/lib/calendar-event";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const weekdayFormatter = new Intl.DateTimeFormat("pt-BR", { weekday: "long", day: "2-digit", month: "long" });
@@ -40,8 +42,9 @@ export function DashboardPage() {
   const [barberName, setBarberName] = useState<string>();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
-
   useEffect(() => {
+    if (!customer) return;
+    let active = true;
     async function carregar() {
       try {
         const now = new Date();
@@ -52,7 +55,7 @@ export function DashboardPage() {
         const proximos = items
           .filter((a) => a.status !== "CANCELED" && a.status !== "NO_SHOW" && a.status !== "COMPLETED")
           .sort((a, b) => a.startAt.localeCompare(b.startAt));
-
+        if (!active) return;
         const next = proximos[0];
         setProximo(next);
 
@@ -67,8 +70,10 @@ export function DashboardPage() {
         setLoading(false);
       }
     }
-    carregar();
-  }, []);
+    void carregar();
+    const timer = setInterval(() => { if (document.visibilityState === "visible") void carregar(); }, 60000);
+    return () => { active = false; clearInterval(timer); };
+  }, [customer]);
 
   const primeiroNome = session?.user?.name?.split(" ")[0] ?? "";
 
@@ -149,6 +154,7 @@ export function DashboardPage() {
                 >
                   Ver detalhes
                 </Link>
+                <AddToCalendarButton event={appointmentCalendarEvent(proximo, customer?.tenantName)} />
               </div>
             </div>
           )}
