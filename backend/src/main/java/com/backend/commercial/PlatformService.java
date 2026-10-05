@@ -17,7 +17,8 @@ public class PlatformService {
     private final PlanRepository plans; private final SubscriptionRepository subscriptions;
     private final AuditEventRepository audit; private final TenantRepository tenants; private final UserRepository users;
     private final CommercialService commercial;
-    public PlatformService(PlanRepository plans,SubscriptionRepository subscriptions,AuditEventRepository audit,TenantRepository tenants,UserRepository users,CommercialService commercial){this.plans=plans;this.subscriptions=subscriptions;this.audit=audit;this.tenants=tenants;this.users=users;this.commercial=commercial;}
+    private final com.backend.billing.BillingAccountRepository billingAccounts;
+    public PlatformService(PlanRepository plans,SubscriptionRepository subscriptions,AuditEventRepository audit,TenantRepository tenants,UserRepository users,CommercialService commercial,com.backend.billing.BillingAccountRepository billingAccounts){this.plans=plans;this.subscriptions=subscriptions;this.audit=audit;this.tenants=tenants;this.users=users;this.commercial=commercial;this.billingAccounts=billingAccounts;}
     public List<Plan> plans(){return plans.findAll();}
     public List<Subscription> subscriptions(){return subscriptions.findAll();}
     public List<AuditEvent> audit(){return audit.findAll().stream().sorted(Comparator.comparing((AuditEvent a)->a.createdAt).reversed()).limit(500).toList();}
@@ -33,6 +34,8 @@ public class PlatformService {
     }
     public Subscription subscribe(UUID actor,SubscriptionInput input){
         commercial.lock(input.tenantId());
+        if(billingAccounts.findByTenantId(input.tenantId()).filter(a->a.providerSubscriptionId!=null).isPresent())
+            throw new ResponseStatusException(HttpStatus.CONFLICT,"Assinatura integrada deve ser gerenciada pela cobrança Asaas");
         Subscription s=subscriptions.findAllByTenantId(input.tenantId()).stream().findFirst().orElseGet(Subscription::new);
         if(!Objects.equals(s.version,input.version()))throw new ResponseStatusException(HttpStatus.CONFLICT,"Assinatura alterada por outra pessoa; recarregue");
         CommercialService.require(input.planId()!=null&&plans.findById(input.planId()).filter(p->p.active||p.id.equals(s.planId)).isPresent(),"Plano inválido");
@@ -45,7 +48,7 @@ public class PlatformService {
         List<Subscription> current=subscriptions.findAll().stream().filter(s->"ACTIVE".equals(s.status)&&!s.startsOn.isAfter(LocalDate.now())&&!s.endsOn.isBefore(LocalDate.now())).toList();
         Map<UUID,Plan> catalog=new HashMap<>();plans.findAll().forEach(p->catalog.put(p.id,p));
         BigDecimal contracted=current.stream().map(s->catalog.get(s.planId)).filter(Objects::nonNull).map(p->p.monthlyPrice).reduce(BigDecimal.ZERO,BigDecimal::add);
-        return Map.of("tenants",tenants.count(),"users",users.count(),"activeSubscriptions",current.size(),"contractedMonthlyAmount",contracted,"billingMode","MANUAL");
+        return Map.of("tenants",tenants.count(),"users",users.count(),"activeSubscriptions",current.size(),"contractedMonthlyAmount",contracted,"billingMode",billingAccounts.count()>0?"ASAAS_AND_MANUAL":"MANUAL");
     }
     public Map<String,Object> health(){long start=System.nanoTime();tenants.count();return Map.of("database","OK","databaseLatencyMs",(System.nanoTime()-start)/1000000,"checkedAt",LocalDateTime.now(),"uptimeSeconds",java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime()/1000,"externalIntegrations","NOT_CONFIGURED");}
 }

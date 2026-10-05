@@ -53,6 +53,7 @@ const groups: PortalNavGroup[] = [
 ];
 
 const bottomLinks = [
+  { href: "/admin/assinatura", label: "Minha assinatura", icon: Wallet },
   { href: "/admin/configuracoes", label: "Configurações", icon: Settings },
   { href: "/admin/ajuda", label: "Ajuda", icon: HelpCircle },
 ];

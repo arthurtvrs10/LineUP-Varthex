@@ -1,9 +1,13 @@
+"use client";
+
+import { useEffect, useState } from "react";
+import { type BillingCatalog, billingMoney } from "@/lib/billing";
 import { Check } from "lucide-react";
 import { ActionLink } from "@/components/ui/ActionLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
-const plans = [
+const referencePlans = [
   {
     name: "Essencial",
     price: "R$ 89",
@@ -44,6 +48,20 @@ const plans = [
 ];
 
 export function PricingSection() {
+  const [catalog, setCatalog] = useState<BillingCatalog>();
+  useEffect(() => {
+    const abort = new AbortController();
+    fetch("/billing/plans", { signal: abort.signal }).then(async r => {
+      if (r.ok) setCatalog(await r.json());
+    }).catch(() => {});
+    return () => abort.abort();
+  }, []);
+  const plans = catalog?.plans.length ? catalog.plans.map(plan => ({
+    id: plan.id, name: plan.name, price: billingMoney(plan.monthlyPrice),
+    audience: `Até ${plan.barberLimit} profissionais`,
+    features: ["Agenda e gestão da operação", "Cadastro de clientes e equipe", "Plano mensal de uso da plataforma"],
+    highlighted: false,
+  })) : referencePlans.map(plan => ({ ...plan, id: "" }));
   return (
     <section
       className="mx-auto w-full max-w-[1216px] px-5 py-16 scroll-mt-20 sm:px-6 lg:py-24"
@@ -98,17 +116,17 @@ export function PricingSection() {
             </ul>
             <ActionLink
               className="mt-8 w-full"
-              href="/cadastro"
+              href={catalog?.available && plan.id ? `/cadastro?plano=${encodeURIComponent(plan.id)}` : "/cadastro"}
               variant={plan.highlighted ? "primary" : "secondary"}
             >
-              Começar agora
+              {catalog?.available && plan.id ? "Assinar plano" : "Começar agora"}
             </ActionLink>
           </Reveal>
         ))}
       </div>
 
       <p className="mt-6 text-[11px] text-[#98a2b3]">
-        Valores de referência, sujeitos a confirmação comercial.
+        {catalog?.available && catalog.plans.length ? `Cartão com renovação mensal automática ou Pix com pagamento a cada mês. Sem teste gratuito. Cancelamento da renovação pela plataforma. Tolerância de ${catalog.graceDays} dias após uma renovação vencida.` : "Valores de referência, sujeitos a confirmação comercial."}
       </p>
     </section>
   );

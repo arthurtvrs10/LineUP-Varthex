@@ -1,0 +1,26 @@
+meta {
+  name: Create Pix Subscription
+  type: http
+  seq: 3
+}
+post {
+  url: {{baseUrl}}/billing/checkout
+  body: json
+  auth: none
+}
+headers {
+  Authorization: Bearer {{accessToken}}
+  Content-Type: application/json
+}
+body:json {
+  {
+    "planId": "{{billingPlanId}}",
+    "method": "PIX",
+    "cpfCnpj": "{{billingDocument}}",
+    "requestKey": "{{billingRequestKey}}"
+  }
+}
+docs {
+  Execute somente no sandbox com contratante fictício. Defina billingPlanId com um plano ativo.
+  Preserve billingRequestKey para repetir a mesma operação; não mude a chave após timeout.
+}

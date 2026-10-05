@@ -23,6 +23,8 @@ public class TenantAccessFilter extends OncePerRequestFilter {
         String path = req.getRequestURI();
         // Account and discovery remain usable even when the previous shop closes.
         boolean account = path.startsWith("/auth/") || path.equals("/users/me")
+                || path.startsWith("/billing/")
+                || path.equals("/notifications") || path.startsWith("/notifications/")
                 || path.equals("/me/barbershops")
                 || path.equals("/me/barbershop-selection")
                 || path.equals("/notification-preferences");

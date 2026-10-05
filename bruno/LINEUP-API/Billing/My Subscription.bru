@@ -1,0 +1,19 @@
+meta {
+  name: My Subscription
+  type: http
+  seq: 2
+}
+get {
+  url: {{baseUrl}}/billing/subscription
+  body: none
+  auth: none
+}
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+tests {
+  test("Assinatura da própria conta", function () {
+    expect(res.getStatus()).to.equal(200);
+    expect(res.getBody().charges).to.be.an("array");
+  });
+}

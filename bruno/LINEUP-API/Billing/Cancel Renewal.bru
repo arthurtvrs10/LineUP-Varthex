@@ -1,0 +1,16 @@
+meta {
+  name: Cancel Renewal
+  type: http
+  seq: 5
+}
+post {
+  url: {{baseUrl}}/billing/cancel
+  body: none
+  auth: none
+}
+headers {
+  Authorization: Bearer {{accessToken}}
+}
+docs {
+  Inativa recorrência sem solicitar reembolso. Cobranças existentes podem permanecer pendentes.
+}

@@ -203,8 +203,11 @@ export function AuthPage(props: AuthPageProps) {
 function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
   const registering = mode === "register";
   const router = useRouter();
-  const linkedShop = useSearchParams().get("barbearia");
-  const shopQuery = linkedShop ? `?barbearia=${encodeURIComponent(linkedShop)}` : "";
+  const searchParams = useSearchParams();
+  const linkedShop = searchParams.get("barbearia");
+  const selectedPlan = searchParams.get("plano");
+  const planQuery = selectedPlan && /^[0-9a-f-]{36}$/i.test(selectedPlan) ? `?plano=${encodeURIComponent(selectedPlan)}` : "";
+  const shopQuery = linkedShop ? `?barbearia=${encodeURIComponent(linkedShop)}` : planQuery;
   const { data: currentSession, status: sessionStatus } = useSession();
   useEffect(() => {
     if (!registering && sessionStatus === "authenticated" && currentSession?.user?.role === "CLIENT") {
@@ -252,6 +255,13 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
           const body = await response.json().catch(() => ({}));
           throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível concluir o cadastro."));
         }
+        if (!clientRegistration) {
+          const billing = await fetch("/billing/plans").then(r => r.ok ? r.json() : null).catch(() => null);
+          if (billing?.available || planQuery) {
+            const login = await signIn("credentials", { email: values.email.trim(), password: values.password, redirect: false });
+            if (login && !login.error) { router.replace(`/admin/assinatura${planQuery}`); return; }
+          }
+        }
         if (clientRegistration) {
           const login = await signIn("credentials", { email: values.email.trim().toLowerCase(), password: values.password, redirect: false });
           if (login && !login.error) {
@@ -285,7 +295,12 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
     }
 
     const session = await getSession();
-    const destination = session?.user?.role === "CLIENT" ? clientDestination(session.user.email, linkedShop) : roleRedirect[session?.user?.role ?? ""] ?? "/login";
+    let destination = session?.user?.role === "CLIENT" ? clientDestination(session.user.email, linkedShop) : roleRedirect[session?.user?.role ?? ""] ?? "/login";
+    if (session?.user?.role === "ADMIN") {
+      const response = await fetch("/billing/subscription", { headers: { Authorization: `Bearer ${session.user.accessToken}` } });
+      const billing = response.ok ? await response.json() : null;
+      if (planQuery || (billing?.subscription && !["ACTIVE", "TRIAL"].includes(billing.subscription.status))) destination = `/admin/assinatura${planQuery}`;
+    }
     router.push(destination);
     } catch {
       setStatus("idle");

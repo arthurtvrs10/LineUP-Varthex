@@ -1,0 +1,13 @@
+meta {
+  name: Sync Subscription
+  type: http
+  seq: 4
+}
+post {
+  url: {{baseUrl}}/billing/sync
+  body: none
+  auth: none
+}
+headers {
+  Authorization: Bearer {{accessToken}}
+}

@@ -26,15 +26,21 @@ public class TenantService {
     private final UnitRepository unitRepository;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final com.backend.commercial.SubscriptionRepository subscriptions;
+    private final boolean billingEnabled;
 
     public TenantService(TenantRepository tenantRepository,
                           UnitRepository unitRepository,
                           UserRepository userRepository,
-                          PasswordEncoder passwordEncoder) {
+                          PasswordEncoder passwordEncoder,
+                          com.backend.commercial.SubscriptionRepository subscriptions,
+                          @org.springframework.beans.factory.annotation.Value("${asaas.enabled:false}") boolean billingEnabled) {
         this.tenantRepository = tenantRepository;
         this.unitRepository = unitRepository;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.subscriptions = subscriptions;
+        this.billingEnabled = billingEnabled;
     }
 
     @Transactional
@@ -120,6 +126,16 @@ public class TenantService {
                 null
         );
         userRepository.save(admin);
+
+        if (billingEnabled) {
+            var subscription = new com.backend.commercial.Subscription();
+            subscription.tenantId = tenant.getId();
+            subscription.status = "SUSPENDED";
+            subscription.startsOn = java.time.LocalDate.now();
+            subscription.endsOn = java.time.LocalDate.now().minusDays(1);
+            subscription.reason = "ASAAS";
+            subscriptions.save(subscription);
+        }
 
         return toResponse(tenant);
     }

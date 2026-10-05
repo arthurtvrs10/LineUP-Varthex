@@ -27,7 +27,8 @@ const groups: PortalNavGroup[] = [
     ],
   },
   {
-    items: [{ href: "/superadmin/assinaturas", label: "Assinaturas", icon: FileSignature }],
+    items: [{ href: "/superadmin/assinaturas", label: "Assinaturas", icon: FileSignature },
+      { href: "/superadmin/cobrancas", label: "Cobranças", icon: CreditCard }],
   },
   {
     items: [{ href: "/superadmin/metricas", label: "Métricas", icon: BarChart3 }],
