@@ -1,9 +1,6 @@
 "use client";
-import { useState } from "react";
 import { Receipt } from "./Receipt";
 import { csvText, downloadText } from "@/lib/csv";
-import { apiFetch } from "@/lib/api";
-import { Modal } from "@/components/ui/Modal";
 import { fetchAllPages } from "@/lib/paginated";
 import { ActionForm, Heading, Panel, Status, Table, brl, date, kinds, options, post, useResource, type Row } from "./Primitives";
 
@@ -30,25 +27,8 @@ export function FinancePage() {
   </div>;
 }
 
-type Inventory = {products:Row[];movements:Row[];balances:Record<string,number>};
-export function InventoryPage(){
- const [editing,setEditing]=useState<Row>();
- const resource=useResource<Inventory>('/commercial/inventory');const submit=async(path:string,body:unknown)=>{await post(path,body);resource.reload();};
- return <div className="space-y-5"><Heading title="Estoque" detail="Produtos, entradas, consumo, perdas e ajustes com histórico. Saldo calculado pelos movimentos."/><Status ready={!!resource.data} error={resource.error}/>
- <ActionForm title="Cadastrar produto" fields={[{name:'name',label:'Nome'},{name:'sku',label:'SKU',optional:true},{name:'category',label:'Categoria'},{name:'supplier',label:'Fornecedor'},{name:'cost',label:'Custo de referência (R$)',type:'number'},{name:'price',label:'Preço (R$)',type:'number'},{name:'minimumStock',label:'Estoque mínimo',type:'number',step:'1'}]} onSubmit={d=>submit('/commercial/products',{...d,cost:Number(d.cost),price:Number(d.price),minimumStock:Number(d.minimumStock)})}/>
- {resource.data&&<><Panel title="Posição do estoque"><Table rows={resource.data.products} columns={[{label:'Produto',render:r=>r.name},{label:'SKU',render:r=>r.sku||'—'},{label:'Saldo',render:r=>resource.data!.balances[r.id]??0},{label:'Alerta',render:r=>(resource.data!.balances[r.id]??0)<=Number(r.minimumStock)?'Estoque mínimo':'Normal'},{label:'Preço',render:r=>brl(r.price)},{label:'Margem estimada',render:r=>brl(Number(r.price)-Number(r.cost))},{label:'Estado',render:r=>r.active?'Ativo':'Inativo'},{label:'Ações',render:r=><button className="underline" onClick={()=>setEditing(r)}>Editar {r.name}</button>}]}/></Panel>
- <ActionForm title="Registrar movimento" fields={[{name:'productId',label:'Produto',options:options(resource.data.products,'name')},{name:'kind',label:'Tipo',options:kinds({ENTRY:'Entrada',CONSUMPTION:'Consumo em serviço',LOSS:'Perda',ADJUSTMENT_IN:'Ajuste positivo',ADJUSTMENT_OUT:'Ajuste negativo'})},{name:'quantity',label:'Quantidade inteira',type:'number',step:'1',min:'1',max:'1000000'},{name:'reason',label:'Motivo / origem'}]} onSubmit={(d,key)=>submit('/commercial/stock',{...d,quantity:Number(d.quantity),requestKey:key})}/>
- <ActionForm title="Vender produto" submitLabel="Confirmar venda e recebimento" fields={[{name:'productId',label:'Produto',options:options(resource.data.products.filter(p=>p.active),'name')},{name:'quantity',label:'Quantidade inteira',type:'number',step:'1',min:'1'},{name:'method',label:'Meio recebido',options:kinds(methods)},{name:'reason',label:'Descrição da venda'}]} onSubmit={(d,key)=>submit('/commercial/sales',{...d,quantity:Number(d.quantity),requestKey:key})}/>
- <Panel title="Histórico"><Table rows={resource.data.movements} columns={[{label:'Data',render:r=>date(r.createdAt)},{label:'Produto',render:r=>resource.data!.products.find(p=>p.id===r.productId)?.name},{label:'Quantidade',render:r=>r.quantity},{label:'Motivo',render:r=>r.reason}]}/></Panel></>}
- {editing&&<Modal open title="Editar produto" onClose={()=>setEditing(undefined)}><ActionForm title="Dados e disponibilidade" fields={[
- {name:'name',label:'Nome',value:String(editing.name)}, {name:'sku',label:'SKU',optional:true,value:String(editing.sku??'')},
- {name:'category',label:'Categoria',value:String(editing.category)}, {name:'supplier',label:'Fornecedor',value:String(editing.supplier)},
- {name:'cost',label:'Custo de referência (R$)',type:'number',value:String(editing.cost)}, {name:'price',label:'Preço (R$)',type:'number',value:String(editing.price)},
- {name:'minimumStock',label:'Estoque mínimo',type:'number',step:'1',value:String(editing.minimumStock)},
- {name:'active',label:'Estado',value:String(editing.active),options:kinds({true:'Ativo',false:'Inativo — bloqueia novas vendas'})}
- ]} onSubmit={async d=>{await apiFetch(`/commercial/products/${editing.id}`,{method:'PUT',body:{product:{...d,cost:Number(d.cost),price:Number(d.price),minimumStock:Number(d.minimumStock)},active:d.active==='true',version:editing.version}});setEditing(undefined);resource.reload();}}/></Modal>}
- </div>;
-}
+export {AdminEstoquePage as InventoryPage} from "@/components/admin/AdminEstoquePage";
+
 export function LoyaltyPage(){const resource=useResource<Row[]>('/commercial/loyalty');const customers=useResource<Row[]>('/customers', fetchAllPages);const balances:Record<string,number>={};for(const row of resource.data??[])balances[String(row.customerId)]=(balances[String(row.customerId)]??0)+Number(row.points);
  return <div className="space-y-5"><Heading title="Fidelidade" detail="1 ponto por real inteiro em cada pagamento registrado. Estornos revertem os pontos; resgates não podem exceder o saldo."/><Status ready={!!resource.data&&!!customers.data} error={resource.error||customers.error}/>
  <Panel title="Saldos"><Table rows={customers.data??[]} columns={[{label:'Cliente',render:r=>r.fullName},{label:'Pontos',render:r=>balances[r.id]??0}]}/></Panel>
