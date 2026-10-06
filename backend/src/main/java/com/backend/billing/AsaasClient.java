@@ -26,6 +26,8 @@ public class AsaasClient {
         if (!environment.equals("sandbox") && !environment.equals("production"))
             throw new IllegalArgumentException("ASAAS_ENVIRONMENT deve ser sandbox ou production");
         this.enabled = enabled; this.apiKey = apiKey; this.production = environment.equals("production");
+        if ((production && apiKey.startsWith("$aact_hmlg_")) || (!production && apiKey.startsWith("$aact_prod_")))
+            throw new IllegalArgumentException("Chave Asaas incompatível com o ambiente configurado");
         var factory = new SimpleClientHttpRequestFactory();
         factory.setConnectTimeout(Duration.ofSeconds(10));
         factory.setReadTimeout(Duration.ofSeconds(65));
@@ -35,6 +37,11 @@ public class AsaasClient {
     }
     public boolean configured() { return enabled && !apiKey.isBlank(); }
     public boolean production() { return production; }
+    public String environment() { return production ? "production" : "sandbox"; }
+    public void confirmSandboxPayment(String paymentId) {
+        if (production) throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Recurso indisponível");
+        post("/sandbox/payment/" + safeId(paymentId) + "/confirm", java.util.Map.of());
+    }
     public void requireConfigured() {
         if (!configured()) throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE, "Contratação online ainda não disponível");
     }

@@ -20,6 +20,9 @@ public class BillingController {
     @GetMapping("/billing/subscription") public Object subscription(JwtAuthenticationToken auth) { return billing.summary(tenant(auth)); }
     @PostMapping("/billing/checkout") public Object checkout(@RequestBody BillingService.CheckoutInput input,JwtAuthenticationToken auth) { return billing.checkout(tenant(auth),actor(auth),input); }
     @PostMapping("/billing/sync") public Object sync(JwtAuthenticationToken auth) { billing.reconcile(tenant(auth));return billing.summary(tenant(auth)); }
+    @PostMapping("/billing/sandbox/charges/{id}/confirm") public Object sandboxConfirm(@PathVariable UUID id,JwtAuthenticationToken auth) {
+        return billing.confirmSandbox(tenant(auth),actor(auth),id);
+    }
     @PostMapping("/billing/cancel") public Object cancel(JwtAuthenticationToken auth) { return billing.cancel(tenant(auth),actor(auth)); }
     @PostMapping("/billing/card") public Object card(@RequestBody BillingService.CardInput input,JwtAuthenticationToken auth,jakarta.servlet.http.HttpServletRequest request) {
         return billing.updateCard(tenant(auth),actor(auth),input,request.getRemoteAddr(),request.isSecure());

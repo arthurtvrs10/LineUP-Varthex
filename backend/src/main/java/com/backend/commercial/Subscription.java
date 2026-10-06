@@ -17,6 +17,7 @@ public class Subscription {
     public UUID tenantId;
     @Column(name = "plan_id")
     public UUID planId;
+    public Integer barberLimit;
     @Column(name = "status", length = 1000)
     public String status;
     @Column(name = "starts_on")

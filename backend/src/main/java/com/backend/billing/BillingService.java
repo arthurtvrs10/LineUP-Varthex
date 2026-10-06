@@ -29,30 +29,41 @@ public class BillingService {
     private final TransactionTemplate tx;
     private final String frontendUrl;
     private final int graceDays;
+    private final BillingAddonRepository addons;
+    private final boolean sandboxActions;
 
     public BillingService(BillingAccountRepository accounts, BillingChargeRepository charges,
             SubscriptionRepository subscriptions, PlanRepository plans, UserRepository users,
             AuditEventRepository audit, EntityManager em, AsaasClient asaas, PlatformTransactionManager tm,
             @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl,
-            @Value("${asaas.grace-days:3}") int graceDays) {
+            @Value("${asaas.grace-days:3}") int graceDays, BillingAddonRepository addons,
+            @Value("${asaas.sandbox-actions-enabled:false}") boolean sandboxActions) {
         this.accounts=accounts; this.charges=charges; this.subscriptions=subscriptions; this.plans=plans;
         this.users=users; this.audit=audit; this.em=em; this.asaas=asaas; this.tx=new TransactionTemplate(tm);
         this.frontendUrl=frontendUrl.replaceAll("/+$", ""); this.graceDays=Math.max(0, Math.min(graceDays, 30));
+        this.addons=addons; this.sandboxActions=sandboxActions;
     }
-    public record CheckoutInput(UUID planId, String method, String cpfCnpj, String requestKey) {}
+    public record CheckoutInput(UUID planId, String method, String cpfCnpj, String requestKey, UUID addonId, Integer addonQuantity) {
+        public CheckoutInput(UUID planId, String method, String cpfCnpj, String requestKey) {
+            this(planId,method,cpfCnpj,requestKey,null,0);
+        }
+    }
     public record RefundInput(BigDecimal amount, String reason, String requestKey) {}
     public record CardInput(String holderName,String number,String expiryMonth,String expiryYear,String ccv,
             String cpfCnpj,String postalCode,String addressNumber,String phone) {
         @Override public String toString() { return "CardInput[REDACTED]"; }
     }
-    public record Catalog(boolean available, int graceDays, List<Plan> plans) {}
+    public record Catalog(boolean available, int graceDays, List<Plan> plans, String environment, List<BillingAddon> addons) {}
     public Catalog catalog() {
         return new Catalog(asaas.configured(), graceDays, plans.findAll().stream()
-                .filter(p -> Boolean.TRUE.equals(p.active) && p.monthlyPrice != null && p.monthlyPrice.signum()>0).toList());
+                .filter(p -> Boolean.TRUE.equals(p.active) && p.monthlyPrice != null && p.monthlyPrice.signum()>0).toList(),
+                asaas.environment(), addons.findAll().stream().filter(a->a.active && "BARBER_SEAT".equals(a.code)).toList());
     }
     public Map<String,Object> summary(UUID tenant) {
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("available", asaas.configured()); result.put("graceDays", graceDays);
+        result.put("environment", asaas.environment());
+        result.put("sandboxActionsEnabled", sandboxActions && !asaas.production() && asaas.configured());
         result.put("subscription", subscriptions.findAllByTenantId(tenant).stream().findFirst().orElse(null));
         var account=accounts.findByTenantId(tenant).orElse(null);
         result.put("account", account);
@@ -72,20 +83,63 @@ public class BillingService {
             return work.apply(account);
         });
     }
+    private void requireEnvironment(BillingAccount account) {
+        if(!Objects.equals(account.environment,asaas.environment()))
+            fail(HttpStatus.CONFLICT,"Assinatura de outro ambiente ou ambiente não classificado. Revise a configuração antes de continuar.");
+    }
+    private String subscriptionDescription(BillingAccount account) {
+        return "LineUp — assinatura mensal" + (account.addonQuantity>0
+                ? " + " + account.addonQuantity + " profissional(is) extra(s)" : "");
+    }
+    private List<Map<String,Object>> checkoutItems(BillingAccount account) {
+        List<Map<String,Object>> items=new ArrayList<>();
+        items.add(Map.of("name","LineUp — plano mensal","quantity",1,"value",account.basePrice));
+        if(account.addonQuantity>0) items.add(Map.of("name",account.addonName,"quantity",account.addonQuantity,"value",account.addonUnitPrice));
+        return items;
+    }
+    public Map<String,Object> confirmSandbox(UUID tenant, UUID actor, UUID chargeId) {
+        if(!sandboxActions || asaas.production()) fail(HttpStatus.NOT_FOUND,"Recurso indisponível");
+        asaas.requireConfigured();
+        locked(tenant,account->{
+            if(account==null) fail(HttpStatus.NOT_FOUND,"Assinatura não encontrada");
+            requireEnvironment(account);
+            var charge=charges.findById(chargeId).filter(c->c.accountId.equals(account.id))
+                    .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Cobrança não encontrada"));
+            check("PIX".equals(account.method),"Use o checkout e os cartões de teste do Asaas para testar cartão");
+            var payment=asaas.get("/payments/"+AsaasClient.safeId(charge.providerId));
+            check(Objects.equals(account.customerId,text(payment,"customer"))
+                    && Objects.equals(account.providerSubscriptionId,text(payment,"subscription"))
+                    && decimal(payment,"value")!=null && account.monthlyPrice.compareTo(decimal(payment,"value"))==0,
+                    "Cobrança divergente da assinatura");
+            String status=text(payment,"status");
+            if(!Set.of("RECEIVED","CONFIRMED").contains(status==null?"":status)) {
+                check(Set.of("PENDING","OVERDUE").contains(status==null?"":status),"Cobrança não permite simulação");
+                asaas.confirmSandboxPayment(charge.providerId);
+                payment=asaas.get("/payments/"+AsaasClient.safeId(charge.providerId));
+            }
+            syncPayment(tenant,payment);
+            audit(tenant,actor,"BILLING_SANDBOX_CONFIRM",charge.id);
+            return null;
+        });
+        return summary(tenant);
+    }
     public Map<String,Object> checkout(UUID tenant, UUID actor, CheckoutInput input) {
         asaas.requireConfigured();
         check(input!=null && input.planId()!=null && Set.of("PIX","CREDIT_CARD").contains(input.method()==null?"":input.method()),"Escolha plano e forma de pagamento");
         key(input.requestKey());
+        int quantity=input.addonQuantity()==null?0:input.addonQuantity();
+        check(quantity>=0 && quantity<=20 && ((input.addonId()==null)==(quantity==0)),"Seleção de adicional inválida");
         String document=input.cpfCnpj()==null?"":input.cpfCnpj().replaceAll("[. /-]", "");
         check(document.matches("\\d{11}|\\d{14}"),"Informe CPF ou CNPJ do contratante");
         String fingerprint;
         try { fingerprint=HexFormat.of().formatHex(java.security.MessageDigest.getInstance("SHA-256")
-                .digest((input.planId()+":"+input.method()+":"+document).getBytes(java.nio.charset.StandardCharsets.UTF_8))); }
+                .digest((input.planId()+":"+input.method()+":"+document+":"+input.addonId()+":"+quantity).getBytes(java.nio.charset.StandardCharsets.UTF_8))); }
         catch(java.security.NoSuchAlgorithmException ex) { throw new IllegalStateException(ex); }
         User owner=users.findById(actor).filter(u -> tenant.equals(u.getTenantId()) && u.getRole()==Role.ADMIN)
                 .orElseThrow(()->new ResponseStatusException(HttpStatus.FORBIDDEN,"Somente o administrador pode contratar"));
         boolean[] start={false};
         BillingAccount reservation=locked(tenant, existing -> {
+            if(existing!=null) requireEnvironment(existing);
             if(existing!=null && existing.requestKey!=null && existing.requestKey.equals(input.requestKey())) {
                 check(existing.planId.equals(input.planId()) && existing.method.equals(input.method()),"Chave já usada para outra contratação");
                 check(Objects.equals(existing.requestFingerprint,fingerprint),"Chave já usada com outros dados");
@@ -98,6 +152,18 @@ public class BillingService {
                     .orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST,"Plano indisponível"));
             var account=existing==null?new BillingAccount():existing;
             account.tenantId=tenant; account.actorId=actor; account.planId=plan.id; account.monthlyPrice=plan.monthlyPrice;
+            account.environment=asaas.environment(); account.basePrice=plan.monthlyPrice;
+            account.addonId=null;account.addonName=null;account.addonUnitPrice=null;account.addonQuantity=0;
+            account.contractedBarberLimit=plan.barberLimit;
+            if(quantity>0) {
+                var addon=addons.findById(input.addonId()).filter(a->a.active && a.planId.equals(plan.id)
+                        && "BARBER_SEAT".equals(a.code) && a.monthlyPrice!=null && a.monthlyPrice.signum()>0
+                        && quantity<=a.maxQuantity)
+                        .orElseThrow(()->new ResponseStatusException(HttpStatus.BAD_REQUEST,"Adicional indisponível para este plano"));
+                account.addonId=addon.id;account.addonName=addon.name;account.addonUnitPrice=addon.monthlyPrice;account.addonQuantity=quantity;
+                account.monthlyPrice=plan.monthlyPrice.add(addon.monthlyPrice.multiply(BigDecimal.valueOf(quantity)));
+                account.contractedBarberLimit=plan.barberLimit+quantity;
+            }
             account.method=input.method(); account.state="STARTING"; account.requestKey=input.requestKey(); account.issue=null;
             account.requestFingerprint=fingerprint;
             account.checkoutId=null;account.checkoutUrl=null;account.cancelRequested=false;
@@ -120,7 +186,7 @@ public class BillingService {
             if(input.method().equals("PIX")) {
                 JsonNode subscription=asaas.post("/subscriptions",Map.of("customer",reservation.customerId,
                         "billingType","PIX","value",reservation.monthlyPrice,"cycle","MONTHLY",
-                        "nextDueDate",LocalDate.now().toString(),"description","LineUp — assinatura mensal",
+                        "nextDueDate",LocalDate.now().toString(),"description",subscriptionDescription(reservation),
                         "externalReference",reservation.id.toString()));
                 bindSubscription(tenant,subscription);
                 reconcile(tenant);
@@ -130,7 +196,7 @@ public class BillingService {
                         "externalReference",reservation.id.toString(),"billingTypes",List.of("CREDIT_CARD"),
                         "chargeTypes",List.of("RECURRENT"),"minutesToExpire",60,
                         "callback",Map.of("successUrl",callback,"cancelUrl",callback,"expiredUrl",callback),
-                        "items",List.of(Map.of("name","LineUp — assinatura mensal","quantity",1,"value",reservation.monthlyPrice)),
+                        "items",checkoutItems(reservation),
                         "subscription",Map.of("cycle","MONTHLY","nextDueDate",LocalDate.now()+" 00:00:00")));
                 String id=AsaasClient.safeId(text(checkout,"id"));
                 String link=AsaasClient.safeUrl(text(checkout,"link"));
@@ -147,6 +213,7 @@ public class BillingService {
     }
     public void bindSubscription(UUID tenant, JsonNode provider) {
         locked(tenant,a->{
+            if(a!=null) requireEnvironment(a);
             if(a==null || !Objects.equals(a.customerId,text(provider,"customer"))) fail(HttpStatus.CONFLICT,"Recebedor da assinatura não corresponde à conta");
             BigDecimal value=decimal(provider,"value");
             if(value==null || a.monthlyPrice.compareTo(value)!=0 || !"MONTHLY".equals(text(provider,"cycle")))
@@ -164,6 +231,7 @@ public class BillingService {
         asaas.requireConfigured();
         var account=accounts.findByTenantId(tenant).orElse(null);
         if(account==null) return;
+        requireEnvironment(account);
         if(account.customerId==null) {
             JsonNode list=asaas.get("/customers?externalReference="+account.id+"&limit=100");
             if(list.path("data").size()==1) {
@@ -203,6 +271,7 @@ public class BillingService {
     }
     public void syncPayment(UUID tenant, JsonNode payment) {
         locked(tenant,a->{
+            if(a!=null) requireEnvironment(a);
             if(a==null || !Objects.equals(a.customerId,text(payment,"customer"))
                     || !Objects.equals(a.providerSubscriptionId,text(payment,"subscription")))
                 fail(HttpStatus.CONFLICT,"Cobrança não pertence à assinatura");
@@ -240,6 +309,7 @@ public class BillingService {
         // Preserve manually granted legacy access until the first integrated payment.
         if(end==null && local.planId!=null && !"ASAAS".equals(local.reason)) { account.state="PENDING"; return; }
         local.tenantId=account.tenantId;local.planId=account.planId;local.reason="ASAAS";
+        local.barberLimit=account.contractedBarberLimit;
         LocalDate today=LocalDate.now();
         local.startsOn=start==null?today:start; local.endsOn=end==null?today.minusDays(1):end;
         LocalDate paidEnd=end;
@@ -255,6 +325,7 @@ public class BillingService {
     }
     public Map<String,Object> cancel(UUID tenant, UUID actor) {
         var account=accounts.findByTenantId(tenant).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Assinatura não encontrada"));
+        requireEnvironment(account);
         if(account.cancelRequested) return summary(tenant);
         if(account.providerSubscriptionId==null) {
             if(account.checkoutId==null) fail(HttpStatus.CONFLICT,"Aguarde a conciliação da contratação antes de cancelar");
@@ -282,6 +353,7 @@ public class BillingService {
         check(!YearMonth.of(Integer.parseInt(input.expiryYear()),Integer.parseInt(input.expiryMonth())).isBefore(YearMonth.now()),"Cartão vencido");
         var account=accounts.findByTenantId(tenant).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Assinatura não encontrada"));
         check(account.providerSubscriptionId!=null && "CREDIT_CARD".equals(account.method) && !account.cancelRequested,"Assinatura não possui cartão recorrente ativo");
+        requireEnvironment(account);
         var owner=users.findById(actor).filter(u->tenant.equals(u.getTenantId()) && u.getRole()==Role.ADMIN)
                 .orElseThrow(()->new ResponseStatusException(HttpStatus.FORBIDDEN,"Administrador inválido"));
         // Transient only: never persist card/CVV, return provider payloads, or audit the submitted data.
@@ -297,6 +369,7 @@ public class BillingService {
         check(input.reason()!=null && !input.reason().isBlank() && input.reason().length()<=1000,"Informe o motivo");key(input.requestKey());
         BillingCharge initial=charges.findById(chargeId).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Cobrança não encontrada"));
         var account=accounts.findById(initial.accountId).orElseThrow();
+        requireEnvironment(account);
         boolean[] send={false};
         BillingCharge reserved=locked(account.tenantId,a->{
             var charge=charges.findById(chargeId).orElseThrow();

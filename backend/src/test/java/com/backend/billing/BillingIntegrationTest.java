@@ -22,6 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @SpringBootTest(properties={"asaas.enabled=true","asaas.worker-enabled=false","spring.flyway.enabled=false",
+        "asaas.sandbox-actions-enabled=true",
         "app.frontend-url=http://localhost:3000","spring.jpa.show-sql=false",
         "asaas.webhook-token=test-webhook-token-with-more-than-32-characters"})
 @AutoConfigureMockMvc
@@ -32,6 +33,7 @@ class BillingIntegrationTest {
     @Autowired BillingChargeRepository charges;
     @Autowired BillingEventRepository events;
     @Autowired PlanRepository plans;
+    @Autowired BillingAddonRepository addons;
     @Autowired SubscriptionRepository subscriptions;
     @Autowired TenantRepository tenants;
     @Autowired UserRepository users;
@@ -43,6 +45,7 @@ class BillingIntegrationTest {
     JsonNode node(Object value) { return json.valueToTree(value); }
     @BeforeEach void seed() {
         when(asaas.configured()).thenReturn(true);
+        when(asaas.environment()).thenReturn("sandbox");
         tenant=tenants.save(new Tenant(null,"Billing test",null,null,"America/Sao_Paulo","pt-BR","BRL",null,null)).getId();
         var owner=users.save(new User(null,"Owner",UUID.randomUUID()+"@example.com","{noop}password123",Role.ADMIN,UserStatus.ACTIVE,tenant,null,null,null));
         actor=owner.getId();token=jwt.generateTokemn(owner);
@@ -51,7 +54,7 @@ class BillingIntegrationTest {
     }
     BillingAccount account() {
         var a=new BillingAccount();a.tenantId=tenant;a.actorId=actor;a.planId=plan.id;a.monthlyPrice=plan.monthlyPrice;
-        a.customerId=customer;a.providerSubscriptionId=sub;a.method="PIX";a.state="PENDING";return accounts.save(a);
+        a.environment="sandbox";a.customerId=customer;a.providerSubscriptionId=sub;a.method="PIX";a.state="PENDING";return accounts.save(a);
     }
     JsonNode payment(String id,String status,LocalDate due) {
         return node(Map.of("id",id,"customer",customer,"subscription",sub,"value",99,"netValue",97.01,
@@ -209,5 +212,59 @@ class BillingIntegrationTest {
         billing.syncPayment(tenant,payment("pay_"+UUID.randomUUID(),"RECEIVED",renewal.minusMonths(1)));
         billing.syncPayment(tenant,payment("pay_"+UUID.randomUUID(),"OVERDUE",renewal));
         assertEquals("SUSPENDED",current().status);
+    }
+    @Test void addonsAreBundledIntoOneSubscriptionAndPaidCapacityUsesSnapshot() {
+        var addon=new BillingAddon();addon.planId=plan.id;addon.name="Profissional extra";addon.code="BARBER_SEAT";
+        addon.monthlyPrice=new BigDecimal("19.90");addon.maxQuantity=20;addon.active=true;addon=addons.save(addon);
+        when(asaas.post(eq("/customers"),any())).thenReturn(node(Map.of("id",customer)));
+        when(asaas.post(eq("/checkouts"),any())).thenAnswer(invocation->{
+            Map<?,?> payload=invocation.getArgument(1);
+            List<?> items=(List<?>)payload.get("items");assertEquals(2,items.size());
+            assertEquals(new BigDecimal("99.00"),((Map<?,?>)items.get(0)).get("value"));
+            assertEquals(new BigDecimal("19.90"),((Map<?,?>)items.get(1)).get("value"));
+            assertEquals(2,((Map<?,?>)items.get(1)).get("quantity"));
+            return node(Map.of("id","checkout_addons","link","https://sandbox.asaas.com/checkoutSession/show?id=checkout_addons"));
+        });
+        var input=new BillingService.CheckoutInput(plan.id,"CREDIT_CARD","12345678909","addons_request_123",addon.id,2);
+        billing.checkout(tenant,actor,input);billing.checkout(tenant,actor,input);
+        var a=accounts.findByTenantId(tenant).orElseThrow();assertEquals(new BigDecimal("138.80"),a.monthlyPrice);
+        assertEquals(3,a.contractedBarberLimit);verify(asaas,times(1)).post(eq("/checkouts"),any());
+        a.providerSubscriptionId=sub;accounts.save(a);
+        var paid=(tools.jackson.databind.node.ObjectNode)payment("pay_"+UUID.randomUUID(),"RECEIVED",LocalDate.now());
+        paid.put("value",new BigDecimal("138.80"));billing.syncPayment(tenant,paid);
+        assertEquals("ACTIVE",current().status);assertEquals(3,current().barberLimit);
+    }
+    @Test void addonMustBelongToSelectedPlanAndQuantityMustBeValid() {
+        var addon=new BillingAddon();addon.planId=UUID.randomUUID();addon.name="Extra";addon.code="BARBER_SEAT";
+        addon.monthlyPrice=new BigDecimal("19.90");addon.maxQuantity=20;addon.active=true;addon=addons.save(addon);
+        final UUID id=addon.id;
+        assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,new BillingService.CheckoutInput(plan.id,"PIX","12345678909","invalid_addon_123",id,1)));
+        assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,new BillingService.CheckoutInput(plan.id,"PIX","12345678909","invalid_qty_123",id,-1)));
+        verify(asaas,never()).post(anyString(),any());
+    }
+    @Test void sandboxConfirmationUsesProviderStateAndIsIdempotent() throws Exception {
+        account();String id="pay_"+UUID.randomUUID();var pending=payment(id,"PENDING",LocalDate.now());
+        billing.syncPayment(tenant,pending);var charge=charges.findByProviderId(id).orElseThrow();
+        var paid=payment(id,"RECEIVED",LocalDate.now());
+        when(asaas.get("/payments/"+id)).thenReturn(pending,paid,paid);
+        for(int i=0;i<2;i++) mvc.perform(post("/billing/sandbox/charges/"+charge.id+"/confirm").header("Authorization","Bearer "+token)).andExpect(status().isOk());
+        verify(asaas,times(1)).confirmSandboxPayment(id);assertEquals("ACTIVE",current().status);
+    }
+    @Test void sandboxConfirmationRejectsProductionAndOtherTenants() throws Exception {
+        account();String id="pay_"+UUID.randomUUID();billing.syncPayment(tenant,payment(id,"PENDING",LocalDate.now()));
+        var charge=charges.findByProviderId(id).orElseThrow();
+        when(asaas.production()).thenReturn(true);
+        mvc.perform(post("/billing/sandbox/charges/"+charge.id+"/confirm").header("Authorization","Bearer "+token)).andExpect(status().isNotFound());
+        when(asaas.production()).thenReturn(false);
+        UUID other=tenants.save(new Tenant(null,"Other sandbox",null,null,"UTC","pt-BR","BRL",null,null)).getId();
+        var owner=users.save(new User(null,"Other",UUID.randomUUID()+"@example.com","{noop}password123",Role.ADMIN,UserStatus.ACTIVE,other,null,null,null));
+        mvc.perform(post("/billing/sandbox/charges/"+charge.id+"/confirm").header("Authorization","Bearer "+jwt.generateTokemn(owner))).andExpect(status().isNotFound());
+        verify(asaas,never()).confirmSandboxPayment(anyString());
+    }
+    @Test void changingEnvironmentCannotMutateOrReconcileExistingSubscription() {
+        account();when(asaas.environment()).thenReturn("production");
+        assertThrows(ResponseStatusException.class,()->billing.reconcile(tenant));
+        assertThrows(ResponseStatusException.class,()->billing.cancel(tenant,actor));
+        verify(asaas,never()).getOptional(anyString());verify(asaas,never()).put(anyString(),any());
     }
 }

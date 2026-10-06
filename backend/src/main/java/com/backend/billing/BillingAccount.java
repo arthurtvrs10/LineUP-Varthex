@@ -14,6 +14,13 @@ public class BillingAccount {
     public UUID planId;
     public UUID actorId;
     @Column(precision = 19, scale = 2) public BigDecimal monthlyPrice;
+    public String environment;
+    @Column(precision = 19, scale = 2) public BigDecimal basePrice;
+    public UUID addonId;
+    public String addonName;
+    @Column(precision = 19, scale = 2) public BigDecimal addonUnitPrice;
+    public int addonQuantity;
+    public Integer contractedBarberLimit;
     @Column(unique = true) public String customerId;
     @Column(unique = true) public String providerSubscriptionId;
     @Column(unique = true) public String checkoutId;

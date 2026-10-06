@@ -21,7 +21,8 @@ public class EntitlementService {
         subscriptions.findAllByTenantId(tenantId).stream().findFirst().ifPresent(s->{
             if(!("ACTIVE".equals(s.status)||"TRIAL".equals(s.status))||s.startsOn.isAfter(LocalDate.now())||s.endsOn.isBefore(LocalDate.now()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Assinatura sem vigência ativa");
             Plan p=plans.findById(s.planId).orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"Plano não encontrado"));
-            if(barbers.findAllByUnit_Tenant_Id(tenantId).size()>=p.barberLimit)throw new ResponseStatusException(HttpStatus.CONFLICT,"Limite de profissionais do plano atingido");
+            int limit=s.barberLimit==null?p.barberLimit:s.barberLimit;
+            if(barbers.findAllByUnit_Tenant_Id(tenantId).size()>=limit)throw new ResponseStatusException(HttpStatus.CONFLICT,"Limite de profissionais do plano atingido");
         });
     }
 }
