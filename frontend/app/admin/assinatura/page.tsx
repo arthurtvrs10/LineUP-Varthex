@@ -1,5 +1,8 @@
-import { AdminShell } from "@/components/admin/AdminShell";
-import { SubscriptionPage } from "@/components/billing/SubscriptionPage";
+import type { Metadata } from "next";
+import { CheckoutPage } from "@/components/billing/CheckoutPage";
+
+export const metadata: Metadata = { title: "Escolha seu plano" };
+
 export default function Page() {
-  return <AdminShell title="Minha assinatura" breadcrumb="Assinatura"><SubscriptionPage /></AdminShell>;
+  return <CheckoutPage />;
 }

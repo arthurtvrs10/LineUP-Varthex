@@ -1,67 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { type BillingCatalog, billingMoney } from "@/lib/billing";
+import { type BillingCatalog, billingMoney, planFeatures, orderedPlans } from "@/lib/billing";
 import { Check } from "lucide-react";
 import { ActionLink } from "@/components/ui/ActionLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 
-const referencePlans = [
-  {
-    name: "Essencial",
-    price: "R$ 89",
-    audience: "Para barbearias com uma unidade",
-    features: [
-      "Agenda e disponibilidade",
-      "Cadastro de clientes",
-      "Gestão da equipe",
-      "Comissões por atendimento",
-    ],
-    highlighted: false,
-  },
-  {
-    name: "Profissional",
-    price: "R$ 149",
-    audience: "Para quem quer indicadores e mais controle",
-    features: [
-      "Tudo do plano Essencial",
-      "Indicadores da operação",
-      "Bloqueios e regras avançadas de horário",
-      "Histórico completo de atendimentos",
-      "Suporte prioritário",
-    ],
-    highlighted: true,
-  },
-  {
-    name: "Rede",
-    price: "Sob consulta",
-    audience: "Para redes com mais de uma unidade",
-    features: [
-      "Tudo do plano Profissional",
-      "Gestão multiunidade",
-      "Perfis e permissões por unidade",
-      "Indicadores consolidados da rede",
-    ],
-    highlighted: false,
-  },
-];
-
 export function PricingSection() {
   const [catalog, setCatalog] = useState<BillingCatalog>();
+  const [failed, setFailed] = useState(false);
   useEffect(() => {
     const abort = new AbortController();
     fetch("/billing/plans", { signal: abort.signal }).then(async r => {
-      if (r.ok) setCatalog(await r.json());
-    }).catch(() => {});
+      if (!r.ok) throw new Error("Catalog unavailable");
+      setCatalog(await r.json());
+    }).catch(() => { if (!abort.signal.aborted) setFailed(true); });
     return () => abort.abort();
   }, []);
-  const plans = catalog?.plans.length ? catalog.plans.map(plan => ({
+  const plans = orderedPlans(catalog?.plans ?? []).map(plan => ({
     id: plan.id, name: plan.name, price: billingMoney(plan.monthlyPrice),
-    audience: `Até ${plan.barberLimit} profissionais`,
-    features: ["Agenda e gestão da operação", "Cadastro de clientes e equipe", "Plano mensal de uso da plataforma"],
-    highlighted: false,
-  })) : referencePlans.map(plan => ({ ...plan, id: "" }));
+    audience: plan.description || "Organize os atendimentos da sua barbearia.",
+    capacity: "Até " + plan.barberLimit + (plan.barberLimit === 1 ? " profissional cadastrado" : " profissionais cadastrados"),
+    features: planFeatures(plan),
+    highlighted: plan.id === "2a110000-0000-4000-8000-000000000002",
+  }));
   return (
     <section
       className="mx-auto w-full max-w-[1216px] px-5 py-16 scroll-mt-20 sm:px-6 lg:py-24"
@@ -78,7 +41,8 @@ export function PricingSection() {
         </p>
       </Reveal>
 
-      <div className="mt-10 grid gap-5 lg:mt-12 lg:grid-cols-3">
+      {!plans.length && <p role="status" className="mt-8 text-sm text-secondary">{failed ? "Não foi possível carregar os planos. Atualize a página para tentar novamente." : catalog ? "Nenhum plano disponível no momento. Tente novamente mais tarde." : "Carregando planos…"}</p>}
+      <div className="mt-10 grid gap-5 lg:mt-12 lg:grid-cols-2">
         {plans.map((plan, index) => (
           <Reveal
             className={`relative flex flex-col rounded-xl border px-7 py-8 ${
@@ -91,13 +55,14 @@ export function PricingSection() {
           >
             {plan.highlighted && (
               <span className="absolute -top-3 left-8 rounded-md bg-accent px-3 py-1 text-[10px] font-extrabold text-on-accent">
-                Mais escolhido
+                Para equipes
               </span>
             )}
             <h3 className="font-[var(--font-display)] text-2xl font-normal text-[#0d1831]">
               {plan.name}
             </h3>
             <p className="mt-1.5 text-xs leading-5 text-[#5f6f87]">{plan.audience}</p>
+            <p className="mt-3 text-sm font-semibold text-ink">{plan.capacity}</p>
             <div className="mt-6 flex items-baseline gap-1.5">
               <span className="font-[var(--font-display)] text-4xl font-normal text-[#0d1831]">
                 {plan.price}
@@ -116,17 +81,19 @@ export function PricingSection() {
             </ul>
             <ActionLink
               className="mt-8 w-full"
-              href={catalog?.available && plan.id ? `/cadastro?plano=${encodeURIComponent(plan.id)}` : "/cadastro"}
+              href={`/cadastro?plano=${encodeURIComponent(plan.id)}`}
               variant={plan.highlighted ? "primary" : "secondary"}
             >
-              {catalog?.available && plan.id ? "Assinar plano" : "Começar agora"}
+              {"Escolher " + plan.name}
             </ActionLink>
           </Reveal>
         ))}
       </div>
 
+      <p className="mt-6 text-sm text-secondary">O Individual atende quem trabalha sozinho. O Gestão inclui até 5 profissionais. Acesso de clientes não conta como profissional. WhatsApp e IA não fazem parte desta oferta.</p>
+      {catalog?.addons?.filter(addon => addon.code === "BARBER_SEAT").map(addon => <p key={addon.id} className="mt-3 text-sm text-secondary">No {catalog.plans.find(plan => plan.id === addon.planId)?.name ?? "plano elegível"}, adicione profissionais por {new Intl.NumberFormat("pt-BR", {style:"currency", currency:"BRL"}).format(addon.monthlyPrice)}/mês cada, junto à mensalidade. Escolha a quantidade na contratação.</p>)}
       <p className="mt-6 text-[11px] text-[#98a2b3]">
-        {catalog?.available && catalog.plans.length ? `Cartão com renovação mensal automática ou Pix com pagamento a cada mês. Sem teste gratuito. Cancelamento da renovação pela plataforma. Tolerância de ${catalog.graceDays} dias após uma renovação vencida.` : "Valores de referência, sujeitos a confirmação comercial."}
+        {catalog?.available && catalog.plans.length ? `Cartão com renovação mensal automática ou Pix com pagamento a cada mês. Sem teste gratuito. Cancelamento da renovação pela plataforma. Tolerância de ${catalog.graceDays} dias após uma renovação vencida.` : "Você pode escolher seu plano e criar a conta. O pagamento será liberado quando a contratação online estiver disponível."}
       </p>
     </section>
   );

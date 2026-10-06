@@ -57,6 +57,8 @@ export function SubscriptionPage() {
     {error && <p role="alert" className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-700">{error}</p>}
     {!summary && !error && <p role="status">Carregando assinatura…</p>}
     {summary && <>
+      {summary.environment === "sandbox" && <p role="status" className={panel}>Ambiente Sandbox: pagamentos simulados, sem cobrança real. <Link href="/admin/assinatura" className="underline">Abrir teste de pagamento</Link></p>}
+      {!!account?.addonQuantity && <p className={panel}>Composição mensal: plano {billingMoney(account.basePrice ?? 0)} + {account.addonQuantity} profissional(is) extra(s) de {billingMoney(account.addonUnitPrice ?? 0)}. Total: {billingMoney(account.monthlyPrice)}/mês em uma única cobrança. Limite contratado: {account.contractedBarberLimit} profissionais.</p>}
       {!summary.available && <p className={panel}>A contratação online ainda não está disponível. Entre em contato com o suporte para contratar ou ajustar seu plano.</p>}
       <section className={panel}><h2 className="font-semibold">Plano e acesso</h2><dl className="mt-3 grid gap-3 text-sm sm:grid-cols-3">
         <div><dt className="text-secondary">Plano</dt><dd>{plan?.name ?? (summary.subscription?.planId ? "Plano contratado" : "Escolha um plano")}</dd></div>

@@ -256,11 +256,18 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
           throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível concluir o cadastro."));
         }
         if (!clientRegistration) {
-          const billing = await fetch("/billing/plans").then(r => r.ok ? r.json() : null).catch(() => null);
-          if (billing?.available || planQuery) {
+          // Registration succeeded; recover session failures without repeating account creation.
+          try {
             const login = await signIn("credentials", { email: values.email.trim(), password: values.password, redirect: false });
-            if (login && !login.error) { router.replace(`/admin/assinatura${planQuery}`); return; }
+            if (login && !login.error) {
+              router.replace("/admin/assinatura" + planQuery);
+              return;
+            }
+          } catch {
+            // Preserve the subscription destination through manual login.
           }
+          router.replace("/login?contratar=1" + planQuery.replace("?", "&"));
+          return;
         }
         if (clientRegistration) {
           const login = await signIn("credentials", { email: values.email.trim().toLowerCase(), password: values.password, redirect: false });
@@ -297,6 +304,10 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
     const session = await getSession();
     let destination = session?.user?.role === "CLIENT" ? clientDestination(session.user.email, linkedShop) : roleRedirect[session?.user?.role ?? ""] ?? "/login";
     if (session?.user?.role === "ADMIN") {
+      if (searchParams.get("contratar") === "1" || planQuery) {
+        router.replace("/admin/assinatura" + planQuery);
+        return;
+      }
       const response = await fetch("/billing/subscription", { headers: { Authorization: `Bearer ${session.user.accessToken}` } });
       const billing = response.ok ? await response.json() : null;
       if (planQuery || (billing?.subscription && !["ACTIVE", "TRIAL"].includes(billing.subscription.status))) destination = `/admin/assinatura${planQuery}`;
