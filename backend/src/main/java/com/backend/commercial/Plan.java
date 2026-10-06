@@ -15,6 +15,10 @@ public class Plan {
     public Long version;
     @Column(name = "name", length = 1000)
     public String name;
+    @Column(name = "description", length = 1000)
+    public String description;
+    @Column(name = "features", columnDefinition = "text")
+    public String features;
     @Column(name = "monthly_price", precision = 19, scale = 2)
     public BigDecimal monthlyPrice;
     @Column(name = "barber_limit")
