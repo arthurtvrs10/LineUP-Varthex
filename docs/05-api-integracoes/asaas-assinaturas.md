@@ -26,7 +26,7 @@ Sem teste gratuito. Mensalidade sem parcelamento. Tolerância de três dias (`AS
 
 A vigência de uma mensalidade é calculada pelo vencimento até o dia anterior ao próximo mês. Pagamento atrasado quita o ciclo original; não desloca automaticamente a data de renovação. Reembolso parcial preserva acesso; reembolso integral ou contestação retira a cobertura do ciclo afetado. Pagamento futuro não substitui a vigência atual antes de seu vencimento.
 
-Preços e limites não foram inventados nem semeados: cadastrar planos antes de habilitar contratação. Assinaturas integradas não podem receber alterações manuais pela tela antiga. Troca automática de plano e prorrateio não fazem parte deste incremento.
+O catálogo inicial é criado pela V32 (Individual e Gestão); a V33 acrescenta profissional extra no Gestão. Consulte [planos-lineup.md](planos-lineup.md). Assinaturas integradas não podem receber alterações manuais pela tela antiga. Troca automática de plano, mudanças de adicionais após contratação e prorrateio exigem implementação específica.
 
 ## Configuração e homologação
 
@@ -51,6 +51,7 @@ Não reutilizar API key como token do webhook. API key nunca deve ir para o fron
 | GET `/billing/subscription` | ADMIN da própria conta | Assinatura e cobranças |
 | POST `/billing/checkout` | ADMIN da própria conta | Contratar plano, com `planId`, `method`, `cpfCnpj`, `requestKey` |
 | POST `/billing/sync` | ADMIN da própria conta | Atualizar conciliação |
+| POST `/billing/sandbox/charges/{id}/confirm` | ADMIN da própria conta | Simular confirmação Pix somente em sandbox, com flag explícita |
 | POST `/billing/cancel` | ADMIN da própria conta | Interromper renovação/checkout |
 | POST `/billing/card` | ADMIN da própria conta | Atualizar cartão existente, sem cobrança imediata |
 | POST `/billing/webhook` | Token Asaas | Receber eventos |
@@ -58,6 +59,8 @@ Não reutilizar API key como token do webhook. API key nunca deve ir para o fron
 | POST `/platform/billing/charges/{id}/refund` | SUPER_ADMIN | Solicitar reembolso com `amount`, `reason`, `requestKey` |
 
 Telas: `/admin/assinatura` e `/superadmin/cobrancas`.
+
+Atualização de 06/10/2026: [assistente de configuração e roteiro Sandbox](testar-contratacao-online.md). A contratação aceita `addonId` e `addonQuantity` opcionais; o servidor valida elegibilidade, calcula plano + adicionais e registra preço/capacidade da contratação. Extras não geram assinaturas separadas. O catálogo não libera WhatsApp/IA. Contas de cobrança guardam `environment` para impedir operações entre sandbox e produção.
 
 ## Operação e limitações
 
