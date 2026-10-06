@@ -92,3 +92,7 @@ Homologar os cenários acima, configurar conta/chave de produção e webhook de 
 - Confirmação pela interface: https://docs.asaas.com/docs/como-adicionar-dinheiro-para-testes
 
 Documentação consultada em 06/10/2026.
+
+## Checkout de cartão em localhost
+
+O Asaas rejeitou as URLs de retorno http://localhost:3000 na homologação. O LineUp oferece Pix para esse ambiente; cartão requer FRONTEND_URL com endereço público HTTPS da aplicação. O botão de nova tentativa só descarta a chave anterior após recusa definitiva (FAILED); timeouts continuam protegidos contra duplicação.

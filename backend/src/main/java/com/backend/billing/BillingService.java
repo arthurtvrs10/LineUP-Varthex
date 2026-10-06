@@ -63,12 +63,22 @@ public class BillingService {
         Map<String,Object> result=new LinkedHashMap<>();
         result.put("available", asaas.configured()); result.put("graceDays", graceDays);
         result.put("environment", asaas.environment());
+        result.put("cardCheckoutAvailable", cardCheckoutAvailable());
         result.put("sandboxActionsEnabled", sandboxActions && !asaas.production() && asaas.configured());
         result.put("subscription", subscriptions.findAllByTenantId(tenant).stream().findFirst().orElse(null));
         var account=accounts.findByTenantId(tenant).orElse(null);
         result.put("account", account);
         result.put("charges", account==null ? List.of() : charges.findAllByAccountIdOrderByDueDateDesc(account.id));
         return result;
+    }
+    private boolean cardCheckoutAvailable() {
+        try {
+            var uri=java.net.URI.create(frontendUrl);
+            String host=uri.getHost();
+            return "https".equals(uri.getScheme()) && host!=null && host.contains(".")
+                    && !host.equals("localhost") && !host.endsWith(".localhost")
+                    && !host.equals("127.0.0.1") && uri.getUserInfo()==null;
+        } catch(IllegalArgumentException ex) { return false; }
     }
     private <T> T locked(UUID tenant, Function<BillingAccount,T> work) {
         return tx.execute(status -> {
@@ -126,6 +136,8 @@ public class BillingService {
     public Map<String,Object> checkout(UUID tenant, UUID actor, CheckoutInput input) {
         asaas.requireConfigured();
         check(input!=null && input.planId()!=null && Set.of("PIX","CREDIT_CARD").contains(input.method()==null?"":input.method()),"Escolha plano e forma de pagamento");
+        if("CREDIT_CARD".equals(input.method()) && !cardCheckoutAvailable())
+            fail(HttpStatus.BAD_REQUEST,"Para testar cartão, configure FRONTEND_URL com um endereço público HTTPS do LineUp. No localhost, selecione Pix para testar no Sandbox.");
         key(input.requestKey());
         int quantity=input.addonQuantity()==null?0:input.addonQuantity();
         check(quantity>=0 && quantity<=20 && ((input.addonId()==null)==(quantity==0)),"Seleção de adicional inválida");
@@ -172,6 +184,8 @@ public class BillingService {
             return account;
         });
         if(!start[0]) {
+            if("FAILED".equals(reservation.state))
+                fail(HttpStatus.BAD_REQUEST,"A tentativa anterior foi recusada pelo Asaas. Atualize a página e confira os dados antes de tentar novamente.");
             if(reservation.checkoutUrl==null && reservation.providerSubscriptionId==null)
                 fail(HttpStatus.CONFLICT,"Contratação aguardando conciliação; não repita a cobrança.");
             return summary(tenant);

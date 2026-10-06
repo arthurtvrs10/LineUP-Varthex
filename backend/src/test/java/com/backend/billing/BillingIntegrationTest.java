@@ -23,7 +23,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest(properties={"asaas.enabled=true","asaas.worker-enabled=false","spring.flyway.enabled=false",
         "asaas.sandbox-actions-enabled=true",
-        "app.frontend-url=http://localhost:3000","spring.jpa.show-sql=false",
+        "app.frontend-url=https://lineup.example.com","spring.jpa.show-sql=false",
         "asaas.webhook-token=test-webhook-token-with-more-than-32-characters"})
 @AutoConfigureMockMvc
 class BillingIntegrationTest {
@@ -89,6 +89,19 @@ class BillingIntegrationTest {
         assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,input));
         assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,new BillingService.CheckoutInput(plan.id,"CREDIT_CARD","12345678909","new_request_123")));
         verify(asaas,times(1)).post(eq("/checkouts"),any());
+    }
+    @Test void rejectedCheckoutIsNotReportedAsUncertainAndCanRetryWithNewKey() {
+        when(asaas.post(eq("/customers"),any())).thenReturn(node(Map.of("id",customer)));
+        when(asaas.post(eq("/checkouts"),any())).thenThrow(new AsaasClient.Rejected());
+        var input=new BillingService.CheckoutInput(plan.id,"CREDIT_CARD","12345678909","rejected_request_123");
+        assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,input));
+        var retry=assertThrows(ResponseStatusException.class,()->billing.checkout(tenant,actor,input));
+        assertEquals(400,retry.getStatusCode().value());
+        assertFalse(retry.getReason().contains("conciliação"));
+        verify(asaas,times(1)).post(eq("/checkouts"),any());
+        when(asaas.post(eq("/checkouts"),any())).thenReturn(node(Map.of("id","checkout_retry","link","https://sandbox.asaas.com/checkoutSession/show?id=checkout_retry")));
+        billing.checkout(tenant,actor,new BillingService.CheckoutInput(plan.id,"CREDIT_CARD","12345678909","new_valid_request_123"));
+        assertEquals("PENDING",accounts.findByTenantId(tenant).orElseThrow().state);
     }
     @Test void paidPaymentActivatesAndRepeatedSnapshotDoesNotExtendPeriodTwice() {
         account();JsonNode paid=payment("pay_"+UUID.randomUUID(),"RECEIVED",LocalDate.now());
