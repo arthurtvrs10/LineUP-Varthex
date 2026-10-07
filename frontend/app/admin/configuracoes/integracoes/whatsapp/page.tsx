@@ -1,3 +1,3 @@
 import { AdminShell } from "@/components/admin/AdminShell";
-import { WhatsAppSettings } from "@/components/admin/whatsapp/WhatsAppSettings";
-export default function Page(){return <AdminShell title="WhatsApp" breadcrumb="Configurações / Integrações / WhatsApp"><WhatsAppSettings/></AdminShell>;}
+import { SettingsDashboard } from "@/components/admin/SettingsDashboard";
+export default function Page() { return <AdminShell title="Configurações" breadcrumb="Configurações / Integrações" settings><SettingsDashboard initialSection="whatsapp"/></AdminShell>; }

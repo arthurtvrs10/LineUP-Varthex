@@ -12,7 +12,7 @@ import { type Connection, type Dashboard, fieldClass,buttonClass,secondaryClass,
 type FacebookSdk={init:(options:Record<string,unknown>)=>void;login:(callback:(response:{authResponse?:{code?:string}})=>void,options:Record<string,unknown>)=>void};
 declare global {interface Window { FB?:FacebookSdk }}
 
-export function WhatsAppSettings(){
+export function WhatsAppSettings({ embedded = false }: { embedded?: boolean }){
  const resource=useResource<Connection>("/integrations/whatsapp");
  const [busy,setBusy]=useState(false),[feedback,setFeedback]=useState(""),[error,setError]=useState(""),[verifyToken,setVerifyToken]=useState(""),[disconnect,setDisconnect]=useState(false),[sdkReady,setSdkReady]=useState(false);
  const c=resource.data;
@@ -39,7 +39,7 @@ export function WhatsAppSettings(){
   });
  }
  return <div className="w-full space-y-5">
-  <Link href="/admin/configuracoes" className="text-sm font-semibold text-accent-strong">Voltar às configurações</Link>
+  {!embedded && <Link href="/admin/configuracoes" className="text-sm font-semibold text-accent-strong">Voltar às configurações</Link>}
   <div><h1 className="text-2xl font-bold text-ink">Conectar WhatsApp</h1><p className="mt-1 text-sm text-secondary">Siga as etapas para enviar lembretes e conversar com seus clientes pelo LineUp.</p></div>
   <Status ready={!!c} error={resource.error}/>
   {error&&<p role="alert" className="rounded-[10px] bg-danger-subtle p-4 text-sm text-danger">{error}</p>}{feedback&&<p role="status" className="rounded-[10px] bg-success-subtle p-4 text-sm text-success">{feedback}</p>}

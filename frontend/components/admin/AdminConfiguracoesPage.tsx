@@ -64,7 +64,7 @@ type BarbeariaForm = {
   state: string;
 };
 
-export function AdminConfiguracoesPage() {
+export function AdminConfiguracoesPage({ section }: { section?: "conta" | "barbearia" }) {
   const { data: session, update: updateSession } = useSession();
   const [nomeDraft, setNome] = useState<string>();
   const nome = nomeDraft ?? session?.user?.name ?? "";
@@ -197,7 +197,7 @@ export function AdminConfiguracoesPage() {
 
   return (
     <div className="flex w-full flex-col gap-4">
-      <SectionCard icon={UserRound} title="Conta">
+      {(!section || section === "conta") && <SectionCard icon={UserRound} title="Conta">
         <div className="flex justify-center">
           <AvatarUpload
             photoData={photoData}
@@ -219,9 +219,9 @@ export function AdminConfiguracoesPage() {
             {savingConta ? "Salvando…" : "Salvar perfil"}
           </button>
         </div>
-      </SectionCard>
+      </SectionCard>}
 
-      <SectionCard icon={Store} title="Barbearia">
+      {(!section || section === "barbearia") && <SectionCard icon={Store} title="Barbearia">
         {tenant && <div className="mb-4 rounded-[10px] border border-[#e6e4df] bg-[#f7f6f2] p-4">
           <p className="text-sm font-semibold text-[#0d1831]">Link para seus clientes agendarem</p>
           <p className="mt-1 text-xs text-[#5f6f87]">A escolha desta barbearia será mantida durante o cadastro e login.</p>
@@ -291,9 +291,9 @@ export function AdminConfiguracoesPage() {
             {saving ? "Salvando…" : "Salvar barbearia"}
           </button>
         </div>
-      </SectionCard>
+      </SectionCard>}
 
-      <BusinessSettingsPanel />
+      {!section && <><BusinessSettingsPanel />
       <SectionCard title="Integrações" icon={Plug}>
         <Link href="/admin/configuracoes/integracoes/google-calendar" className="flex items-center gap-4 rounded-[12px] border border-fog bg-white p-4 transition hover:bg-surface-sunken focus-visible:outline-2 focus-visible:outline-accent">
           <CalendarDays size={24} className="shrink-0 text-accent-strong" aria-hidden="true" />
@@ -313,7 +313,7 @@ export function AdminConfiguracoesPage() {
           </div>
           <ArrowRight size={20} className="shrink-0 text-accent-strong" aria-hidden="true" />
         </Link>
-      </SectionCard>
+      </SectionCard></>}
 
       <Toast mensagem={toast.mensagem} tone={toast.tone} onClose={toast.fechar} />
     </div>
