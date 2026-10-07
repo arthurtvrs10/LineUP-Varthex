@@ -11,6 +11,7 @@ public class BillingCharge {
     @Id public UUID id = UUID.randomUUID();
     @Version public Long version;
     @Column(nullable = false) public UUID accountId;
+    public UUID termsId;
     @Column(nullable = false, unique = true) public String providerId;
     public String status;
     public String failureCode;

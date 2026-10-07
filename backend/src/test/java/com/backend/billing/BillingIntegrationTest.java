@@ -28,6 +28,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 class BillingIntegrationTest {
     @Autowired BillingService billing;
+    @Autowired BillingChanges changes;
+    @Autowired BillingTermsRepository terms;
+    @Autowired com.backend.barbers.BarberRepository barbers;
+    @Autowired com.backend.units.UnitRepository units;
     @Autowired BillingWorker worker;
     @Autowired BillingAccountRepository accounts;
     @Autowired BillingChargeRepository charges;
@@ -279,5 +283,101 @@ class BillingIntegrationTest {
         assertThrows(ResponseStatusException.class,()->billing.reconcile(tenant));
         assertThrows(ResponseStatusException.class,()->billing.cancel(tenant,actor));
         verify(asaas,never()).getOptional(anyString());verify(asaas,never()).put(anyString(),any());
+    }
+
+    Plan alternative(int limit) {
+        var p=new Plan();p.name="Gestão";p.monthlyPrice=new BigDecimal("149.90");p.barberLimit=limit;p.active=true;p.createdAt=LocalDateTime.now();return plans.save(p);
+    }
+    void activeAccount() {
+        account();billing.syncPayment(tenant,payment("pay_"+UUID.randomUUID(),"RECEIVED",LocalDate.now()));
+        when(asaas.get("/subscriptions/"+sub)).thenReturn(node(Map.of("id",sub,"customer",customer,"value",99,"billingType","PIX","cycle","MONTHLY","status","ACTIVE","nextDueDate",LocalDate.now().plusMonths(1).toString())));
+    }
+    JsonNode changedProvider(BillingTerms t) {
+        return node(Map.of("id",sub,"customer",customer,"value",t.monthlyPrice,"billingType",t.method,"cycle","MONTHLY","status","ACTIVE","nextDueDate",t.effectiveOn.toString(),"externalReference",t.id.toString()));
+    }
+    void accept(BillingTerms t) {
+        when(asaas.put(eq("/subscriptions/"+sub),any())).thenAnswer(invocation->{
+            Map<?,?> body=invocation.getArgument(1);assertEquals(false,body.get("updatePendingPayments"));
+            assertEquals(0,t.monthlyPrice.compareTo((BigDecimal)body.get("value")));
+            when(asaas.get("/subscriptions/"+sub)).thenReturn(changedProvider(t));return changedProvider(t);
+        });
+    }
+    @Test void scheduleUpgradePreservesPaidAccessAndIsIdempotent() {
+        activeAccount();var next=alternative(5);var t=changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"PIX"));
+        accept(t);changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false);
+        changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false);
+        assertEquals("APPLIED",terms.findById(t.id).orElseThrow().state);
+        assertEquals(plan.id,current().planId);assertEquals(1,current().barberLimit);assertEquals("ACTIVE",current().status);
+        assertNotNull(billing.summary(tenant).get("pendingChange"));verify(asaas,times(1)).put(eq("/subscriptions/"+sub),any());
+        assertThrows(ResponseStatusException.class,()->changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"CREDIT_CARD")));
+    }
+    @Test void historicalInvoiceAndNewCycleUseTheirOwnPricesAndLimits() {
+        activeAccount();var next=alternative(5);var t=changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"PIX"));accept(t);
+        changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false);
+        // Advance the scheduled boundary in this isolated database to exercise the renewal path.
+        var old=charges.findAllByAccountIdOrderByDueDateDesc(t.accountId).getFirst();old.dueDate=LocalDate.now().minusMonths(1);charges.save(old);
+        var applied=terms.findById(t.id).orElseThrow();applied.effectiveOn=LocalDate.now();terms.save(applied);
+        var renewal=(tools.jackson.databind.node.ObjectNode)payment("pay_"+UUID.randomUUID(),"RECEIVED",LocalDate.now());renewal.put("value",next.monthlyPrice);
+        billing.syncPayment(tenant,renewal);
+        assertEquals(next.id,current().planId);assertEquals(5,current().barberLimit);assertEquals("ACTIVE",current().status);
+        assertNotEquals(t.id,charges.findById(old.id).orElseThrow().termsId);
+        assertNull(billing.summary(tenant).get("pendingChange"));
+    }
+    @Test void paidFutureUpgradeDoesNotUnlockSeatsEarly() {
+        activeAccount();var next=alternative(5);var t=changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"PIX"));accept(t);
+        changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false);
+        var renewal=(tools.jackson.databind.node.ObjectNode)payment("pay_"+UUID.randomUUID(),"RECEIVED",t.effectiveOn);renewal.put("value",next.monthlyPrice);
+        billing.syncPayment(tenant,renewal);assertEquals(plan.id,current().planId);assertEquals(1,current().barberLimit);
+    }
+    @Test void addonQuoteUsesCatalogAndRejectsAnotherPlansAddon() {
+        activeAccount();var next=alternative(5);var extra=new BillingAddon();extra.planId=next.id;extra.name="Profissional";extra.code="BARBER_SEAT";extra.monthlyPrice=new BigDecimal("19.90");extra.maxQuantity=20;extra.active=true;extra=addons.save(extra);
+        var t=changes.quote(tenant,new BillingChanges.Selection(next.id,extra.id,2,"PIX"));assertEquals(new BigDecimal("189.70"),t.monthlyPrice);assertEquals(7,t.barberLimit);
+        UUID extraId=extra.id;assertThrows(ResponseStatusException.class,()->changes.quote(tenant,new BillingChanges.Selection(plan.id,extraId,2,"PIX")));
+    }
+    @Test void downgradeCountsInactiveProfessionalsAndRechecksAtConfirmation() {
+        activeAccount();var next=alternative(1);var t=changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"PIX"));
+        var unit=units.save(new com.backend.units.Unit(null,tenants.findById(tenant).orElseThrow(),"Unidade","America/Sao_Paulo",true));
+        for(int i=0;i<2;i++) {
+            var user=users.save(new User(null,"Barber",UUID.randomUUID()+"@example.com","{noop}password123",Role.BARBER,UserStatus.ACTIVE,tenant,null,null,null));
+            var b=new com.backend.barbers.BarberProfile();b.setUser(user);b.setUnit(unit);b.setDisplayName("Barber");b.setStatus(com.backend.barbers.BarberStatus.INACTIVE);barbers.save(b);
+        }
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false));
+        assertThrows(ResponseStatusException.class,()->changes.quote(tenant,new BillingChanges.Selection(next.id,null,0,"PIX")));
+        verify(asaas,never()).put(anyString(),any());
+    }
+    @Test void uncertainChangeCannotBeResentAndIsReconciledByReference() {
+        activeAccount();var t=changes.quote(tenant,new BillingChanges.Selection(alternative(5).id,null,0,"PIX"));
+        when(asaas.put(eq("/subscriptions/"+sub),any())).thenThrow(new ResponseStatusException(org.springframework.http.HttpStatus.BAD_GATEWAY));
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false));
+        assertEquals("UNCERTAIN",terms.findById(t.id).orElseThrow().state);
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false));
+        when(asaas.getOptional("/subscriptions/"+sub)).thenReturn(changedProvider(t));
+        when(asaas.get(contains("/payments?"))).thenReturn(node(Map.of("data",List.of())));
+        billing.reconcile(tenant);assertEquals("APPLIED",terms.findById(t.id).orElseThrow().state);
+        verify(asaas,times(1)).put(eq("/subscriptions/"+sub),any());
+    }
+    @Test void changeToCardTokenizesWithoutStoringOrReturningCardData() {
+        activeAccount();var t=changes.quote(tenant,new BillingChanges.Selection(plan.id,null,0,"CREDIT_CARD"));accept(t);
+        when(asaas.post(eq("/creditCard/tokenizeCreditCard"),any())).thenReturn(node(Map.of("creditCardToken","token_test_only")));
+        var card=new BillingService.CardInput("Test holder","4444444444444444","12","2035","123","12345678909","01001000","1","11999999999");
+        changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,card),"127.0.0.1",false);
+        verify(asaas).put(eq("/subscriptions/"+sub),argThat(body->body instanceof Map<?,?> payload && "token_test_only".equals(payload.get("creditCardToken"))&&!payload.containsKey("creditCard")));
+        String response=json.writeValueAsString(billing.summary(tenant));assertFalse(response.contains("4444444444444444"));assertFalse(response.contains("token_test_only"));assertFalse(card.toString().contains("4444"));
+    }
+    @Test void stalePreviewAndProductionHttpCardAreRejectedBeforeMutation() {
+        activeAccount();var t=changes.quote(tenant,new BillingChanges.Selection(plan.id,null,0,"CREDIT_CARD"));
+        when(asaas.production()).thenReturn(true);
+        var card=new BillingService.CardInput("Test holder","4444444444444444","12","2035","123","12345678909","01001000","1","11999999999");
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,card),"127.0.0.1",false));
+        var expired=terms.findById(t.id).orElseThrow();expired.expiresAt=LocalDateTime.now().minusMinutes(1);terms.save(expired);
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,card),"127.0.0.1",true));
+        verify(asaas,never()).post(eq("/creditCard/tokenizeCreditCard"),any());verify(asaas,never()).put(anyString(),any());
+    }
+    @Test void anotherTenantCannotConfirmPreview() {
+        activeAccount();var t=changes.quote(tenant,new BillingChanges.Selection(alternative(5).id,null,0,"PIX"));
+        UUID firstTenant=tenant,firstActor=actor;seed();activeAccount();
+        assertThrows(ResponseStatusException.class,()->changes.confirm(tenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false));
+        assertThrows(ResponseStatusException.class,()->changes.confirm(firstTenant,actor,new BillingChanges.Confirmation(t.id,null),"127.0.0.1",false));
+        assertEquals("DRAFT",terms.findById(t.id).orElseThrow().state);verify(asaas,never()).put(anyString(),any());
     }
 }

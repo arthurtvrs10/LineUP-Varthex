@@ -9,7 +9,8 @@ import java.util.UUID;
 @RestController
 public class BillingController {
     private final BillingService billing;
-    public BillingController(BillingService billing) { this.billing=billing; }
+    private final BillingChanges changes;
+    public BillingController(BillingService billing,BillingChanges changes) { this.billing=billing;this.changes=changes; }
     private UUID tenant(JwtAuthenticationToken auth) {
         String id=auth.getToken().getClaimAsString("tenantId");
         if(id==null) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Perfil sem barbearia");
@@ -26,6 +27,12 @@ public class BillingController {
     @PostMapping("/billing/cancel") public Object cancel(JwtAuthenticationToken auth) { return billing.cancel(tenant(auth),actor(auth)); }
     @PostMapping("/billing/card") public Object card(@RequestBody BillingService.CardInput input,JwtAuthenticationToken auth,jakarta.servlet.http.HttpServletRequest request) {
         return billing.updateCard(tenant(auth),actor(auth),input,request.getRemoteAddr(),request.isSecure());
+    }
+    @PostMapping("/billing/changes/preview") public Object preview(@RequestBody BillingChanges.Selection input,JwtAuthenticationToken auth) {
+        billing.reconcile(tenant(auth));return changes.quote(tenant(auth),input);
+    }
+    @PostMapping("/billing/changes/confirm") public Object confirm(@RequestBody BillingChanges.Confirmation input,JwtAuthenticationToken auth,jakarta.servlet.http.HttpServletRequest request) {
+        changes.confirm(tenant(auth),actor(auth),input,request.getRemoteAddr(),request.isSecure());return billing.summary(tenant(auth));
     }
     @GetMapping("/platform/billing") public Object platform() { return billing.platform(); }
     @PostMapping("/platform/billing/charges/{id}/refund") public Object refund(@PathVariable UUID id,@RequestBody BillingService.RefundInput input,JwtAuthenticationToken auth) {

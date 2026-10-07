@@ -18,6 +18,7 @@ import java.util.function.Function;
 
 @Service
 public class BillingService {
+    private final BillingChanges changes;
     private final BillingAccountRepository accounts;
     private final BillingChargeRepository charges;
     private final SubscriptionRepository subscriptions;
@@ -37,7 +38,8 @@ public class BillingService {
             AuditEventRepository audit, EntityManager em, AsaasClient asaas, PlatformTransactionManager tm,
             @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl,
             @Value("${asaas.grace-days:3}") int graceDays, BillingAddonRepository addons,
-            @Value("${asaas.sandbox-actions-enabled:false}") boolean sandboxActions) {
+            @Value("${asaas.sandbox-actions-enabled:false}") boolean sandboxActions, BillingChanges changes) {
+        this.changes=changes;
         this.accounts=accounts; this.charges=charges; this.subscriptions=subscriptions; this.plans=plans;
         this.users=users; this.audit=audit; this.em=em; this.asaas=asaas; this.tx=new TransactionTemplate(tm);
         this.frontendUrl=frontendUrl.replaceAll("/+$", ""); this.graceDays=Math.max(0, Math.min(graceDays, 30));
@@ -68,6 +70,9 @@ public class BillingService {
         result.put("subscription", subscriptions.findAllByTenantId(tenant).stream().findFirst().orElse(null));
         var account=accounts.findByTenantId(tenant).orElse(null);
         result.put("account", account);
+        result.put("professionals", changes.professionals(tenant));
+        result.put("pendingChange", account==null ? null : changes.pending(account));
+        result.put("changes", account==null ? List.of() : changes.history(account.id));
         result.put("charges", account==null ? List.of() : charges.findAllByAccountIdOrderByDueDateDesc(account.id));
         return result;
     }
@@ -82,6 +87,7 @@ public class BillingService {
     }
     private <T> T locked(UUID tenant, Function<BillingAccount,T> work) {
         return tx.execute(status -> {
+            if(em.find(Tenant.class,tenant,LockModeType.PESSIMISTIC_WRITE)==null) fail(HttpStatus.NOT_FOUND,"Barbearia não encontrada");
             BillingAccount account=em.createQuery("select a from BillingAccount a where a.tenantId=:tenant",BillingAccount.class)
                     .setParameter("tenant",tenant).setLockMode(LockModeType.PESSIMISTIC_WRITE).getResultStream().findFirst().orElse(null);
             if(account==null) {
@@ -115,11 +121,12 @@ public class BillingService {
             requireEnvironment(account);
             var charge=charges.findById(chargeId).filter(c->c.accountId.equals(account.id))
                     .orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Cobrança não encontrada"));
-            check("PIX".equals(account.method),"Use o checkout e os cartões de teste do Asaas para testar cartão");
+            var terms=changes.chargeTerms(account,charge);
+            check("PIX".equals(terms==null?account.method:terms.method),"Use o checkout e os cartões de teste do Asaas para testar cartão");
             var payment=asaas.get("/payments/"+AsaasClient.safeId(charge.providerId));
             check(Objects.equals(account.customerId,text(payment,"customer"))
                     && Objects.equals(account.providerSubscriptionId,text(payment,"subscription"))
-                    && decimal(payment,"value")!=null && account.monthlyPrice.compareTo(decimal(payment,"value"))==0,
+                    && decimal(payment,"value")!=null && (terms==null?account.monthlyPrice:terms.monthlyPrice).compareTo(decimal(payment,"value"))==0,
                     "Cobrança divergente da assinatura");
             String status=text(payment,"status");
             if(!Set.of("RECEIVED","CONFIRMED").contains(status==null?"":status)) {
@@ -271,6 +278,8 @@ public class BillingService {
             locked(tenant,a->{refreshEntitlement(a);accounts.save(a);return null;});return;
         }
         if(!Objects.equals(account.customerId,text(subscription,"customer"))) fail(HttpStatus.CONFLICT,"Cliente externo divergente");
+        changes.resolve(account,subscription);
+        changes.requireSettled(account);
         if("INACTIVE".equals(text(subscription,"status"))) locked(tenant,a->{a.cancelRequested=true;accounts.save(a);return null;});
         for(int offset=0; offset<10000; offset+=100) {
             JsonNode page=asaas.get("/subscriptions/"+AsaasClient.safeId(account.providerSubscriptionId)+"/payments?limit=100&offset="+offset);
@@ -279,7 +288,7 @@ public class BillingService {
             if(offset==9900) fail(HttpStatus.CONFLICT,"Limite de conciliação excedido");
         }
         locked(tenant,a->{a.syncedAt=LocalDateTime.now();
-            a.issue=charges.findAllByAccountIdOrderByDueDateDesc(a.id).stream().anyMatch(c->c.gross==null || c.gross.compareTo(a.monthlyPrice)!=0)
+            a.issue=charges.findAllByAccountIdOrderByDueDateDesc(a.id).stream().anyMatch(c->c.gross==null || c.gross.compareTo(changes.chargeTerms(a,c)==null?a.monthlyPrice:changes.chargeTerms(a,c).monthlyPrice)!=0)
                     ?"Cobrança com valor divergente; revisão necessária.":null;
             refreshEntitlement(a);accounts.save(a);return null;});
     }
@@ -292,9 +301,12 @@ public class BillingService {
             String id=AsaasClient.safeId(text(payment,"id"));
             var charge=charges.findByProviderId(id).orElseGet(BillingCharge::new);
             if(charge.accountId!=null && !charge.accountId.equals(a.id)) fail(HttpStatus.CONFLICT,"Cobrança vinculada a outra conta");
+            changes.requireSettled(a);
+            changes.baseline(a);
             charge.accountId=a.id;charge.providerId=id;charge.status=text(payment,"status");
             if(Set.of("CONFIRMED","RECEIVED","REFUNDED").contains(charge.status==null?"":charge.status)) charge.failureCode=null;
             charge.dueDate=date(payment,"dueDate");charge.paymentDate=date(payment,"paymentDate");
+            if(charge.termsId==null) { var terms=changes.at(a,charge.dueDate); if(terms!=null) charge.termsId=terms.id; }
             charge.availableOn=date(payment,"creditDate");charge.gross=decimal(payment,"value");charge.net=decimal(payment,"netValue");
             charge.invoiceUrl=AsaasClient.safeUrl(text(payment,"invoiceUrl"));charge.updatedAt=LocalDateTime.now();
             BigDecimal returned=BigDecimal.ZERO;
@@ -311,17 +323,24 @@ public class BillingService {
     private void refreshEntitlement(BillingAccount account) {
         var history=charges.findAllByAccountIdOrderByDueDateDesc(account.id);
         LocalDate start=null,end=null;
+        BillingTerms paidTerms=null;
         for(var charge:history) {
-            if(charge.gross==null || charge.dueDate==null || charge.gross.compareTo(account.monthlyPrice)!=0) continue;
+            var terms=changes.chargeTerms(account,charge);
+            if(charge.gross==null || charge.dueDate==null || charge.gross.compareTo(terms==null?account.monthlyPrice:terms.monthlyPrice)!=0) continue;
             if(charge.dueDate.isAfter(LocalDate.now())) continue;
             if(!Set.of("CONFIRMED","RECEIVED","REFUND_REQUESTED","REFUND_IN_PROGRESS").contains(charge.status==null?"":charge.status)
                     || charge.refunded.compareTo(charge.gross)>=0) continue;
             LocalDate periodEnd=charge.dueDate.plusMonths(1).minusDays(1);
-            if(end==null || periodEnd.isAfter(end)) { start=charge.dueDate;end=periodEnd; }
+            if(end==null || periodEnd.isAfter(end)) { start=charge.dueDate;end=periodEnd;paidTerms=terms; }
         }
         Subscription local=subscriptions.findAllByTenantId(account.tenantId).stream().findFirst().orElseGet(Subscription::new);
         // Preserve manually granted legacy access until the first integrated payment.
         if(end==null && local.planId!=null && !"ASAAS".equals(local.reason)) { account.state="PENDING"; return; }
+        if(paidTerms!=null) {
+            account.planId=paidTerms.planId;account.basePrice=paidTerms.basePrice;account.monthlyPrice=paidTerms.monthlyPrice;
+            account.addonId=paidTerms.addonId;account.addonName=paidTerms.addonName;account.addonUnitPrice=paidTerms.addonUnitPrice;
+            account.addonQuantity=paidTerms.addonQuantity;account.contractedBarberLimit=paidTerms.barberLimit;account.method=paidTerms.method;
+        }
         local.tenantId=account.tenantId;local.planId=account.planId;local.reason="ASAAS";
         local.barberLimit=account.contractedBarberLimit;
         LocalDate today=LocalDate.now();
@@ -338,8 +357,12 @@ public class BillingService {
         subscriptions.save(local);
     }
     public Map<String,Object> cancel(UUID tenant, UUID actor) {
+        return locked(tenant,a->cancelLocked(tenant,actor));
+    }
+    private Map<String,Object> cancelLocked(UUID tenant, UUID actor) {
         var account=accounts.findByTenantId(tenant).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Assinatura não encontrada"));
         requireEnvironment(account);
+        changes.requireSettled(account);
         if(account.cancelRequested) return summary(tenant);
         if(account.providerSubscriptionId==null) {
             if(account.checkoutId==null) fail(HttpStatus.CONFLICT,"Aguarde a conciliação da contratação antes de cancelar");
@@ -353,6 +376,9 @@ public class BillingService {
         return summary(tenant);
     }
     public Map<String,Object> updateCard(UUID tenant,UUID actor,CardInput input,String remoteIp,boolean secure) {
+        return locked(tenant,a->updateCardLocked(tenant,actor,input,remoteIp,secure));
+    }
+    private Map<String,Object> updateCardLocked(UUID tenant,UUID actor,CardInput input,String remoteIp,boolean secure) {
         asaas.requireConfigured();
         if(asaas.production() && !secure) fail(HttpStatus.BAD_REQUEST,"Atualização de cartão exige conexão HTTPS");
         check(input!=null && input.holderName()!=null && !input.holderName().isBlank() && input.holderName().length()<=120
@@ -366,6 +392,7 @@ public class BillingService {
                 && input.phone()!=null && input.phone().matches("\\d{10,13}"),"Confira os dados do cartão e do titular");
         check(!YearMonth.of(Integer.parseInt(input.expiryYear()),Integer.parseInt(input.expiryMonth())).isBefore(YearMonth.now()),"Cartão vencido");
         var account=accounts.findByTenantId(tenant).orElseThrow(()->new ResponseStatusException(HttpStatus.NOT_FOUND,"Assinatura não encontrada"));
+        check(changes.pending(account)==null,"Aguarde a alteração programada antes de substituir o cartão");
         check(account.providerSubscriptionId!=null && "CREDIT_CARD".equals(account.method) && !account.cancelRequested,"Assinatura não possui cartão recorrente ativo");
         requireEnvironment(account);
         var owner=users.findById(actor).filter(u->tenant.equals(u.getTenantId()) && u.getRole()==Role.ADMIN)

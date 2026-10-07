@@ -22,6 +22,10 @@ public class EntitlementService {
             if(!("ACTIVE".equals(s.status)||"TRIAL".equals(s.status))||s.startsOn.isAfter(LocalDate.now())||s.endsOn.isBefore(LocalDate.now()))throw new ResponseStatusException(HttpStatus.FORBIDDEN,"Assinatura sem vigência ativa");
             Plan p=plans.findById(s.planId).orElseThrow(()->new ResponseStatusException(HttpStatus.CONFLICT,"Plano não encontrado"));
             int limit=s.barberLimit==null?p.barberLimit:s.barberLimit;
+            // The tenant lock also serializes subscription changes with team creation.
+            var pending=em.createQuery("select t from BillingTerms t, BillingAccount a where t.accountId=a.id and a.tenantId=:tenant and t.state in ('APPLYING','UNCERTAIN','APPLIED') order by t.effectiveOn desc, t.createdAt desc", com.backend.billing.BillingTerms.class)
+                    .setParameter("tenant",tenantId).setMaxResults(1).getResultList();
+            for(var terms:pending) limit=Math.min(limit,terms.barberLimit);
             if(barbers.findAllByUnit_Tenant_Id(tenantId).size()>=limit)throw new ResponseStatusException(HttpStatus.CONFLICT,"Limite de profissionais do plano atingido");
         });
     }
