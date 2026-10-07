@@ -26,7 +26,7 @@ Sem teste gratuito. Mensalidade sem parcelamento. Tolerância de três dias (`AS
 
 A vigência de uma mensalidade é calculada pelo vencimento até o dia anterior ao próximo mês. Pagamento atrasado quita o ciclo original; não desloca automaticamente a data de renovação. Reembolso parcial preserva acesso; reembolso integral ou contestação retira a cobertura do ciclo afetado. Pagamento futuro não substitui a vigência atual antes de seu vencimento.
 
-O catálogo inicial é criado pela V32 (Individual e Gestão); a V33 acrescenta profissional extra no Gestão. Consulte [planos-lineup.md](planos-lineup.md). Assinaturas integradas não podem receber alterações manuais pela tela antiga. Troca automática de plano, mudanças de adicionais após contratação e prorrateio exigem implementação específica.
+O catálogo inicial é criado pela V32 (Individual e Gestão); a V33 acrescenta profissional extra no Gestão. Consulte [planos-lineup.md](planos-lineup.md). Assinaturas integradas não podem receber alterações manuais pela tela antiga. A V34 permite trocar plano, profissionais extras e forma de pagamento durante a assinatura ativa. Prorrateio continua fora do escopo.
 
 ## Configuração e homologação
 
@@ -54,11 +54,13 @@ Não reutilizar API key como token do webhook. API key nunca deve ir para o fron
 | POST `/billing/sandbox/charges/{id}/confirm` | ADMIN da própria conta | Simular confirmação Pix somente em sandbox, com flag explícita |
 | POST `/billing/cancel` | ADMIN da própria conta | Interromper renovação/checkout |
 | POST `/billing/card` | ADMIN da própria conta | Atualizar cartão existente, sem cobrança imediata |
+| POST `/billing/changes/preview` | ADMIN da própria conta | Revisar plano, extras, pagamento, valor e início do ciclo; validade de 10 minutos |
+| POST `/billing/changes/confirm` | ADMIN da própria conta | Confirmar `quoteId`, com `card` transitório apenas na migração Pix → cartão |
 | POST `/billing/webhook` | Token Asaas | Receber eventos |
 | GET `/platform/billing` | SUPER_ADMIN | Relatório financeiro |
 | POST `/platform/billing/charges/{id}/refund` | SUPER_ADMIN | Solicitar reembolso com `amount`, `reason`, `requestKey` |
 
-Telas: `/admin/assinatura` e `/superadmin/cobrancas`.
+Telas: `/admin/assinatura` (contratação/regularização), `/admin/configuracoes?secao=assinatura` (gestão unificada) e `/superadmin/cobrancas`. O endereço antigo `/admin/assinatura/gerenciar` redireciona às configurações.
 
 Atualização de 06/10/2026: [assistente de configuração e roteiro Sandbox](testar-contratacao-online.md). A contratação aceita `addonId` e `addonQuantity` opcionais; o servidor valida elegibilidade, calcula plano + adicionais e registra preço/capacidade da contratação. Extras não geram assinaturas separadas. O catálogo não libera WhatsApp/IA. Contas de cobrança guardam `environment` para impedir operações entre sandbox e produção.
 
@@ -70,8 +72,8 @@ Atualização de 06/10/2026: [assistente de configuração e roteiro Sandbox](te
 - A conciliação serializa leitura/escrita pela conta de cobrança para evitar sobrescrever estados recentes com snapshots concorrentes; transações de caixa não usam esse bloqueio.
 - Um reembolso incerto bloqueia nova solicitação até confirmação ou investigação. Rejeição definitiva permite uma nova operação com nova chave.
 - INACTIVE impede novas cobranças, mas não remove cobranças existentes. Confirmar com o cliente a destinação das mensalidades pendentes ao cancelar.
-- Atualização de cartão em produção exige `request.isSecure()` e configuração correta do proxy confiável para HTTPS e IP real do pagador. Não habilitar logging de corpos para `/billing/card`; não enviar dados dessa tela a analytics/session replay. Revisar requisitos PCI com o provedor. Uma falha de atualização não cria outra assinatura nem cobra mensalidade adicional.
-- Reativação e troca de plano exigem fluxo adicional para evitar duplicar cobranças já geradas. Não anunciar como disponíveis.
+- Atualização de cartão em produção exige `request.isSecure()` e configuração correta do proxy confiável para HTTPS e IP real do pagador. Não habilitar logging de corpos para `/billing/card` ou `/billing/changes/confirm`; não enviar dados dessa tela a analytics/session replay. Revisar requisitos PCI com o provedor. Uma falha de atualização não cria outra assinatura nem cobra mensalidade adicional.
+- Reativação de recorrência cancelada ainda exige fluxo adicional. Não criar outra assinatura para contornar esse estado.
 - Pix Automático, plano anual, cupons, prorrateio e pagamentos de atendimentos são evoluções separadas.
 - Os relatórios mostram valores do provedor; não equivalem a lucro nem comprovam repasse bancário. Emissão fiscal permanece separada.
 - Validar migrações em PostgreSQL e integração real no sandbox antes de publicar. Testes locais com H2 e provedor simulado não substituem essa homologação.
@@ -94,3 +96,21 @@ Atualização de 06/10/2026: [assistente de configuração e roteiro Sandbox](te
 - Foram corrigidos imports das entidades e o valor padrão da URL de frontend no código de Google Calendar já existente, necessários à inicialização do backend em testes.
 - Contratos manuais básicos disponíveis em `bruno/LINEUP-API/Billing`; não foram executados contra a conta Asaas.
 - PostgreSQL e sandbox real permanecem como gates de homologação, junto à revisão do fluxo de atualização do cartão e das condições comerciais.
+
+
+## Alterações de assinatura — 07/10/2026
+
+- Configurações reúne conta, barbearia, regras comerciais, Google Calendar, WhatsApp e assinatura. Menu lateral pesquisável e conteúdo com rolagem própria ocupam a largura disponível.
+- Plano e adicionais compõem uma única mensalidade; valores e elegibilidade são calculados pelo servidor. A prévia informa o novo limite e a data de vigência.
+- Alterações afetam o próximo ciclo **ainda não emitido**, informado pelo Asaas em `nextDueDate`. Não há débito proporcional imediato, crédito proporcional ou alteração das faturas emitidas (`updatePendingPayments=false`). Se o ciclo mudar durante a confirmação, é necessário revisar novamente.
+- A capacidade nova só é liberada no início do ciclo correspondente e após pagamento confirmado. Cada fatura guarda a versão de preço/plano/limite usada para validar o acesso; pagamentos antigos continuam válidos pelo contrato daquele ciclo.
+- Redução é recusada se a quantidade de profissionais cadastrados (inclusive inativos) exceder o novo limite. Nenhum profissional é removido automaticamente. Após programar redução, novos cadastros já respeitam o menor limite; assinatura e criação de profissionais compartilham o bloqueio da barbearia.
+- Só uma alteração pode ficar programada ou em conciliação por vez. A confirmação repetida da mesma prévia aplicada não repete a chamada de alteração. Timeout preserva a operação como incerta; usar Atualizar assinatura. O sistema concilia pela referência única no Asaas e não reenvia a alteração automaticamente. Resultado indefinido sem referência confirmada exige investigação operacional.
+- Pix → cartão exige dados do titular, tokenizados transitoriamente no Asaas; token/PAN/CVV não são persistidos nem retornados. Em produção, habilitar tokenização com o Asaas e configurar HTTPS/IP real corretamente. Cartão → Pix troca as próximas cobranças para pagamento manual. Substituição de cartão existente é uma ação separada, que pode afetar pendências conforme a API específica do Asaas.
+- Mudanças exigem assinatura ativa e renovação habilitada. Não há alteração de uma assinatura inadimplente ou cancelada por este fluxo.
+
+Referências: [atualizar assinatura](https://docs.asaas.com/reference/atualizar-assinatura-existente), [tokenizar cartão](https://docs.asaas.com/reference/tokenizacao-de-cartao-de-credito), [substituir cartão da assinatura](https://docs.asaas.com/reference/atualizar-cartao-de-credito-assinatura).
+
+Validação deste incremento: 69 testes do backend passaram em banco H2 temporário e Asaas simulado, incluindo nove cenários novos de mudanças, mais proteção do limite programado. TypeScript, lint dos componentes alterados e 19 testes do frontend passaram. Essas verificações não substituem o teste da mudança numa assinatura real do Sandbox.
+
+Docker local atualizado em 07/10/2026: frontend e backend reconstruídos e recriados; PostgreSQL confirmou V34 aplicada. O catálogo respondeu `available=true`, `environment=sandbox`. Verificação visual com dados fictícios em 1440×900 e 390×844: revisão de plano/extras e abertura do formulário de cartão, sem erros de JavaScript e sem rolagem da página inteira. Chamadas de cobrança foram interceptadas neste teste visual; não houve mudança da assinatura existente no Asaas.
