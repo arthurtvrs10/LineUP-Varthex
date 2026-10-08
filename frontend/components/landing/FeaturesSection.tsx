@@ -1,9 +1,7 @@
 import type { ReactNode } from "react";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
-import { AgendaPreview } from "./previews/AgendaPreview";
-import { ClientsPreview } from "./previews/ClientsPreview";
-import { TeamPreview } from "./previews/TeamPreview";
+import { SystemScreenshot } from "./previews/SystemScreenshot";
 
 type FeatureRowProps = {
   eyebrow: string;
@@ -71,7 +69,7 @@ export function FeaturesSection() {
             eyebrow="Agenda"
             title="Domine sua agenda."
           >
-            <AgendaPreview />
+            <SystemScreenshot screen="agenda" />
           </FeatureRow>
         </Reveal>
 
@@ -87,7 +85,7 @@ export function FeaturesSection() {
             reverse
             title="Comissões sem confusão."
           >
-            <TeamPreview />
+            <SystemScreenshot screen="equipe" />
           </FeatureRow>
         </Reveal>
 
@@ -102,7 +100,7 @@ export function FeaturesSection() {
             eyebrow="Clientes"
             title="Clientes por perto."
           >
-            <ClientsPreview />
+            <SystemScreenshot screen="clientes" />
           </FeatureRow>
         </Reveal>
       </div>

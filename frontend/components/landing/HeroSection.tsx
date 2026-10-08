@@ -4,7 +4,7 @@ import { ActionLink } from "@/components/ui/ActionLink";
 import { Reveal } from "@/components/ui/Reveal";
 import { SectionLabel } from "@/components/ui/SectionLabel";
 import { ConstellationBackground } from "./previews/ConstellationBackground";
-import { DashboardPreview } from "./previews/DashboardPreview";
+import { SystemScreenshot } from "./previews/SystemScreenshot";
 
 export function HeroSection() {
   return (
@@ -58,7 +58,7 @@ export function HeroSection() {
       </div>
 
       <Reveal className="mt-14 lg:mt-16" delay={0.2}>
-        <DashboardPreview className="mx-auto max-w-[980px]" />
+        <SystemScreenshot screen="dashboard" className="mx-auto max-w-[980px]" />
       </Reveal>
     </section>
   );
