@@ -31,6 +31,12 @@ public class EmailService {
                 .build();
     }
 
+    public boolean sendVerificationEmail(String to,String link) {
+        return send(to,"Confirme seu e-mail — LINEUP", "<p>Confirme seu e-mail para acessar o LINEUP.</p><p><a href=\""
+                + org.springframework.web.util.HtmlUtils.htmlEscape(link)
+                + "\">Confirmar meu e-mail</a></p><p>O link é de uso único e expira em 30 minutos.</p><p>Se não criou uma conta, ignore esta mensagem.</p>");
+    }
+
     public void sendPasswordRecoveryEmail(String to, String resetLink) {
         String subject = "Redefinição de senha — LINEUP";
         String html = """
@@ -72,11 +78,20 @@ public class EmailService {
                     .toBodilessEntity();
             log.info("E-mail enviado via Resend para {} (assunto: {})", to, subject);
             return true;
+        } catch (org.springframework.web.client.RestClientResponseException e) {
+            String guidance = switch (e.getStatusCode().value()) {
+                case 401 -> "Confira RESEND_API_KEY no ambiente do backend";
+                case 403 -> "Confira dominio verificado, remetente e restricoes do onboarding@resend.dev";
+                case 429 -> "Limite do Resend atingido; aguarde antes de tentar novamente";
+                default -> "Confira os logs da requisicao no painel do Resend";
+            };
+            log.error("Resend recusou envio: HTTP {}. {}", e.getStatusCode().value(), guidance);
+            return false;
         } catch (Exception e) {
             // Falha de entrega não deve quebrar o fluxo pra quem pediu a
             // recuperação — RN-NOT-001/002 tratam isso como best-effort
             // neste incremento (sem fila/retry automático ainda).
-            log.error("Falha ao enviar e-mail via Resend para {}: {}", to, e.getMessage());
+            log.error("Falha ao enviar e-mail via Resend (tipo: {})", e.getClass().getSimpleName());
             return false;
         }
     }

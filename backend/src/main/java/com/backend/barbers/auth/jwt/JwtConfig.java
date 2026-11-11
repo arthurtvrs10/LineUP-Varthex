@@ -13,13 +13,14 @@ import java.nio.charset.StandardCharsets;
 
 @Configuration
 public class JwtConfig {
-    private static final String SECRET =
-            "varthex-barber-jwt-secret-key-development-2026";
-
     @Bean
-    public SecretKey secretKey() {
+    public SecretKey secretKey(
+            @org.springframework.beans.factory.annotation.Value("${app.jwt-secret:varthex-barber-jwt-secret-key-development-2026}") String secret) {
+        if (secret == null || secret.getBytes(StandardCharsets.UTF_8).length < 32) {
+            throw new IllegalArgumentException("JWT_SIGNING_KEY deve ter pelo menos 32 bytes");
+        }
         return new SecretKeySpec(
-                SECRET.getBytes(StandardCharsets.UTF_8),
+                secret.getBytes(StandardCharsets.UTF_8),
                 "HmacSHA256"
         );
     }

@@ -32,7 +32,7 @@ A fila usa chave única por tenant/operação. O processamento assume a mensagem
 
 ## Configuração do operador
 
-Copiar os nomes de `backend/whatsapp.env.example` para `backend/.env.local` ou para o gerenciador de segredos do ambiente. O Compose lê esse arquivo apenas no backend. A chave `WHATSAPP_ENCRYPTION_KEY` deve conter 32 bytes aleatórios em Base64 e ser preservada em backup seguro; trocá-la sem recriptografar torna as credenciais anteriores ilegíveis. Nunca versionar chaves reais.
+Copiar os nomes de `backend/.env.example` para `backend/.env` ou para o gerenciador de segredos do ambiente. O Compose lê esse arquivo apenas no backend. A chave `WHATSAPP_ENCRYPTION_KEY` deve conter 32 bytes aleatórios em Base64 e ser preservada em backup seguro; trocá-la sem recriptografar torna as credenciais anteriores ilegíveis. Nunca versionar chaves reais.
 
 Para conexão manual, criar/configurar a conta, o número registrado na Cloud API, faturamento e permissões na Meta. Configurar URL pública HTTPS, copiar o token de verificação gerado e assinar `messages` no aplicativo Meta. Localhost sozinho não recebe webhooks. Nenhuma URL pública é criada automaticamente.
 

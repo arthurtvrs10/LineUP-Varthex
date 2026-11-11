@@ -255,29 +255,12 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
           const body = await response.json().catch(() => ({}));
           throw new Error(body.message || body.detail || (response.status === 409 ? "E-mail já cadastrado." : "Não foi possível concluir o cadastro."));
         }
-        if (!clientRegistration) {
-          // Registration succeeded; recover session failures without repeating account creation.
-          try {
-            const login = await signIn("credentials", { email: values.email.trim(), password: values.password, redirect: false });
-            if (login && !login.error) {
-              router.replace("/admin/assinatura" + planQuery);
-              return;
-            }
-          } catch {
-            // Preserve the subscription destination through manual login.
-          }
-          router.replace("/login?contratar=1" + planQuery.replace("?", "&"));
-          return;
-        }
-        if (clientRegistration) {
-          const login = await signIn("credentials", { email: values.email.trim().toLowerCase(), password: values.password, redirect: false });
-          if (login && !login.error) {
-            const session = await getSession();
-            router.replace(clientDestination(session?.user?.email, linkedShop));
-            return;
-          }
-        }
-        setStatus("success");
+        const verificationQuery = new URLSearchParams({ email: values.email.trim().toLowerCase() });
+        if (selectedPlan) verificationQuery.set("plano", selectedPlan);
+        if (linkedShop) verificationQuery.set("barbearia", linkedShop);
+        if (!clientRegistration) verificationQuery.set("contratar", "1");
+        try { sessionStorage.setItem("lineup-email-verification-context", verificationQuery.toString()); } catch { /* Verification works without storage. */ }
+        router.replace("/confirmar-email?" + verificationQuery.toString());
       } catch (error) {
         setLoginError(error instanceof Error ? error.message : "Não foi possível concluir o cadastro. Tente novamente.");
         setStatus("idle");
@@ -297,6 +280,13 @@ function AuthForm({ mode, clientRegistration = false }: AuthPageProps) {
 
     if (!result || result.error) {
       setStatus("idle");
+      if (result?.error === "EmailNotVerified") {
+        const query = new URLSearchParams({ email: values.email.trim().toLowerCase() });
+        if (selectedPlan) query.set("plano", selectedPlan);
+        if (linkedShop) query.set("barbearia", linkedShop);
+        router.push("/confirmar-email?" + query.toString());
+        return;
+      }
       setLoginError("E-mail ou senha inválidos.");
       return;
     }

@@ -53,6 +53,7 @@ public class AuthService {
     private final PasswordResetTokenRepository passwordResetTokenRepository;
     private final RefreshTokenRepository refreshTokenRepository;
     private final EmailService emailService;
+    private final EmailVerificationService verification;
     private final String frontendUrl;
     private final SecureRandom secureRandom = new SecureRandom();
 
@@ -63,7 +64,7 @@ public class AuthService {
                        GoogleIdTokenDecoder googleIdTokenDecoder,
                        PasswordResetTokenRepository passwordResetTokenRepository,
                        RefreshTokenRepository refreshTokenRepository,
-                       EmailService emailService,
+                       EmailService emailService, EmailVerificationService verification,
                        @Value("${app.frontend-url:http://localhost:3000}") String frontendUrl) {
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
@@ -73,12 +74,14 @@ public class AuthService {
         this.passwordResetTokenRepository = passwordResetTokenRepository;
         this.refreshTokenRepository = refreshTokenRepository;
         this.emailService = emailService;
+        this.verification = verification;
         this.frontendUrl = frontendUrl;
     }
 
     @Transactional
     public LoginResponse login(LoginRequest request, String userAgent){
-        User existing = userRepository.findByEmail(request.email()).orElse(null);
+        String normalizedEmail = request.email() == null ? "" : request.email().strip();
+        User existing = userRepository.findByEmailIgnoreCase(normalizedEmail).orElse(null);
 
         if (existing != null && existing.getLockedUntil() != null && existing.getLockedUntil().isAfter(LocalDateTime.now())) {
             throw new ResponseStatusException(HttpStatus.TOO_MANY_REQUESTS,
@@ -89,7 +92,7 @@ public class AuthService {
         try {
             authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            request.email(),
+                            existing == null ? normalizedEmail : existing.getEmail(),
                             request.password()
                     )
             );
@@ -103,6 +106,7 @@ public class AuthService {
         AuthUserDetails authUserDetails = (AuthUserDetails) authentication.getPrincipal();
 
         User user = authUserDetails.getUser();
+        requireVerified(user);
         user.setFailedLoginAttempts(0);
         user.setLockedUntil(null);
         userRepository.save(user);
@@ -189,6 +193,7 @@ public class AuthService {
         User user = userRepository.findById(token.getUserId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Sessão expirada, faça login novamente"));
 
+        requireVerified(user);
         token.setRevokedAt(LocalDateTime.now());
         refreshTokenRepository.save(token);
 
@@ -351,6 +356,10 @@ public class AuthService {
         }
     }
 
+    private void requireVerified(User user) {
+        if(user.needsEmailVerification()) throw new ResponseStatusException(HttpStatus.FORBIDDEN,"EMAIL_NOT_VERIFIED");
+    }
+
     public record ClientRegistration(String fullName, String email, String password) {}
 
     @Transactional
@@ -366,7 +375,7 @@ public class AuthService {
         if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "E-mail já cadastrado. Entre na sua conta ou recupere sua senha.");
         }
-        userRepository.save(new User(null, name, email, passwordEncoder.encode(password),
+        verification.start(new User(null, name, email, passwordEncoder.encode(password),
                 Role.CLIENT, UserStatus.ACTIVE, null, null, null, null));
     }
 }

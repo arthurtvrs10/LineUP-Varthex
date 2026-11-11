@@ -1,0 +1,65 @@
+# Sandbox deployment. Review the plans in Render before creating resources.
+services:
+  - type: web
+    name: lineup-backend
+    runtime: docker
+    plan: free
+    region: virginia
+    dockerfilePath: ./backend/Dockerfile
+    dockerContext: ./backend
+    healthCheckPath: /billing/plans
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: render
+      - key: TZ
+        value: America/Sao_Paulo
+      - key: JAVA_TOOL_OPTIONS
+        value: -XX:MaxRAMPercentage=70 -XX:InitialRAMPercentage=20
+      - key: DB_HOST
+        fromDatabase:
+          name: lineup-postgres
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: lineup-postgres
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: lineup-postgres
+          property: database
+      - key: SPRING_DATASOURCE_USERNAME
+        fromDatabase:
+          name: lineup-postgres
+          property: user
+      - key: SPRING_DATASOURCE_PASSWORD
+        fromDatabase:
+          name: lineup-postgres
+          property: password
+      - key: JWT_SIGNING_KEY
+        generateValue: true
+      - key: FRONTEND_URL
+        sync: false
+      - key: RESEND_API_KEY
+        sync: false
+      - key: RESEND_FROM_EMAIL
+        sync: false
+      - key: ASAAS_ENABLED
+        value: "true"
+      - key: ASAAS_ENVIRONMENT
+        value: sandbox
+      - key: ASAAS_API_KEY
+        sync: false
+      - key: ASAAS_WEBHOOK_TOKEN
+        generateValue: true
+      - key: ASAAS_WORKER_ENABLED
+        value: "true"
+      - key: ASAAS_SANDBOX_ACTIONS_ENABLED
+        value: "true"
+databases:
+  - name: lineup-postgres
+    plan: free
+    region: virginia
+    postgresMajorVersion: "16"
+    databaseName: lineup
+    user: lineup
+    ipAllowList: []

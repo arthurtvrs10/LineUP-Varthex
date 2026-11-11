@@ -35,6 +35,10 @@ const authOptions: NextAuthOptions = {
           }),
         }).catch(() => { throw new Error("BackendUnavailable"); });
 
+        if (res.status === 403) {
+          const error = await res.json().catch(() => ({}));
+          if (error.message === "EMAIL_NOT_VERIFIED") throw new Error("EmailNotVerified");
+        }
         if (res.status === 429) throw new Error("AccountTemporarilyLocked");
         if (res.status >= 500) throw new Error("BackendUnavailable");
         if (!res.ok) {

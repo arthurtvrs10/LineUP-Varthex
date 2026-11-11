@@ -78,10 +78,12 @@ varthex-barber/
 
 ### Via Docker Compose
 
+Para publicar backend e banco no Render e frontend na Vercel, siga o [guia de deploy com as variaveis de cada plataforma](docs/deploy-render-vercel.md). O arquivo `render.yaml` prepara os recursos do Render para testes com Asaas Sandbox.
+
 Com Docker e Docker Compose instalados:
 
-1. Copie [frontend/.env.local.example](frontend/.env.local.example) para `frontend/.env.local`.
-2. Preencha `NEXTAUTH_SECRET` com um segredo gerado para seu ambiente. O arquivo de exemplo descreve as integrações opcionais com Google e Resend.
+1. Se ainda nao existirem, copie `.env.example` para `.env`, `backend/.env.example` para `backend/.env` e `frontend/.env.local.example` para `frontend/.env.local`. Preserve os valores dos arquivos existentes.
+2. Preencha `NEXTAUTH_SECRET` com um segredo gerado para seu ambiente. Configure as credenciais privadas das integracoes no backend. Consulte [configuracao local](docs/configuracao-local-docker.md) para os detalhes.
 3. Na raiz do projeto, execute:
 
 ```bash
@@ -89,8 +91,8 @@ docker compose up --build
 ```
 
 - **Painel Web**: `http://localhost:3000`
-- **Backend API**: `http://localhost:8080`
-- **Swagger UI** (documentação interativa da API): `http://localhost:8080/swagger-ui/index.html`
+- **Backend API**: `http://localhost:18080`
+- **Swagger UI** (documentação interativa da API): `http://localhost:18080/swagger-ui/index.html`
 
 ---
 

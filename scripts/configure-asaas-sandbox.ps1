@@ -3,7 +3,7 @@ param([switch]$CheckOnly, [switch]$TestConnection)
 
 $ErrorActionPreference = 'Stop'
 $taskRoot = Split-Path $PSScriptRoot -Parent
-$taskEnvPath = Join-Path $taskRoot 'backend/.env.local'
+$taskEnvPath = Join-Path $taskRoot 'backend/.env'
 $taskLines = if (Test-Path -LiteralPath $taskEnvPath) { [IO.File]::ReadAllLines($taskEnvPath) } else { @() }
 function Read-Setting([string]$Name) {
     $matchesFound = @($taskLines | Where-Object { $_ -match ('^\s*' + [regex]::Escape($Name) + '\s*=') })
@@ -71,6 +71,6 @@ foreach ($setting in $taskSettings.Keys) {
 }
 [IO.File]::WriteAllLines($taskEnvPath, $taskOutput, [Text.UTF8Encoding]::new($false))
 $taskKey = $null
-Write-Host 'Sandbox configurado em backend/.env.local. Chave e token nao foram exibidos.'
+Write-Host 'Sandbox configurado em backend/.env. Chave e token nao foram exibidos.'
 Write-Host 'Recrie o backend: docker compose up -d --no-deps --force-recreate backend'
 Write-Host 'Para testar o bloqueio inicial, cadastre uma NOVA barbearia de teste.'

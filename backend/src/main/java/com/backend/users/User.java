@@ -57,6 +57,11 @@ public class User {
     @Column(name = "email_verified", nullable = false)
     private boolean emailVerified;
 
+    @Column(nullable = false)
+    private boolean emailVerificationRequired;
+    public void requireEmailVerification() { emailVerificationRequired = true; }
+    public boolean needsEmailVerification() { return emailVerificationRequired && !emailVerified; }
+
     public boolean isEmailVerified() { return emailVerified; }
     public void verifyEmail() { emailVerified = true; }
 

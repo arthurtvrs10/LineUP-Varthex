@@ -170,10 +170,10 @@ class CommercialControllerTest {
         postJson("/platform/subscriptions",platformToken,Map.of("tenantId",tenant,"planId",json.readTree(p).get("id").asText(),"status","ACTIVE","startsOn","2020-01-01","endsOn","2099-01-01","reason","Plano contratado"),200);
         User extra=user(Role.BARBER,tenant);postJson("/barbers",adminToken,Map.of("userId",extra.getId(),"unitId",unitId,"displayName","Segundo profissional","defaultCommissionPercent",40),409);
     }
-    @Test void publicRegistrationCreatesUsablePassword()throws Exception{
+    @Test void publicRegistrationRequiresEmailConfirmation()throws Exception{
         Map<String,Object> body=Map.of("tradeName","Nova Empresa","defaultTimeZone","America/Sao_Paulo","locale","pt-BR","currency","BRL","admin",Map.of("fullName","Admin Exemplo","email","register@example.com","password","password123","role","ADMIN"),"initialUnit",Map.of("name","Principal","timeZone","America/Sao_Paulo","active",true));
         mvc.perform(post("/tenants").contentType(MediaType.APPLICATION_JSON).content(json.writeValueAsString(body))).andExpect(status().isCreated());
-        mvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"register@example.com\",\"password\":\"password123\"}")).andExpect(status().isOk()).andExpect(jsonPath("$.role").value("ADMIN"));
+        mvc.perform(post("/auth/login").contentType(MediaType.APPLICATION_JSON).content("{\"email\":\"register@example.com\",\"password\":\"password123\"}")).andExpect(status().isForbidden()).andExpect(jsonPath("$.message").value("EMAIL_NOT_VERIFIED"));
     }
     @Test void stockAndRewardRejectReusedKeyWithChangedPayload()throws Exception{
         String created=postJson("/commercial/products",adminToken,Map.of("name","Pomada","sku","IDEMP","category","Finalização","supplier","Exemplo","cost",10,"price",30,"minimumStock",2),200);

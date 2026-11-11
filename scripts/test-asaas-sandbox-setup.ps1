@@ -14,7 +14,7 @@ function Invoke-RestMethod {
 try {
     $null = New-Item -ItemType Directory -Path (Join-Path $taskTestRoot 'scripts'),(Join-Path $taskTestRoot 'backend')
     $taskScript = Join-Path $taskTestRoot 'scripts/configure-asaas-sandbox.ps1'
-    $taskEnv = Join-Path $taskTestRoot 'backend/.env.local'
+    $taskEnv = Join-Path $taskTestRoot 'backend/.env'
     Copy-Item -LiteralPath $taskSource -Destination $taskScript
     [IO.File]::WriteAllText($taskEnv,"KEEP_ME=yes`nASAAS_ENABLED=false`n")
     $taskOutput = (& $taskScript 6>&1 | Out-String)

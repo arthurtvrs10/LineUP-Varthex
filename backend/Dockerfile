@@ -16,7 +16,7 @@ COPY pom.xml ./
 
 # 4. Baixa as dependências antecipadamente
 # Isso melhora o cache das próximas builds
-RUN mvn dependency:go-offline -B
+RUN --mount=type=cache,target=/root/.m2 mvn -B -Dmaven.wagon.http.retryHandler.count=3 dependency:go-offline
 
 # Verifica as versões utilizadas durante o build
 RUN java --version && mvn --version
@@ -25,7 +25,7 @@ RUN java --version && mvn --version
 COPY src ./src
 
 # 6. Compila, testa e gera o arquivo .jar
-RUN mvn clean package -DskipTests -B
+RUN --mount=type=cache,target=/root/.m2 mvn -B -Dmaven.wagon.http.retryHandler.count=3 clean package -DskipTests
 
 # =========================================================
 # ETAPA 2: EXECUÇÃO

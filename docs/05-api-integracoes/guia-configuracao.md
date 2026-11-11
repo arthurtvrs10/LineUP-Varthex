@@ -31,11 +31,11 @@ As chaves Resend, segredo OAuth Google, segredo de sessão e chave de criptograf
 
 ### Desenvolvimento com Docker Compose
 
-Na raiz do repositório, copie `frontend/.env.local.example` para `frontend/.env.local` **somente se o destino ainda não existir**. Edite o arquivo existente quando houver configuração. Crie `backend/.env.local` para configurações exclusivas do backend; o modelo WhatsApp está em `backend/whatsapp.env.example`.
+Na raiz do repositório, copie `frontend/.env.local.example` para `frontend/.env.local` **somente se o destino ainda não existir**. Edite o arquivo existente quando houver configuração. Crie `backend/.env` para configurações exclusivas do backend; o modelo WhatsApp está em `backend/.env.example`.
 
-O Compose atual injeta `frontend/.env.local` nos dois serviços e depois `backend/.env.local` no backend. Assim, o segundo arquivo prevalece em valores repetidos no backend. As entradas `environment` do Compose prevalecem sobre ambos. O `.env` da raiz serve à interpolação do Compose e não injeta automaticamente todas as variáveis nos containers. `backend/.env` não está ligado ao Compose atual.
+O Compose atual injeta `frontend/.env.local` nos dois serviços e depois `backend/.env` no backend. Assim, o segundo arquivo prevalece em valores repetidos no backend. As entradas `environment` do Compose prevalecem sobre ambos. O `.env` da raiz serve à interpolação do Compose e não injeta automaticamente todas as variáveis nos containers. `backend/.env` não está ligado ao Compose atual.
 
-Coloque Resend, `FRONTEND_URL` e WhatsApp em `backend/.env.local`; remova eventuais cópias antigas de Resend do arquivo frontend depois de migrar os valores. O backend precisa apenas do Google Client ID, embora o Compose atual também injete os demais valores do arquivo frontend. Em produção, separe explicitamente os ambientes de cada serviço.
+Coloque Resend, `FRONTEND_URL` e WhatsApp em `backend/.env`; remova eventuais cópias antigas de Resend do arquivo frontend depois de migrar os valores. O backend precisa apenas do Google Client ID, embora o Compose atual também injete os demais valores do arquivo frontend. Em produção, separe explicitamente os ambientes de cada serviço.
 
 Exemplo de `frontend/.env.local` para desenvolvimento:
 
@@ -51,7 +51,7 @@ GOOGLE_CLIENT_SECRET=
 
 No Docker, o Compose substitui os dois endereços do backend por `http://backend:8080`. Não use esse hostname para acessar o aplicativo no navegador. Use `http://localhost:3000` de forma consistente durante login e callbacks.
 
-Exemplo de `backend/.env.local`:
+Exemplo de `backend/.env`:
 
 ```dotenv
 FRONTEND_URL=http://localhost:3000
@@ -80,7 +80,7 @@ Um simples `docker compose restart` não injeta valores novos do arquivo. Quando
 
 ### Execução fora do Docker
 
-Next.js lê `frontend/.env.local` ao iniciar na pasta frontend. Spring Boot **não carrega automaticamente** `backend/.env.local`: configure as variáveis no ambiente do processo Java ou na configuração de execução da IDE. Use PostgreSQL em `localhost:5432`. Reinicie o processo correspondente após alterações. Não execute `source` em arquivos recebidos de terceiros.
+Next.js lê `frontend/.env.local` ao iniciar na pasta frontend. Spring Boot **não carrega automaticamente** `backend/.env`: configure as variáveis no ambiente do processo Java ou na configuração de execução da IDE. Use PostgreSQL em `localhost:5432`. Reinicie o processo correspondente após alterações. Não execute `source` em arquivos recebidos de terceiros.
 
 ### Produção
 
@@ -235,7 +235,7 @@ Decisão: começar no plano Free para evitar mensalidade adicional. O projeto us
 1. Crie sua conta em [Supabase](https://supabase.com/dashboard), uma organização no plano Free e um projeto. Escolha uma região adequada ao backend. Guarde a senha de banco solicitada pelo painel; ela não é usada como chave Storage do LineUp.
 2. Abra Storage e crie o bucket `lineup-avatars`. Mantenha **Public bucket desativado**, limite cada arquivo a **262144 bytes (256 KB)** e permita somente `image/jpeg`. Não crie políticas de acesso anônimo ou escrita pública.
 3. Nas configurações de API/Connect, copie a Project URL. Na área de API Keys, crie uma **secret key** (`sb_secret_...`) para o backend. Não use publishable/anon key neste conector. A chave secreta tem acesso privilegiado: a autorização de usuários e barbearias é feita pelo LineUp antes das operações. Veja [chaves Supabase](https://supabase.com/docs/guides/getting-started/api-keys).
-4. Copie os nomes de `backend/supabase.env.example` para `backend/.env.local` sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em `frontend/.env.local`, variáveis `NEXT_PUBLIC_*`, Git ou chat.
+4. Copie os nomes de `backend/.env.example` para `backend/.env` sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em `frontend/.env.local`, variáveis `NEXT_PUBLIC_*`, Git ou chat.
 
 ```dotenv
 SUPABASE_URL=https://seu-projeto.supabase.co

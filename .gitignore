@@ -12,3 +12,10 @@ coverage/
 docs/superpowers
 .claude
 %SystemDrive%
+.env.*
+!.env.example
+!.env.local.example
+/screenshots/
+/backend/target/
+/frontend/.next/
+*.tsbuildinfo

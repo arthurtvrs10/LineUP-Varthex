@@ -30,8 +30,8 @@ O catálogo inicial é criado pela V32 (Individual e Gestão); a V33 acrescenta 
 
 ## Configuração e homologação
 
-1. Criar conta sandbox Asaas e obter API key. Usar `backend/asaas.env.example` como referência para variáveis do backend.
-   No Docker Compose, adicionar as variáveis a `backend/.env.local`, já carregado somente no backend. Em execução direta, exportar as variáveis no processo Java.
+1. Criar conta sandbox Asaas e obter API key. Usar `backend/.env.example` como referência para variáveis do backend.
+   No Docker Compose, adicionar as variáveis a `backend/.env`, já carregado somente no backend. Em execução direta, exportar as variáveis no processo Java.
 2. Aplicar a migração `V31__asaas_saas_billing.sql` em banco de homologação. Não usar base de produção nos testes.
 3. Configurar `ASAAS_ENVIRONMENT=sandbox`, API key e um token independente de webhook com 32–255 caracteres.
 4. Configurar webhook HTTPS apontando para `POST /billing/webhook`; o token configurado como `authToken` deve coincidir com `ASAAS_WEBHOOK_TOKEN`.

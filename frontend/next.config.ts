@@ -1,10 +1,17 @@
+import path from "node:path";
 import type { NextConfig } from "next";
 
 // Local: aponta pro backend em localhost. Em Docker Compose, sobrescrito
 // para http://backend:8080 (nome do serviço, não "localhost").
-const backendUrl = process.env.BACKEND_INTERNAL_URL ?? "http://localhost:8080";
+const backendUrl = (process.env.BACKEND_INTERNAL_URL || "http://localhost:8080").replace(/\/+$/, "");
+if (process.env.VERCEL && !process.env.BACKEND_INTERNAL_URL) {
+  throw new Error("Configure BACKEND_INTERNAL_URL com a URL HTTPS do backend no Render antes do build.");
+}
 
 const nextConfig: NextConfig = {
+  output: process.env.VERCEL ? undefined : "standalone",
+  outputFileTracingRoot: path.resolve(__dirname),
+  turbopack: { root: path.resolve(__dirname) },
   async rewrites() {
     return [
       { source: "/billing/:path*", destination: `${backendUrl}/billing/:path*` },

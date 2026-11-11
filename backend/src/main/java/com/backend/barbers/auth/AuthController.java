@@ -25,9 +25,18 @@ public class AuthController {
 
     private final AuthService authService;
 
-    public AuthController(AuthService authService){
+    private final EmailVerificationService verification;
+    public AuthController(AuthService authService,EmailVerificationService verification){
+        this.verification=verification;
         this.authService = authService;
     }
+
+    public record EmailInput(String email) {}
+    public record VerificationInput(String token) {
+        @Override public String toString(){return "VerificationInput[REDACTED]";}
+    }
+    @PostMapping("/email-verification/resend") public void resend(@RequestBody EmailInput input){verification.resend(input.email());}
+    @PostMapping("/email-verification/confirm") public void confirm(@RequestBody VerificationInput input){verification.confirm(input.token());}
 
     @PostMapping("/register-client")
     @ResponseStatus(HttpStatus.CREATED)

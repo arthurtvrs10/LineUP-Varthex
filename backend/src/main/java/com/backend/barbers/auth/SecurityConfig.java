@@ -63,7 +63,7 @@ public class SecurityConfig {
                         .requestMatchers("/integrations/google-calendar/**").hasAnyRole("ADMIN", "BARBER", "SUPER_ADMIN")
                         .requestMatchers("/integrations/whatsapp", "/integrations/whatsapp/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.POST, "/auth/login", "/auth/social-login", "/auth/register-client",
-                                "/auth/password-recovery", "/auth/password-recovery/complete",
+                                "/auth/email-verification/resend", "/auth/email-verification/confirm", "/auth/password-recovery", "/auth/password-recovery/complete",
                                 "/auth/refresh", "/auth/logout")
                         .permitAll()
 

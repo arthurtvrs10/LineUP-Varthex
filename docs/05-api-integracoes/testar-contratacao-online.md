@@ -14,7 +14,7 @@ O backend já suporta sandbox. Este roteiro não ativa cobrança nem altera cred
 ./scripts/configure-asaas-sandbox.ps1
 ```
 
-O assistente solicita a chave com entrada oculta, aceita somente chave sandbox, valida a conexão sem criar cobrança, gera o segredo do webhook e salva em `backend/.env.local`. As aspas simples preservam o `$` da chave ao carregar o Docker Compose. Não coloque a chave em argumentos de terminal, mensagens ou no frontend.
+O assistente solicita a chave com entrada oculta, aceita somente chave sandbox, valida a conexão sem criar cobrança, gera o segredo do webhook e salva em `backend/.env`. As aspas simples preservam o `$` da chave ao carregar o Docker Compose. Não coloque a chave em argumentos de terminal, mensagens ou no frontend.
 
 4. Execute `docker compose up -d --no-deps --force-recreate backend` para carregar a configuração. Se o código ainda não foi compilado, acrescente `--build` e inclua também `frontend`.
 5. Confira sem exibir segredos:
@@ -28,7 +28,7 @@ O primeiro comando apenas lê a configuração local; o segundo valida a chave n
 
 ### Configuração manual alternativa
 
-Em `backend/.env.local`, configure as variáveis abaixo preservando as demais configurações. Não versionar esse arquivo nem compartilhar a chave em mensagens.
+Em `backend/.env`, configure as variáveis abaixo preservando as demais configurações. Não versionar esse arquivo nem compartilhar a chave em mensagens.
 
 ```dotenv
 ASAAS_ENABLED=true
@@ -71,7 +71,7 @@ Validar separadamente: confirmação automática sem clicar em verificar; acesso
 
 ### Webhook e adicionais
 
-Na conta Sandbox, em Integrações → Webhooks, crie um webhook para `https://SEU-ENDERECO-PUBLICO/billing/webhook` (encaminhado ao backend). Configure o token de autenticação com o valor de `ASAAS_WEBHOOK_TOKEN` em `backend/.env.local`. Mantenha o webhook habilitado e a fila não interrompida. Use os eventos de cobrança, assinatura e checkout listados em [asaas-assinaturas.md](asaas-assinaturas.md). Não cadastre localhost: o Asaas não consegue alcançá-lo.
+Na conta Sandbox, em Integrações → Webhooks, crie um webhook para `https://SEU-ENDERECO-PUBLICO/billing/webhook` (encaminhado ao backend). Configure o token de autenticação com o valor de `ASAAS_WEBHOOK_TOKEN` em `backend/.env`. Mantenha o webhook habilitado e a fila não interrompida. Use os eventos de cobrança, assinatura e checkout listados em [asaas-assinaturas.md](asaas-assinaturas.md). Não cadastre localhost: o Asaas não consegue alcançá-lo.
 
 O botão de simulação valida a confirmação pela API e a ativação local. Para validar o webhook, confirme pela interface Asaas e aguarde o worker, sem usar o botão de verificar. Depois recarregue a página e confira a assinatura. Não considere o webhook homologado só porque a sincronização manual funcionou.
 

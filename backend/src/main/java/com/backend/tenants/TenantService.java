@@ -28,13 +28,15 @@ public class TenantService {
     private final PasswordEncoder passwordEncoder;
     private final com.backend.commercial.SubscriptionRepository subscriptions;
     private final boolean billingEnabled;
+    private final com.backend.barbers.auth.EmailVerificationService verification;
 
     public TenantService(TenantRepository tenantRepository,
                           UnitRepository unitRepository,
                           UserRepository userRepository,
                           PasswordEncoder passwordEncoder,
                           com.backend.commercial.SubscriptionRepository subscriptions,
-                          @org.springframework.beans.factory.annotation.Value("${asaas.enabled:false}") boolean billingEnabled) {
+                          @org.springframework.beans.factory.annotation.Value("${asaas.enabled:false}") boolean billingEnabled, com.backend.barbers.auth.EmailVerificationService verification) {
+        this.verification=verification;
         this.tenantRepository = tenantRepository;
         this.unitRepository = unitRepository;
         this.userRepository = userRepository;
@@ -76,7 +78,7 @@ public class TenantService {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "A senha deve ter ao menos 8 caracteres e no máximo 72 bytes");
         }
 
-        if (userRepository.existsByEmail(request.admin().email())) {
+        if (userRepository.existsByEmailIgnoreCase(request.admin().email().strip())) {
             throw new ResponseStatusException(
                     HttpStatus.CONFLICT,
                     "E-mail já cadastrado"
@@ -116,7 +118,7 @@ public class TenantService {
         User admin = new User(
                 UUID.randomUUID(),
                 request.admin().fullName(),
-                request.admin().email(),
+                request.admin().email().strip().toLowerCase(java.util.Locale.ROOT),
                 passwordEncoder.encode(password == null ? UUID.randomUUID().toString() : password),
                 Role.ADMIN,
                 UserStatus.ACTIVE,
@@ -125,7 +127,7 @@ public class TenantService {
                 null,
                 null
         );
-        userRepository.save(admin);
+        verification.start(admin);
 
         if (billingEnabled) {
             var subscription = new com.backend.commercial.Subscription();

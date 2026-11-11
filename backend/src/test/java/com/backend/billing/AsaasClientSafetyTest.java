@@ -6,8 +6,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class AsaasClientSafetyTest {
     @Test void productionNeverExposesPaymentSimulation() {
-        var client=new AsaasClient(true,"test-key","production");
-        assertEquals(404,assertThrows(ResponseStatusException.class,()->client.confirmSandboxPayment("pay_test")).getStatusCode().value());
+        assertThrows(IllegalArgumentException.class,()->new AsaasClient(true,"test-key","production"));
     }
     @Test void keyEnvironmentMismatchFailsWithoutExposingKey() {
         String key="$aact_prod_not-a-real-key";

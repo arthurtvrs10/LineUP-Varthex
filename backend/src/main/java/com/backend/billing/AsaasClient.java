@@ -23,8 +23,8 @@ public class AsaasClient {
     public AsaasClient(@Value("${asaas.enabled:false}") boolean enabled,
             @Value("${asaas.api-key:}") String apiKey,
             @Value("${asaas.environment:sandbox}") String environment) {
-        if (!environment.equals("sandbox") && !environment.equals("production"))
-            throw new IllegalArgumentException("ASAAS_ENVIRONMENT deve ser sandbox ou production");
+        if (!environment.equals("sandbox"))
+            throw new IllegalArgumentException("Este projeto permite somente ASAAS_ENVIRONMENT=sandbox");
         this.enabled = enabled; this.apiKey = apiKey; this.production = environment.equals("production");
         if ((production && apiKey.startsWith("$aact_hmlg_")) || (!production && apiKey.startsWith("$aact_prod_")))
             throw new IllegalArgumentException("Chave Asaas incompatível com o ambiente configurado");
@@ -32,7 +32,7 @@ public class AsaasClient {
         factory.setConnectTimeout(Duration.ofSeconds(10));
         factory.setReadTimeout(Duration.ofSeconds(65));
         client = RestClient.builder().requestFactory(factory)
-                .baseUrl(production ? "https://api.asaas.com/v3" : "https://api-sandbox.asaas.com/v3")
+                .baseUrl("https://api-sandbox.asaas.com/v3")
                 .defaultHeader("access_token", apiKey).defaultHeader("User-Agent", "LineUp/1.0").build();
     }
     public boolean configured() { return enabled && !apiKey.isBlank(); }

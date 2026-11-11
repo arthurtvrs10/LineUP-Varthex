@@ -87,9 +87,9 @@
 <li>Execute os testes da seção 9 antes de liberar o ambiente.</li>
 </ol>
 <h3 id="desenvolvimento-com-docker-compose">Desenvolvimento com Docker Compose</h3>
-<p>Na raiz do repositório, copie <code>frontend/.env.local.example</code> para <code>frontend/.env.local</code> <strong>somente se o destino ainda não existir</strong>. Edite o arquivo existente quando houver configuração. Crie <code>backend/.env.local</code> para configurações exclusivas do backend; o modelo WhatsApp está em <code>backend/whatsapp.env.example</code>.</p>
-<p>O Compose atual injeta <code>frontend/.env.local</code> nos dois serviços e depois <code>backend/.env.local</code> no backend. Assim, o segundo arquivo prevalece em valores repetidos no backend. As entradas <code>environment</code> do Compose prevalecem sobre ambos. O <code>.env</code> da raiz serve à interpolação do Compose e não injeta automaticamente todas as variáveis nos containers. <code>backend/.env</code> não está ligado ao Compose atual.</p>
-<p>Coloque Resend, <code>FRONTEND_URL</code> e WhatsApp em <code>backend/.env.local</code>; remova eventuais cópias antigas de Resend do arquivo frontend depois de migrar os valores. O backend precisa apenas do Google Client ID, embora o Compose atual também injete os demais valores do arquivo frontend. Em produção, separe explicitamente os ambientes de cada serviço.</p>
+<p>Na raiz do repositório, copie <code>frontend/.env.local.example</code> para <code>frontend/.env.local</code> <strong>somente se o destino ainda não existir</strong>. Edite o arquivo existente quando houver configuração. Crie <code>backend/.env</code> para configurações exclusivas do backend; o modelo WhatsApp está em <code>backend/.env.example</code>.</p>
+<p>O Compose atual injeta <code>frontend/.env.local</code> nos dois serviços e depois <code>backend/.env</code> no backend. Assim, o segundo arquivo prevalece em valores repetidos no backend. As entradas <code>environment</code> do Compose prevalecem sobre ambos. O <code>.env</code> da raiz serve à interpolação do Compose e não injeta automaticamente todas as variáveis nos containers. <code>backend/.env</code> não está ligado ao Compose atual.</p>
+<p>Coloque Resend, <code>FRONTEND_URL</code> e WhatsApp em <code>backend/.env</code>; remova eventuais cópias antigas de Resend do arquivo frontend depois de migrar os valores. O backend precisa apenas do Google Client ID, embora o Compose atual também injete os demais valores do arquivo frontend. Em produção, separe explicitamente os ambientes de cada serviço.</p>
 <p>Exemplo de <code>frontend/.env.local</code> para desenvolvimento:</p>
 <pre><code class="language-dotenv">NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=SUBSTITUIR_POR_SEGREDO_ALEATORIO
@@ -100,7 +100,7 @@ GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
 </code></pre>
 <p>No Docker, o Compose substitui os dois endereços do backend por <code>http://backend:8080</code>. Não use esse hostname para acessar o aplicativo no navegador. Use <code>http://localhost:3000</code> de forma consistente durante login e callbacks.</p>
-<p>Exemplo de <code>backend/.env.local</code>:</p>
+<p>Exemplo de <code>backend/.env</code>:</p>
 <pre><code class="language-dotenv">FRONTEND_URL=http://localhost:3000
 RESEND_API_KEY=
 RESEND_FROM_EMAIL=onboarding@resend.dev
@@ -120,7 +120,7 @@ docker compose ps
 </code></pre>
 <p>Um simples <code>docker compose restart</code> não injeta valores novos do arquivo. Quando mudar o destino dos rewrites, atualize também <code>build.args.BACKEND_INTERNAL_URL</code> do frontend e reconstrua com <code>docker compose up -d --build frontend</code>. O destino do proxy é resolvido no build.</p>
 <h3 id="execucao-fora-do-docker">Execução fora do Docker</h3>
-<p>Next.js lê <code>frontend/.env.local</code> ao iniciar na pasta frontend. Spring Boot <strong>não carrega automaticamente</strong> <code>backend/.env.local</code>: configure as variáveis no ambiente do processo Java ou na configuração de execução da IDE. Use PostgreSQL em <code>localhost:5432</code>. Reinicie o processo correspondente após alterações. Não execute <code>source</code> em arquivos recebidos de terceiros.</p>
+<p>Next.js lê <code>frontend/.env.local</code> ao iniciar na pasta frontend. Spring Boot <strong>não carrega automaticamente</strong> <code>backend/.env</code>: configure as variáveis no ambiente do processo Java ou na configuração de execução da IDE. Use PostgreSQL em <code>localhost:5432</code>. Reinicie o processo correspondente após alterações. Não execute <code>source</code> em arquivos recebidos de terceiros.</p>
 <h3 id="producao">Produção</h3>
 <p>Use contas/projetos, banco e credenciais separados de desenvolvimento. Configure os valores no gerenciador de segredos da hospedagem, com acesso apenas pelo serviço responsável. O Compose fornecido é local: publica banco/Redis e fixa credenciais de desenvolvimento; não deve ser exposto como está.</p>
 <p>Exemplo de endereçamento: landing <code>https://example.com</code>, app <code>https://app.example.com</code>, blog <code>https://blog.example.com</code>. Configure <code>NEXTAUTH_URL</code> no frontend e <code>FRONTEND_URL</code> no backend como <code>https://app.example.com</code>, sem barra final. Domínio de envio sugerido: <code>mail.example.com</code>. <code>WHATSAPP_PUBLIC_URL=https://app.example.com</code> funciona quando o proxy desse endereço encaminha os webhooks ao backend; uma origem dedicada de API também é possível. Nunca use a landing ou o blog como callback sem implementar o encaminhamento necessário.</p>
@@ -358,7 +358,7 @@ docker compose ps
 <li>Crie sua conta em <a href="https://supabase.com/dashboard">Supabase</a>, uma organização no plano Free e um projeto. Escolha uma região adequada ao backend. Guarde a senha de banco solicitada pelo painel; ela não é usada como chave Storage do LineUp.</li>
 <li>Abra Storage e crie o bucket <code>lineup-avatars</code>. Mantenha <strong>Public bucket desativado</strong>, limite cada arquivo a <strong>262144 bytes (256 KB)</strong> e permita somente <code>image/jpeg</code>. Não crie políticas de acesso anônimo ou escrita pública.</li>
 <li>Nas configurações de API/Connect, copie a Project URL. Na área de API Keys, crie uma <strong>secret key</strong> (<code>sb_secret_...</code>) para o backend. Não use publishable/anon key neste conector. A chave secreta tem acesso privilegiado: a autorização de usuários e barbearias é feita pelo LineUp antes das operações. Veja <a href="https://supabase.com/docs/guides/getting-started/api-keys">chaves Supabase</a>.</li>
-<li>Copie os nomes de <code>backend/supabase.env.example</code> para <code>backend/.env.local</code> sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em <code>frontend/.env.local</code>, variáveis <code>NEXT_PUBLIC_*</code>, Git ou chat.</li>
+<li>Copie os nomes de <code>backend/.env.example</code> para <code>backend/.env</code> sem sobrescrever os demais segredos. Em produção, configure no ambiente do backend. Não coloque a chave em <code>frontend/.env.local</code>, variáveis <code>NEXT_PUBLIC_*</code>, Git ou chat.</li>
 </ol>
 <pre><code class="language-dotenv">SUPABASE_URL=https://seu-projeto.supabase.co
 SUPABASE_SECRET_KEY=SUBSTITUIR_PELA_SECRET_KEY
